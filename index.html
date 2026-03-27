@@ -622,26 +622,39 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   font-size:12px; color:var(--t1); line-height:1.65;
   font-weight:400;
 }
-/* Items list — análisis por ítem */
-.ai-items-list {
-  display:flex; flex-direction:column; gap:0;
-  margin-bottom:10px;
+/* Análisis IA — secciones */
+.ai-section { margin-bottom:14px }
+.ai-section:last-child { margin-bottom:0 }
+.ai-section-label {
+  display:block; font-size:8px; font-weight:700; color:var(--t3);
+  text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;
 }
+.ai-section-label.gold { color:var(--gold) }
+.ai-section-txt {
+  font-size:12px; color:var(--t1); line-height:1.7; font-weight:400;
+}
+/* Items list */
+.ai-items-list { display:flex; flex-direction:column; gap:0 }
 .ai-item-row {
-  display:flex; align-items:baseline; gap:10px;
-  padding:5px 0; border-bottom:1px solid rgba(71,201,229,.06);
+  display:grid; grid-template-columns:130px 1fr; gap:10px; align-items:baseline;
+  padding:6px 0; border-bottom:1px solid rgba(71,201,229,.06);
 }
 .ai-item-row:last-child { border-bottom:none }
 .ai-item-label {
-  flex-shrink:0; min-width:110px; max-width:140px;
   font-size:10px; font-weight:600; color:var(--cyan);
-  letter-spacing:.3px; white-space:nowrap; overflow:hidden;
-  text-overflow:ellipsis;
+  letter-spacing:.2px; line-height:1.4;
 }
-.ai-item-detalle {
-  font-size:11px; color:rgba(232,232,232,.75); line-height:1.5;
+.ai-item-detalle { font-size:11px; color:rgba(232,232,232,.8); line-height:1.6 }
+/* Sugerencias */
+.ai-sug-list { display:flex; flex-direction:column; gap:6px }
+.ai-sug-row { display:flex; align-items:baseline; gap:10px }
+.ai-sug-num {
+  flex-shrink:0; width:18px; height:18px; border-radius:50%;
+  background:rgba(200,168,50,.15); border:1px solid rgba(200,168,50,.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; font-weight:700; color:var(--gold); line-height:1;
 }
-.ai-accion-row { display:flex; flex-direction:column; gap:3px; margin-top:6px }
+.ai-sug-txt { font-size:11px; color:var(--t1); line-height:1.6 }
 /* Shimmer skeleton while loading */
 .ai-box.loading .ai-box-body {
   padding:14px 16px; gap:8px;
@@ -2247,7 +2260,8 @@ function wrapLabel(str, maxLen=22) {
 ═══════════════════════════════════════════════ */
 const AI_SERVER = 'https://bi-olivercooks.onrender.com';
 
-function aiBoxHTML(items, accion) {
+function aiBoxHTML(parsed) {
+  const { resumen, items, tendencia, sugerencias } = parsed;
   const itemsHTML = Array.isArray(items) && items.length
     ? items.map(it => `
       <div class="ai-item-row">
@@ -2255,11 +2269,20 @@ function aiBoxHTML(items, accion) {
         <span class="ai-item-detalle">${it.detalle}</span>
       </div>`).join('')
     : '';
+  const sugHTML = Array.isArray(sugerencias) && sugerencias.length
+    ? sugerencias.map((s,i) => `
+      <div class="ai-sug-row">
+        <span class="ai-sug-num">${i+1}</span>
+        <span class="ai-sug-txt">${s}</span>
+      </div>`).join('')
+    : '';
   return `
     <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Analisis IA</span></div>
     <div class="ai-box-body">
-      ${itemsHTML ? `<div class="ai-items-list">${itemsHTML}</div>` : ''}
-      ${accion ? `<div class="ai-accion-row"><span class="ai-insight-key gold">Recomendacion</span><p class="ai-insight-val">${accion}</p></div>` : ''}
+      ${resumen ? `<div class="ai-section"><span class="ai-section-label">Resumen</span><p class="ai-section-txt">${resumen}</p></div>` : ''}
+      ${itemsHTML ? `<div class="ai-section"><span class="ai-section-label">Detalle por item</span><div class="ai-items-list">${itemsHTML}</div></div>` : ''}
+      ${tendencia ? `<div class="ai-section"><span class="ai-section-label">Tendencia</span><p class="ai-section-txt">${tendencia}</p></div>` : ''}
+      ${sugHTML ? `<div class="ai-section"><span class="ai-section-label gold">Sugerencias</span><div class="ai-sug-list">${sugHTML}</div></div>` : ''}
     </div>`;
 }
 
@@ -2274,17 +2297,15 @@ async function getAIInsight(id, prompt) {
     });
     if (!r.ok) throw new Error();
     const j = await r.json();
-    let items = [], accion = '';
+    let parsed = {};
     try {
       const raw = j.text.trim().replace(/^```json|^```|```$/g,'').trim();
-      const parsed = JSON.parse(raw);
-      items  = parsed.items  || [];
-      accion = parsed.accion || '';
+      parsed = JSON.parse(raw);
     } catch {
-      items = [{ label: '—', detalle: j.text }];
+      parsed = { resumen: j.text, items: [], tendencia: '', sugerencias: [] };
     }
     el.classList.remove('loading');
-    el.innerHTML = aiBoxHTML(items, accion);
+    el.innerHTML = aiBoxHTML(parsed);
   } catch {
     el.classList.remove('loading');
     el.innerHTML = `
