@@ -283,8 +283,7 @@ REGLAS:
 ============================================================ */
 app.get('/health', async (req, res) => {
   try {
-    await (await getPool()).request().query('SELECT 1');
-    res.json({ status: 'ok', server: DB_CONFIG.server, database: DB_CONFIG.database, time: new Date() });
+    res.json({ status: 'ok', time: new Date() });
   } catch (err) {
     res.status(503).json({ status: 'error', message: err.message });
   }
