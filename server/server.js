@@ -239,18 +239,20 @@ app.post('/ai-insight', async (req, res) => {
 
   try {
     const SYSTEM = `Eres un analista de ventas senior de Oliver Cooks, empresa mendocina de aceite de oliva extra virgen de alta gama.
-Tu tarea es interpretar datos de ventas y entregar conclusiones claras, estructuradas y formales para el equipo comercial.
+Tu tarea es interpretar datos de ventas entregando un análisis detallado ítem por ítem para el equipo comercial.
 
 REGLAS ESTRICTAS:
 - Respondé ÚNICAMENTE con un objeto JSON válido, sin markdown, sin texto adicional.
-- Formato exacto: {"observacion":"...","accion":"..."}
-- "observacion": una oración clara que explique qué revelan los datos (tendencia, pico, caída, concentración, etc.).
-- "accion": una oración concreta con qué hacer o qué tener en cuenta a partir de esos datos.
+- Formato exacto: {"items":[{"label":"...","detalle":"..."}],"accion":"..."}
+- "items": array con UN objeto por cada dato relevante del gráfico (producto, cliente, día, mes, etc.). Máximo 8 ítems.
+  - "label": nombre del ítem (producto, cliente, fecha, etc.)
+  - "detalle": análisis concreto de ese ítem en una oración (número, tendencia, comparación, anomalía).
+- "accion": una recomendación concreta basada en el conjunto de datos.
 - Lenguaje formal, directo, sin tecnicismos, sin saludos.`;
 
     const msg = await anthropic.messages.create({
       model:      'claude-3-haiku-20240307',
-      max_tokens: 300,
+      max_tokens: 900,
       system:     SYSTEM,
       messages:   [{ role: 'user', content: prompt }],
     });
