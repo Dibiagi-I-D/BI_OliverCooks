@@ -195,7 +195,7 @@ app.post('/human-query', async (req, res) => {
 
     // 2. Analizar los datos con Claude
     const answerMsg = await anthropic.messages.create({
-      model:      'claude-haiku-4-5-20251001',
+      model:      'claude-3-5-haiku-20241022',
       max_tokens: 900,
       system: `Sos un analista de ventas senior de Oliver Cooks (aceite de oliva extra virgen, Mendoza, Argentina).
 Recibís registros de ventas del sistema y respondés preguntas del equipo comercial de forma clara, estructurada y formal.
@@ -249,7 +249,7 @@ REGLAS ESTRICTAS:
 - Lenguaje formal, directo, sin tecnicismos, sin saludos.`;
 
     const msg = await anthropic.messages.create({
-      model:      'claude-haiku-4-5-20251001',
+      model:      'claude-3-5-haiku-20241022',
       max_tokens: 300,
       system:     SYSTEM,
       messages:   [{ role: 'user', content: prompt }],
