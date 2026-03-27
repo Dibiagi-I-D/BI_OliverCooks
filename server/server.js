@@ -47,13 +47,7 @@ const DB_CONFIG = {
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*').split(',');
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
-    else cb(new Error('CORS no permitido'));
-  }
-}));
+app.use(cors());
 app.use(express.json());
 
 let pool;
