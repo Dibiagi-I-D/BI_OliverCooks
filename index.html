@@ -1403,6 +1403,9 @@ function doLogout(){
    INIT
 ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
+  // Pre-ping al servidor IA para evitar cold start de Render
+  fetch(AI_SERVER + '/health').catch(()=>{});
+
   document.getElementById('inp-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
   document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pass').focus();});
   document.getElementById('btn-login').addEventListener('click',doLogin);
@@ -2370,7 +2373,7 @@ function renderAIInsights(stats, ltRows) {
       ++loaded;
       if (loaded === TOTAL) onReady();
     };
-    img.src = `${FOLDER}${n}.png`;
+    img.src = `${FOLDER}${n}.webp`;
     imgs[i] = img;
   }
 

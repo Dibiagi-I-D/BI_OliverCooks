@@ -1,0 +1,4 @@
+node_modules/
+.env
+assets/mejoradeimagen/*.png
+assets/ezgif-3745cb9aff385f00-jpg/*.jpg
