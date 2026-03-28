@@ -3111,7 +3111,7 @@ async function runAnomalyDetection(stats){
   const bar=document.getElementById('anomaly-bar');if(!bar)return;
   if(local.total===0){bar.classList.remove('active');return;}
   const top=local.anomalies[local.anomalies.length-1];
-  document.getElementById('anomaly-bar-text').textContent=local.total+' día'+(local.total>1?'s':'')+' con comportamiento inusual'+(top?' — último: '+fmtD(top.fecha)+' ('+(top.tipo==='pico'?'📈 pico':'📉 caída')+')')+'';
+  document.getElementById('anomaly-bar-text').textContent=local.total+' día'+(local.total>1?'s':'')+' con comportamiento inusual'+(top?' — último: '+fmtD(top.fecha)+' ('+(top.tipo==='pico'?'pico':'caída')+')':'');
   document.getElementById('anomaly-count-badge').textContent=local.total+' alerta'+(local.total>1?'s':'');
   bar.classList.add('active');
 }
