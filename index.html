@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════
    TOKENS — Oliver Cooks brand: black + #47c9e5 + gold
@@ -913,6 +915,123 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   #chat-panel { width:calc(100vw - 32px); right:16px; bottom:84px }
   #chat-fab { right:16px; bottom:16px }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ANOMALY BAR
+═══════════════════════════════════════════════════════════ */
+#anomaly-bar {
+  display:none; position:sticky; top:56px; z-index:890;
+  background:linear-gradient(135deg,rgba(224,82,82,.13),rgba(224,82,82,.05));
+  border-bottom:1px solid rgba(224,82,82,.28);
+  padding:8px 80px; cursor:pointer; transition:background .2s;
+}
+#anomaly-bar:hover { background:rgba(224,82,82,.2) }
+#anomaly-bar.active { display:flex }
+.abar-inner { display:flex;align-items:center;gap:10px;max-width:1400px;margin:0 auto;width:100% }
+.abar-icon { font-size:15px }
+.abar-text { flex:1;font-size:11.5px;color:rgba(255,255,255,.8) }
+.abar-badge { background:rgba(224,82,82,.55);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap }
+.abar-action { font-size:11px;color:var(--cyan);text-decoration:underline;white-space:nowrap }
+
+/* ═══════════════════════════════════════════════════════════
+   RFM SECTION
+═══════════════════════════════════════════════════════════ */
+.rfm-grid {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;
+}
+.rfm-card {
+  background:var(--ink3);border:1px solid var(--bdr);border-radius:10px;
+  padding:16px;display:flex;flex-direction:column;gap:6px;cursor:pointer;
+  transition:border-color .2s,transform .15s,box-shadow .2s;
+}
+.rfm-card:hover { border-color:var(--bdr2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3) }
+.rfm-card-icon { font-size:20px;line-height:1 }
+.rfm-card-name { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t2) }
+.rfm-card-count { font-size:28px;font-weight:800;line-height:1.1 }
+.rfm-card-sub { font-size:10.5px;color:var(--t3);line-height:1.4 }
+.rfm-card-money { font-size:11px;color:var(--t3);margin-top:2px }
+.rfm-card.champions .rfm-card-count { color:#7DB83A }
+.rfm-card.leales     .rfm-card-count { color:var(--cyan) }
+.rfm-card.potenciales .rfm-card-count { color:var(--gold) }
+.rfm-card.riesgo     .rfm-card-count { color:#e0a052 }
+.rfm-card.perdidos   .rfm-card-count { color:var(--red) }
+.rfm-card.nuevos     .rfm-card-count { color:#E8C84A }
+.rfm-card.otros      .rfm-card-count { color:var(--t2) }
+
+/* ═══════════════════════════════════════════════════════════
+   DRILL-DOWN MODAL
+═══════════════════════════════════════════════════════════ */
+#dd-modal {
+  display:none;position:fixed;inset:0;z-index:9990;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(5px);
+  align-items:center;justify-content:center;padding:20px;
+}
+#dd-modal.open { display:flex }
+.dd-panel {
+  background:var(--ink2);border:1px solid var(--bdr2);border-radius:14px;
+  max-width:580px;width:100%;max-height:82vh;overflow-y:auto;
+  animation:ddIn .22s ease;
+}
+@keyframes ddIn { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+.dd-header {
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:18px 22px 14px;border-bottom:1px solid var(--bdr);
+  position:sticky;top:0;background:var(--ink2);z-index:1;
+}
+.dd-title-wrap { display:flex;align-items:center;gap:10px }
+.dd-icon { font-size:22px;line-height:1 }
+.dd-title { font-size:14px;font-weight:700;color:var(--cyan) }
+.dd-subtitle { font-size:10.5px;color:var(--t3);margin-top:3px }
+.dd-close { background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:2px 4px;line-height:1;transition:color .15s }
+.dd-close:hover { color:var(--white) }
+.dd-body { padding:18px 22px 22px }
+.dd-kpis { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px }
+.dd-kpi { background:var(--ink3);border:1px solid var(--bdr);border-radius:8px;padding:10px;text-align:center }
+.dd-kpi-val { font-size:16px;font-weight:700;color:var(--cyan) }
+.dd-kpi-lbl { font-size:9.5px;color:var(--t3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px }
+.dd-loading { display:flex;align-items:center;gap:10px;color:var(--t3);font-size:12.5px }
+.dd-spinner-sm { width:16px;height:16px;border:2px solid rgba(71,201,229,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0 }
+.dd-answer { font-size:13px;line-height:1.75;color:var(--t1) }
+.dd-answer strong { color:var(--cyan) }
+.dd-hint { font-size:10px;color:var(--t3);margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr);font-style:italic }
+
+/* ═══════════════════════════════════════════════════════════
+   VOICE BUTTON
+═══════════════════════════════════════════════════════════ */
+#chat-voice {
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  background:var(--ink3);border:1px solid var(--bdr);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+#chat-voice:hover { border-color:var(--cyan);background:rgba(71,201,229,.08) }
+#chat-voice.listening {
+  background:rgba(224,82,82,.18);border-color:rgba(224,82,82,.6);
+  animation:pulse-mic .9s ease infinite;
+}
+#chat-voice svg { width:15px;height:15px;fill:var(--t2);transition:fill .15s }
+#chat-voice:hover svg { fill:var(--cyan) }
+#chat-voice.listening svg { fill:var(--red) }
+@keyframes pulse-mic {
+  0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.35)}
+  50%{box-shadow:0 0 0 7px rgba(224,82,82,0)}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXPORT BUTTONS
+═══════════════════════════════════════════════════════════ */
+.export-btn {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 13px;border-radius:7px;border:1px solid var(--bdr);
+  background:var(--ink3);color:var(--t3);font-size:10.5px;font-weight:600;
+  cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;
+  white-space:nowrap;font-family:inherit;
+}
+.export-btn:hover { border-color:var(--bdr2);color:var(--t1) }
+.export-btn.xlsx:hover { border-color:rgba(125,184,58,.45);color:#7DB83A }
+.export-btn.pdf:hover  { border-color:rgba(224,82,82,.45);color:var(--red) }
+.export-btn svg { width:13px;height:13px;flex-shrink:0 }
+.export-btn:disabled { opacity:.45;cursor:default }
+.export-btns-row { display:flex;gap:8px;flex-wrap:wrap }
 </style>
 </head>
 <body>
@@ -1002,6 +1121,16 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
       <div class="nb-dot"></div>
     </div>
   </nav>
+
+  <!-- ══ ANOMALY NOTIFICATION BAR ══ -->
+  <div id="anomaly-bar" onclick="openAnomalyModal()">
+    <div class="abar-inner">
+      <span class="abar-icon">⚡</span>
+      <span class="abar-text" id="anomaly-bar-text">Se detectaron comportamientos inusuales en el período seleccionado</span>
+      <span class="abar-badge" id="anomaly-count-badge">—</span>
+      <span class="abar-action">Ver análisis IA →</span>
+    </div>
+  </div>
 
   <!-- PERIOD CONTEXT BAR — fija, siempre visible cuando hay datos -->
   <div id="period-ctx-bar">
@@ -1357,6 +1486,23 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     </div>
   </section>
 
+  <!-- ══ SEGMENTACIÓN RFM ══ -->
+  <div id="rfm-section" class="reveal" style="max-width:1400px;margin:0 auto;padding:32px 40px;border-left:none;border-right:none;border-bottom:1px solid var(--bdr)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--cyan);margin-bottom:6px">Inteligencia de Clientes</div>
+        <div style="font-size:20px;font-weight:700;color:var(--t1)">Segmentación RFM</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:4px" id="rfm-sub">Clasificación por Recencia · Frecuencia · Monto — hacé click en un segmento para analizarlo</div>
+      </div>
+      <button class="export-btn" onclick="runRFMAnalysis()" id="rfm-ai-btn" style="margin-top:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Analizar con IA
+      </button>
+    </div>
+    <div class="rfm-grid" id="rfm-cards"></div>
+    <div id="rfm-ai-result" style="display:none;margin-top:20px"></div>
+  </div>
+
   <!-- ═══════ DETALLE ═══════ -->
   <section id="sec-detalle" style="padding-bottom:0">
     <div class="section-wrap reveal">
@@ -1367,7 +1513,19 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="table-shell reveal" style="max-width:1400px;margin:0 auto;border-left:none;border-right:none">
       <div class="table-topbar">
         <div><div class="table-title">Registro de Ventas</div><div class="table-sub" id="tbl-count">—</div></div>
-        <input class="search-input" id="tbl-search" placeholder="Buscar cliente, producto, N° factura..." oninput="filterTable(this.value)">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <input class="search-input" id="tbl-search" placeholder="Buscar cliente, producto, N° factura..." oninput="filterTable(this.value)">
+          <div class="export-btns-row">
+            <button class="export-btn xlsx" onclick="exportExcel()" title="Descargar Excel con todos los datos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Excel
+            </button>
+            <button class="export-btn pdf" onclick="generatePDF(event)" title="Generar reporte PDF ejecutivo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              PDF
+            </button>
+          </div>
+        </div>
       </div>
       <div class="tw">
         <table><thead><tr>
@@ -1387,6 +1545,31 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="footer-brand">Oliver <em>Cooks</em> — Panel de Ventas</div>
     <div class="footer-copy" id="footer-upd">—</div>
   </footer>
+
+  <!-- ══ DRILL-DOWN MODAL ══ -->
+  <div id="dd-modal">
+    <div class="dd-panel">
+      <div class="dd-header">
+        <div class="dd-title-wrap">
+          <span class="dd-icon">🔍</span>
+          <div>
+            <div class="dd-title" id="dd-modal-title">Analizando...</div>
+            <div class="dd-subtitle" id="dd-modal-subtitle">Análisis profundo con IA</div>
+          </div>
+        </div>
+        <button class="dd-close" onclick="closeDrillDown()">✕</button>
+      </div>
+      <div class="dd-body">
+        <div class="dd-kpis" id="dd-kpis"></div>
+        <div class="dd-loading" id="dd-loading">
+          <div class="dd-spinner-sm"></div>
+          <span>Analizando con IA...</span>
+        </div>
+        <div class="dd-answer" id="dd-answer" style="display:none"></div>
+        <div class="dd-hint" id="dd-hint" style="display:none">Hacé click en cualquier punto de los gráficos de ventas diarias o mensuales para obtener un análisis detallado.</div>
+      </div>
+    </div>
+  </div>
 
 </div><!-- /pg-dash -->
 
@@ -1460,6 +1643,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Reveal on scroll
   initReveal();
+  // Voice
+  setTimeout(initVoice, 800);
 });
 
 function updateProgress(){
@@ -1525,6 +1710,9 @@ async function loadDashboard(){
     renderLitrosSection(allData);
     updateMeta(allData,s,e);
     renderAIInsights(stats, ltDataFull);
+    renderRFMSection(allData);
+    runAnomalyDetection(stats);
+    addChartClickListeners();
     showLoad(false);
     initReveal();
   }catch(err){
@@ -2547,6 +2735,9 @@ function renderAIInsights(stats, ltRows) {
       <textarea id="chat-input" rows="1" placeholder="Escribí tu pregunta..." disabled
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"
         oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button id="chat-voice" onclick="toggleVoice()" title="Hablar (voz)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm0 2a2 2 0 0 1 2 2v7a2 2 0 0 1-4 0V5a2 2 0 0 1 2-2z"/><path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.93V21H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-3.07A7 7 0 0 0 19 11z"/></svg>
+      </button>
       <button id="chat-send" onclick="chatSend()" disabled>
         <svg viewBox="0 0 24 24"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
@@ -2851,6 +3042,271 @@ function chatFormatAnswer(text) {
   // Saltos de línea dobles → párrafo
   html = html.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
   return html;
+}
+
+/* ═══ RFM ═══ */
+function computeRFM(data){
+  const today=new Date(),cm=new Map();
+  data.forEach(r=>{
+    const cl=(r.NombreCliente||'Sin nombre').trim();
+    if(!cm.has(cl))cm.set(cl,{nombre:cl,total:0,facts:new Set(),lastDate:null});
+    const m=cm.get(cl);m.total+=parseFloat(r.TotalLinea)||0;m.facts.add(String(r.NumeroFormulario||''));
+    const fd=r.FechaMovimiento?new Date(r.FechaMovimiento):null;
+    if(fd&&(!m.lastDate||fd>m.lastDate))m.lastDate=fd;
+  });
+  const clients=[...cm.values()].map(c=>({nombre:c.nombre,total:c.total,frecuencia:c.facts.size,diasDesde:c.lastDate?Math.round((today-c.lastDate)/86400000):999}));
+  if(!clients.length)return{segments:{champions:[],leales:[],potenciales:[],riesgo:[],perdidos:[],nuevos:[],otros:[]},clients:[]};
+  const sc=(val,arr,hi)=>{const s=[...arr].sort((a,b)=>a-b);const p=s.filter(v=>v<=val).length/s.length;const r=Math.max(1,Math.ceil(p*5));return hi?r:6-r;};
+  const tots=clients.map(c=>c.total),frs=clients.map(c=>c.frecuencia),dys=clients.map(c=>c.diasDesde);
+  const scored=clients.map(c=>({...c,R:sc(c.diasDesde,dys,false),F:sc(c.frecuencia,frs,true),M:sc(c.total,tots,true)}));
+  const cat=c=>{if(c.R>=4&&c.F>=4&&c.M>=4)return'champions';if(c.F>=4&&c.M>=3)return'leales';if(c.R>=4&&c.F<=2)return'potenciales';if(c.R<=2&&c.F>=3)return'riesgo';if(c.R<=2&&c.M<=2)return'perdidos';if(c.F===1&&c.R>=3)return'nuevos';return'otros';};
+  const segs={champions:[],leales:[],potenciales:[],riesgo:[],perdidos:[],nuevos:[],otros:[]};
+  scored.forEach(c=>{c.segmento=cat(c);segs[c.segmento].push(c);});
+  return{segments:segs,clients:scored};
+}
+const RFM_CFG={champions:{icon:'🏆',label:'Champions',color:'#7DB83A',sub:'Alto valor, frecuentes y recientes'},leales:{icon:'💎',label:'Leales',color:'#47c9e5',sub:'Alta frecuencia y monto sostenido'},potenciales:{icon:'🌱',label:'Potenciales',color:'#C8A832',sub:'Compras recientes, pueden crecer'},riesgo:{icon:'⚠️',label:'En Riesgo',color:'#e0a052',sub:'Compraban bien pero frenaron'},perdidos:{icon:'❌',label:'Perdidos',color:'#e05252',sub:'Sin actividad y bajo historial'},nuevos:{icon:'✨',label:'Nuevos',color:'#E8C84A',sub:'Primera o segunda compra reciente'},otros:{icon:'📊',label:'Regulares',color:'#888',sub:'Comportamiento promedio'}};
+function renderRFMCards(rfmResult){
+  const el=document.getElementById('rfm-cards');if(!el)return;
+  el.innerHTML=Object.entries(rfmResult.segments).filter(([,cs])=>cs.length>0).map(([key,cs])=>{
+    const cfg=RFM_CFG[key],tot=cs.reduce((s,c)=>s+c.total,0);
+    return`<div class="rfm-card ${key}" onclick="showRFMDetail('${key}')"><div class="rfm-card-icon">${cfg.icon}</div><div class="rfm-card-name" style="color:${cfg.color}">${cfg.label}</div><div class="rfm-card-count" style="color:${cfg.color}">${cs.length}</div><div class="rfm-card-sub">${cfg.sub}</div><div class="rfm-card-money">$${shortN(tot)} facturado</div></div>`;
+  }).join('');
+  const tot=Object.values(rfmResult.segments).reduce((s,a)=>s+a.length,0);
+  document.getElementById('rfm-sub').textContent=`${tot} clientes clasificados — hacé click en un segmento para analizarlo con IA`;
+}
+let rfmData=null;
+function renderRFMSection(data){rfmData=computeRFM(data);renderRFMCards(rfmData);}
+async function runRFMAnalysis(){
+  if(!rfmData)return;
+  const btn=document.getElementById('rfm-ai-btn'),result=document.getElementById('rfm-ai-result');
+  btn.textContent='Analizando…';btn.disabled=true;result.style.display='block';
+  result.innerHTML='<div class="ai-box loading"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA — Segmentación RFM</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>';
+  const segs=Object.entries(rfmData.segments).map(([key,cs])=>({segmento:RFM_CFG[key].label,cantidad:cs.length,total_facturado:cs.reduce((s,c)=>s+c.total,0).toFixed(0),top3:cs.slice(0,3).map(c=>c.nombre).join(', '),dias_prom:cs.length?Math.round(cs.reduce((s,c)=>s+c.diasDesde,0)/cs.length):0}));
+  try{
+    const r=await fetch(AI_SERVER+'/rfm-analysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({segments:segs}),signal:AbortSignal.timeout(40000)});
+    const j=await r.json();let p={};
+    try{const raw=j.text.trim().replace(/^```json|^```|```$/g,'').trim();p=JSON.parse(raw);}catch{p={resumen:j.text,acciones:[],alerta:'',oportunidad:''};}
+    result.innerHTML='<div class="ai-box"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA — Segmentación RFM</span></div><div class="ai-box-body">'+(p.alerta?'<div class="ai-section"><span class="ai-section-label" style="color:var(--red)">⚡ Alerta</span><p class="ai-section-txt" style="color:rgba(224,82,82,.9)">'+p.alerta+'</p></div>':'')+(p.resumen?'<div class="ai-section"><span class="ai-section-label">Diagnóstico</span><p class="ai-section-txt">'+p.resumen+'</p></div>':'')+(p.acciones?.length?'<div class="ai-section"><span class="ai-section-label gold">Plan de Acción</span><div class="ai-sug-list">'+p.acciones.map((a,i)=>'<div class="ai-sug-row"><span class="ai-sug-num">'+(i+1)+'</span><span class="ai-sug-txt"><strong>'+a.segmento+'</strong> ('+a.clientes+' clientes): '+a.accion+'</span></div>').join('')+'</div></div>':'')+(p.oportunidad?'<div class="ai-section"><span class="ai-section-label">Mayor Oportunidad</span><p class="ai-section-txt" style="color:var(--gold2)">'+p.oportunidad+'</p></div>':'')+'</div></div>';
+  }catch{result.innerHTML='<p style="color:var(--t3);font-size:12px;padding:12px">No se pudo conectar al servidor.</p>';}
+  finally{btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Analizar con IA';btn.disabled=false;}
+}
+function showRFMDetail(seg){
+  if(!rfmData)return;const cs=rfmData.segments[seg],cfg=RFM_CFG[seg];if(!cs?.length)return;
+  openDrillDown('segmento_rfm',cfg.label+' — '+cs.length+' clientes',{segmento:cfg.label,descripcion:cfg.sub,clientes:cs.length,total_facturado:cs.reduce((s,c)=>s+c.total,0).toFixed(0),top_clientes:cs.slice(0,6).map(c=>c.nombre+': $'+fmt(c.total)+', '+c.frecuencia+' fac., '+c.diasDesde+'d').join(' | '),dias_promedio_sin_comprar:Math.round(cs.reduce((s,c)=>s+c.diasDesde,0)/cs.length)});
+}
+
+/* ═══ ANOMALÍAS ═══ */
+let anomalyData=null;
+function detectAnomaliesLocal(stats){
+  const vals=stats.diasOrd.map(([,v])=>v);
+  if(vals.length<7)return{anomalies:[],mean:0,stddev:0,total:0};
+  const mean=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const stddev=Math.sqrt(vals.map(v=>Math.pow(v-mean,2)).reduce((a,b)=>a+b,0)/vals.length);
+  const anomalies=[];
+  stats.diasOrd.forEach(([d,v])=>{const z=stddev>0?(v-mean)/stddev:0;if(Math.abs(z)>=1.9)anomalies.push({fecha:d,valor:v,z:z.toFixed(1),tipo:z>0?'pico':'caida'});});
+  return{anomalies:anomalies.slice(-6),mean,stddev,total:anomalies.length};
+}
+async function runAnomalyDetection(stats){
+  const local=detectAnomaliesLocal(stats);anomalyData=local;
+  const bar=document.getElementById('anomaly-bar');if(!bar)return;
+  if(local.total===0){bar.classList.remove('active');return;}
+  const top=local.anomalies[local.anomalies.length-1];
+  document.getElementById('anomaly-bar-text').textContent=local.total+' día'+(local.total>1?'s':'')+' con comportamiento inusual'+(top?' — último: '+fmtD(top.fecha)+' ('+(top.tipo==='pico'?'📈 pico':'📉 caída')+')')+'';
+  document.getElementById('anomaly-count-badge').textContent=local.total+' alerta'+(local.total>1?'s':'');
+  bar.classList.add('active');
+}
+async function openAnomalyModal(){
+  if(!anomalyData)return;
+  const s=processData(allData);
+  openDrillDown('anomalias_ventas',anomalyData.total+' días con comportamiento inusual',{dias_anomalos:anomalyData.anomalies.map(a=>({fecha:fmtD(a.fecha),valor:'$'+Math.round(a.valor).toLocaleString('es-AR'),tipo:a.tipo,desvios:a.z})),promedio_diario:'$'+Math.round(anomalyData.mean).toLocaleString('es-AR'),desvio_estandar:'$'+Math.round(anomalyData.stddev).toLocaleString('es-AR'),periodo:document.getElementById('dt-start').value+' al '+document.getElementById('dt-end').value});
+}
+
+/* ═══ DRILL-DOWN MODAL ═══ */
+function openDrillDown(tipo,valor,contexto){
+  const modal=document.getElementById('dd-modal');modal.classList.add('open');
+  document.getElementById('dd-modal-title').textContent=valor;
+  document.getElementById('dd-modal-subtitle').textContent=({dia_venta:'Análisis detallado del día',mes_venta:'Análisis del mes',anomalias_ventas:'Detección de anomalías IA',segmento_rfm:'Análisis de segmento RFM'})[tipo]||'Análisis profundo con IA';
+  document.getElementById('dd-loading').style.display='flex';
+  document.getElementById('dd-answer').style.display='none';
+  document.getElementById('dd-hint').style.display='none';
+  const kv=[];
+  if(contexto.valor_total)kv.push({v:'$'+shortN(contexto.valor_total),l:'Total'});
+  if(contexto.clientes)kv.push({v:contexto.clientes,l:'Clientes'});
+  if(contexto.total_facturado)kv.push({v:'$'+shortN(+contexto.total_facturado),l:'Facturado'});
+  if(contexto.dias_anomalos)kv.push({v:contexto.dias_anomalos.length,l:'Días inusuales'});
+  if(contexto.promedio_diario)kv.push({v:contexto.promedio_diario,l:'Prom. diario'});
+  if(contexto.facturas)kv.push({v:contexto.facturas,l:'Facturas'});
+  document.getElementById('dd-kpis').innerHTML=kv.slice(0,3).map(k=>'<div class="dd-kpi"><div class="dd-kpi-val">'+k.v+'</div><div class="dd-kpi-lbl">'+k.l+'</div></div>').join('');
+  callDrillDown(tipo,valor,contexto);
+}
+async function callDrillDown(tipo,valor,contexto){
+  try{
+    const r=await fetch(AI_SERVER+'/drill-down',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,valor,contexto}),signal:AbortSignal.timeout(40000)});
+    const j=await r.json();
+    document.getElementById('dd-loading').style.display='none';
+    const ans=document.getElementById('dd-answer');ans.style.display='block';
+    ans.innerHTML=chatFormatAnswer(j.text||'No se pudo obtener análisis.');
+    document.getElementById('dd-hint').style.display='block';
+  }catch{
+    document.getElementById('dd-loading').style.display='none';
+    const ans=document.getElementById('dd-answer');ans.style.display='block';
+    ans.innerHTML='<span style="color:var(--t3)">No se pudo conectar al servidor. Verificá que esté activo con <code style="color:var(--cyan)">npm start</code>.</span>';
+  }
+}
+function closeDrillDown(){document.getElementById('dd-modal').classList.remove('open');}
+document.getElementById('dd-modal').addEventListener('click',function(e){if(e.target===this)closeDrillDown();});
+
+/* ═══ CLICK EN GRÁFICOS → DRILL DOWN ═══ */
+function addChartClickListeners(){
+  const lineaEl=document.getElementById('ch-linea');
+  if(lineaEl){lineaEl.style.cursor='pointer';lineaEl.onclick=function(evt){
+    if(!charts['linea'])return;
+    const pts=charts['linea'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+    if(!pts.length)return;
+    const idx=pts[0].index,s=processData(allData);
+    const[fecha,valor]=s.diasOrd[idx]||[];if(!fecha)return;
+    const dayData=allData.filter(r=>r.FechaMovimiento&&r.FechaMovimiento.startsWith(fecha));
+    const topP=[...new Map(dayData.map(r=>[prodName(r),(parseFloat(r.TotalLinea)||0)])).entries()].sort((a,b)=>b[1]-a[1]).slice(0,4).map(([n,v])=>n+': $'+Math.round(v).toLocaleString('es-AR')).join(' | ');
+    const clsU=[...new Set(dayData.map(r=>(r.NombreCliente||'').trim()))];
+    openDrillDown('dia_venta','Ventas del '+fmtD(fecha),{fecha:fmtD(fecha),valor_total:Math.round(valor),clientes:clsU.length,top_clientes:clsU.slice(0,4).join(', '),top_productos:topP,media_movil:'$'+Math.round(s.movil[idx]||0).toLocaleString('es-AR'),vs_promedio:valor>(s.total/s.diasOrd.length)?'por encima del promedio':'por debajo del promedio'});
+  };}
+  const mensualEl=document.getElementById('ch-mensual');
+  if(mensualEl){mensualEl.style.cursor='pointer';mensualEl.onclick=function(evt){
+    if(!charts['mensual'])return;
+    const pts=charts['mensual'].getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+    if(!pts.length)return;
+    const idx=pts[0].index,s=processData(allData);
+    const[ym,valor]=s.meses[idx]||[];if(!ym)return;
+    const[y,mo]=ym.split('-'),mnL=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const mesLabel=mnL[+mo-1]+' '+y;
+    const mesData=allData.filter(r=>r.FechaMovimiento&&r.FechaMovimiento.startsWith(ym));
+    const topP=[...new Map(mesData.map(r=>[prodName(r),(parseFloat(r.TotalLinea)||0)])).entries()].sort((a,b)=>b[1]-a[1]).slice(0,4).map(([n])=>n).join(', ');
+    openDrillDown('mes_venta','Ventas de '+mesLabel,{mes:mesLabel,valor_total:Math.round(valor),clientes:[...new Set(mesData.map(r=>(r.NombreCliente||'').trim()))].length,facturas:[...new Set(mesData.map(r=>String(r.NumeroFormulario||'')))].length,top_productos:topP,promedio_diario:'$'+Math.round(valor/new Date(+y,+mo,0).getDate()).toLocaleString('es-AR')});
+  };}
+}
+
+/* ═══ VOICE INTERFACE ═══ */
+let voiceRec=null,voiceActive=false;
+function initVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById('chat-voice');
+  if(!SR){if(btn)btn.style.display='none';return;}
+  voiceRec=new SR();voiceRec.lang='es-AR';voiceRec.continuous=false;voiceRec.interimResults=false;
+  voiceRec.onresult=function(e){
+    const text=e.results[0][0].transcript;
+    const inp=document.getElementById('chat-input');
+    if(inp){inp.value=text;inp.style.height='auto';inp.style.height=inp.scrollHeight+'px';}
+    stopVoice();if(chatPeriod)setTimeout(()=>chatSend(),300);
+  };
+  voiceRec.onerror=()=>stopVoice();voiceRec.onend=()=>stopVoice();
+}
+function toggleVoice(){voiceActive?stopVoice():startVoice();}
+function startVoice(){
+  if(!voiceRec){initVoice();if(!voiceRec){alert('Tu navegador no soporta voz. Usá Chrome.');return;}}
+  if(!chatPeriod){
+    if(!chatOpen){chatOpen=true;document.getElementById('chat-panel').classList.add('open');if(!chatInitialized){chatInitialized=true;chatInit();}}
+    chatAppendBot('Primero seleccioná un período para usar la voz 🎙️');return;
+  }
+  voiceActive=true;document.getElementById('chat-voice')?.classList.add('listening');
+  try{voiceRec.start();}catch(e){stopVoice();}
+}
+function stopVoice(){
+  voiceActive=false;document.getElementById('chat-voice')?.classList.remove('listening');
+  try{voiceRec?.stop();}catch(e){}
+}
+
+/* ═══ EXCEL EXPORT ═══ */
+function exportExcel(){
+  if(!allData?.length){alert('No hay datos para exportar.');return;}
+  const s=processData(allData),sd=document.getElementById('dt-start').value,ed=document.getElementById('dt-end').value;
+  const wb=XLSX.utils.book_new();
+  // Resumen
+  const wsR=XLSX.utils.aoa_to_sheet([['Oliver Cooks — Reporte de Ventas'],['Período',fmtD(sd)+' al '+fmtD(ed)],['Generado',new Date().toLocaleString('es-AR')],[],['INDICADORES'],['Total Vendido (ARS)',s.total],['Facturas',s.nFacts],['Clientes',s.nCl],['Productos Distintos',s.nPr],['Ticket Promedio (ARS)',s.prom],[],['TOP 10 CLIENTES'],['Cliente','Total ARS'],...s.topCl.map(([n,v])=>[n,v]),[],['TOP 10 PRODUCTOS'],['Producto','Total ARS'],...s.topPr.map(([n,v])=>[n,v])]);
+  wsR['!cols']=[{wch:40},{wch:22}];XLSX.utils.book_append_sheet(wb,wsR,'Resumen');
+  // Detalle completo — todas las columnas del ERP
+  const dH=['Fecha','N° Factura','Empresa','Cliente','Producto','Código Producto','Cantidad','Precio Unitario','Total Línea','Depósito','Sector','Sucursal','Usuario','Módulo','N° Cuenta','N° Subcuenta','Fecha Alta','Último Proceso','Precio Secundario','Cambio Secundario','Observaciones'];
+  const dR=allData.map(r=>[r.FechaMovimiento?fmtD(r.FechaMovimiento.split('T')[0]):'—',r.NumeroFormulario||'—',r.CodigoEmpresa||'—',(r.NombreCliente||'—').trim(),prodName(r),r.CodigoProducto||'—',parseFloat(r.Cantidad)||0,parseFloat(r.Precio)||0,parseFloat(r.TotalLinea)||0,(r.NombreDeposito||r.CodigoDeposito||'—').trim(),(r.NombreSector||r.CodigoSector||'—').trim(),r.Sucursal||'—',r.NombreUsuario||'—',r.ModuloFormulario||'—',r.NumeroCuenta||'—',r.NumeroSubcuenta||'—',r.FechaAlta?fmtD(String(r.FechaAlta).split('T')[0]):'—',r.UltimoProceso||'—',parseFloat(r.PrecioSecundario)||0,parseFloat(r.CambioSecundario)||0,r.ObservacionesItem||'—']);
+  const wsD=XLSX.utils.aoa_to_sheet([dH,...dR]);
+  wsD['!cols']=[{wch:12},{wch:14},{wch:8},{wch:38},{wch:45},{wch:12},{wch:10},{wch:15},{wch:16},{wch:22},{wch:20},{wch:10},{wch:16},{wch:10},{wch:14},{wch:14},{wch:12},{wch:16},{wch:15},{wch:14},{wch:28}];
+  XLSX.utils.book_append_sheet(wb,wsD,'Detalle Ventas');
+  // Clientes
+  const wsCl=XLSX.utils.aoa_to_sheet([['#','Cliente','Facturas','Unidades','Total Comprado (ARS)','Ticket Prom. (ARS)'],...cData.map((r,i)=>[i+1,r.nombre,r.facts,r.units,r.total,r.prom])]);
+  wsCl['!cols']=[{wch:5},{wch:42},{wch:12},{wch:12},{wch:22},{wch:20}];XLSX.utils.book_append_sheet(wb,wsCl,'Clientes');
+  // Productos
+  const wsPr=XLSX.utils.aoa_to_sheet([['#','Producto','Código','Clientes','Facturas','Unidades','Precio Prom. (ARS)','Total Vendido (ARS)'],...pData.map((r,i)=>[i+1,r.nombre,r.codigo,r.cls,r.facts,r.units,r.prom,r.total])]);
+  wsPr['!cols']=[{wch:5},{wch:48},{wch:12},{wch:10},{wch:10},{wch:12},{wch:20},{wch:22}];XLSX.utils.book_append_sheet(wb,wsPr,'Productos');
+  // Por Litro
+  if(ltDataFull?.length){
+    const tLit=ltDataFull.filter(r=>r.litros>0).reduce((s,r)=>s+r.litros,0);
+    const wsLt=XLSX.utils.aoa_to_sheet([['#','Producto','Envase','Unidades','Total Litros','Precio Unit. (ARS)','$/Litro (ARS)','Total Facturado (ARS)','% del Volumen'],...ltDataFull.map((r,i)=>[i+1,r.nombre,labelEnvase(r.envase),r.unidades,r.litros>0?+r.litros.toFixed(2):'—',r.precioPromUnit?+r.precioPromUnit.toFixed(2):'—',r.precioPorLitro?+r.precioPorLitro.toFixed(2):'—',+r.totalFacturado.toFixed(2),r.litros>0&&tLit>0?(r.litros/tLit*100).toFixed(1)+'%':'—'])]);
+    wsLt['!cols']=[{wch:5},{wch:48},{wch:10},{wch:10},{wch:14},{wch:20},{wch:18},{wch:24},{wch:14}];XLSX.utils.book_append_sheet(wb,wsLt,'Por Litro');
+  }
+  // Ventas por Día
+  const wsDia=XLSX.utils.aoa_to_sheet([['Fecha','Total (ARS)'],...s.diasOrd.map(([d,v])=>[fmtD(d),v])]);
+  wsDia['!cols']=[{wch:12},{wch:20}];XLSX.utils.book_append_sheet(wb,wsDia,'Ventas por Día');
+  // Ventas por Mes
+  const mn2=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const wsMes=XLSX.utils.aoa_to_sheet([['Mes','Total (ARS)'],...s.meses.map(([ym,v])=>{const[y,m]=ym.split('-');return[mn2[+m-1]+' '+y,v];})]);
+  wsMes['!cols']=[{wch:14},{wch:20}];XLSX.utils.book_append_sheet(wb,wsMes,'Ventas por Mes');
+  XLSX.writeFile(wb,'OliverCooks_'+sd+'_'+ed+'.xlsx');
+}
+
+/* ═══ PDF REPORT ═══ */
+async function generatePDF(ev){
+  if(!allData?.length){alert('No hay datos para exportar.');return;}
+  const btn=ev?.currentTarget||ev?.target;const orig=btn?.innerHTML||'';
+  if(btn){btn.innerHTML='Generando…';btn.disabled=true;}
+  try{
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+    const s=processData(allData),sd=document.getElementById('dt-start').value,ed=document.getElementById('dt-end').value;
+    const addHdr=(title)=>{
+      doc.setFillColor(8,8,8);doc.rect(0,0,W,H,'F');
+      doc.setFillColor(71,201,229);doc.rect(0,0,W,16,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(8,8,8);doc.text(title,W/2,10,{align:'center'});
+      doc.setFillColor(14,14,14);doc.rect(0,16,W,9,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,100,100);
+      doc.text('Oliver Cooks  ·  Período: '+fmtD(sd)+' → '+fmtD(ed)+'  ·  '+new Date().toLocaleDateString('es-AR'),W/2,21.5,{align:'center'});
+    };
+    // Pág 1: KPIs + Rankings
+    addHdr('REPORTE DE VENTAS — OLIVER COOKS');
+    let y=34;
+    const kpis=[{l:'TOTAL VENDIDO',v:'$'+fmt(s.total)},{l:'FACTURAS',v:s.nFacts.toLocaleString('es-AR')},{l:'CLIENTES',v:s.nCl.toLocaleString('es-AR')},{l:'TICKET PROM.',v:'$'+fmt(s.prom)}];
+    const kw=(W-40)/4;
+    kpis.forEach((k,i)=>{const x=20+i*kw;doc.setFillColor(22,22,22);doc.roundedRect(x,y,kw-4,22,2,2,'F');doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90,90,90);doc.text(k.l,x+(kw-4)/2,y+8,{align:'center'});doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(71,201,229);doc.text(k.v,x+(kw-4)/2,y+18,{align:'center'});});
+    y+=30;
+    const drawRank=(title,items)=>{
+      if(y+items.length*7+14>H-10){doc.addPage();addHdr('REPORTE — OLIVER COOKS');y=34;}
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(71,201,229);doc.text(title,20,y);y+=5;
+      items.forEach(([nombre,val],i)=>{doc.setFillColor(i%2===0?22:16,i%2===0?22:16,i%2===0?22:16);doc.rect(20,y-3.5,W-40,7,'F');doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(200,200,200);doc.text((i+1)+'. '+trunc(nombre,52),24,y+1);doc.setTextColor(200,168,50);doc.text('$'+fmt(val),W-22,y+1,{align:'right'});y+=7;});y+=5;
+    };
+    drawRank('TOP 10 CLIENTES',s.topCl.slice(0,10));
+    drawRank('TOP 10 PRODUCTOS',s.topPr.slice(0,10));
+    // Pág 2: Gráficos
+    doc.addPage();addHdr('GRÁFICOS DE VENTAS');y=28;
+    const cw=(W-48)/2,ch=55;
+    for(const[a,b]of[['linea','mensual'],['semana','movil']]){
+      for(const[ci,id]of[[0,a],[1,b]]){if(charts[id]){try{doc.addImage(charts[id].toBase64Image('image/png',1),'PNG',20+ci*(cw+8),y,cw,ch);}catch(e){}}}
+      y+=ch+8;
+    }
+    // Pág 3: Ventas mensuales
+    doc.addPage();addHdr('VENTAS MENSUALES');y=34;
+    const mn3=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(80,80,80);doc.text('MES',24,y);doc.text('TOTAL FACTURADO (ARS)',W-22,y,{align:'right'});y+=5;
+    doc.setDrawColor(35,35,35);doc.line(20,y,W-20,y);y+=4;
+    s.meses.forEach(([ym,v],i)=>{
+      const[yr,mo]=ym.split('-');
+      doc.setFillColor(i%2===0?20:15,i%2===0?20:15,i%2===0?20:15);doc.rect(20,y-3.5,W-40,7,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(200,200,200);doc.text(mn3[+mo-1]+' '+yr,24,y+1);
+      doc.setTextColor(200,168,50);doc.text('$'+fmt(v),W-22,y+1,{align:'right'});y+=7;
+      if(y>H-15){doc.addPage();addHdr('VENTAS MENSUALES (cont.)');y=34;}
+    });
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(40,40,40);
+    doc.text('Oliver Cooks — Panel de Inteligencia de Negocios — Generado automáticamente',W/2,H-8,{align:'center'});
+    doc.save('OliverCooks_Reporte_'+sd+'_'+ed+'.pdf');
+  }catch(err){console.error('PDF error:',err);alert('Error al generar PDF: '+err.message);}
+  finally{if(btn){btn.innerHTML=orig;btn.disabled=false;}}
 }
 </script>
 </body>

@@ -290,6 +290,71 @@ app.get('/health', async (req, res) => {
 });
 
 /* ============================================================
+   POST /rfm-analysis — Segmentación de clientes con Claude
+============================================================ */
+app.post('/rfm-analysis', async (req, res) => {
+  const { segments } = req.body;
+  if (!segments) return res.status(400).json({ error: 'Falta segments' });
+  try {
+    const msg = await anthropic.messages.create({
+      model:      'claude-3-haiku-20240307',
+      max_tokens: 1000,
+      system: `Sos analista de ventas senior de Oliver Cooks (aceite de oliva extra virgen, Mendoza, Argentina). Analizás segmentación RFM de clientes y generás estrategias accionables para cada segmento.
+Respondé ÚNICAMENTE con JSON válido sin markdown:
+{"resumen":"Diagnóstico de 2-3 oraciones sobre la salud general de la cartera","acciones":[{"segmento":"nombre","clientes":N,"accion":"Acción concreta y específica para Oliver Cooks"}],"alerta":"Urgencia si existe (ej: muchos clientes en riesgo), sino string vacío","oportunidad":"Mayor oportunidad de crecimiento detectada en la cartera"}`,
+      messages: [{ role: 'user', content: `Segmentación RFM Oliver Cooks:\n${JSON.stringify(segments, null, 2)}` }],
+    });
+    res.json({ text: msg.content[0]?.text ?? '' });
+  } catch (err) {
+    console.error('❌ RFM:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================================================
+   POST /anomaly-detection — Detección de anomalías con Claude
+============================================================ */
+app.post('/anomaly-detection', async (req, res) => {
+  const { data } = req.body;
+  if (!data) return res.status(400).json({ error: 'Falta data' });
+  try {
+    const msg = await anthropic.messages.create({
+      model:      'claude-3-haiku-20240307',
+      max_tokens: 700,
+      system: `Sos analista de ventas de Oliver Cooks. Detectás anomalías en datos de ventas diarias y explicás qué pudo haberlas causado.
+Respondé ÚNICAMENTE con JSON válido sin markdown:
+{"anomalias":[{"tipo":"pico|caida|patron","descripcion":"Descripción breve y clara","severidad":"alta|media|baja","sugerencia":"Qué hacer al respecto"}],"hay_alertas":true}
+Si no hay anomalías significativas: {"anomalias":[],"hay_alertas":false}`,
+      messages: [{ role: 'user', content: `Datos para análisis de anomalías:\n${JSON.stringify(data, null, 2)}` }],
+    });
+    res.json({ text: msg.content[0]?.text ?? '' });
+  } catch (err) {
+    console.error('❌ Anomaly:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================================================
+   POST /drill-down — Análisis profundo de un punto de datos
+============================================================ */
+app.post('/drill-down', async (req, res) => {
+  const { tipo, valor, contexto } = req.body;
+  if (!tipo || !valor) return res.status(400).json({ error: 'Faltan parámetros' });
+  try {
+    const msg = await anthropic.messages.create({
+      model:      'claude-3-haiku-20240307',
+      max_tokens: 900,
+      system: `Sos analista senior de Oliver Cooks (aceite de oliva extra virgen, Mendoza, Argentina). Cuando el usuario hace click en un punto de un gráfico, analizás en detalle qué ocurrió en ese momento específico y por qué, basándote en los datos del contexto. Respondé en español, directo y estructurado. Usá **negritas** para cifras y nombres clave. Máximo 8 líneas claras. Sin saludos ni despedidas.`,
+      messages: [{ role: 'user', content: `Tipo de análisis: ${tipo}\nValor/período: ${valor}\nContexto: ${JSON.stringify(contexto)}` }],
+    });
+    res.json({ text: msg.content[0]?.text ?? '' });
+  } catch (err) {
+    console.error('❌ DrillDown:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================================================
    START
 ============================================================ */
 app.listen(PORT, () => {
