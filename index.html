@@ -917,6 +917,45 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 }
 
 /* ═══════════════════════════════════════════════════════════
+   CHATBOT — mejoras
+═══════════════════════════════════════════════════════════ */
+.chat-period-chip {
+  display:flex;align-items:center;gap:6px;padding:5px 10px;
+  background:rgba(71,201,229,.08);border:1px solid rgba(71,201,229,.2);
+  border-radius:20px;font-size:10.5px;color:var(--cyan);margin:0 14px 0 0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;
+}
+.chat-period-chip svg{width:11px;height:11px;flex-shrink:0;fill:var(--cyan)}
+.chat-tts-btn {
+  width:30px;height:30px;border-radius:8px;background:none;border:1px solid var(--bdr);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+}
+.chat-tts-btn:hover{border-color:var(--cyan);background:rgba(71,201,229,.08)}
+.chat-tts-btn.active{background:rgba(71,201,229,.15);border-color:var(--cyan)}
+.chat-tts-btn svg{width:13px;height:13px;fill:var(--t3)}
+.chat-tts-btn.active svg{fill:var(--cyan)}
+.chat-suggestions {
+  padding:10px 14px 4px;display:flex;flex-wrap:wrap;gap:6px;
+  border-top:1px solid var(--bdr);
+}
+.chat-sug {
+  padding:5px 11px;border-radius:16px;border:1px solid var(--bdr);
+  background:var(--ink3);color:var(--t2);font-size:10.5px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;font-family:inherit;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;
+}
+.chat-sug:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(71,201,229,.07)}
+.chat-tts-play {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;background:rgba(71,201,229,.12);
+  border:none;cursor:pointer;flex-shrink:0;transition:background .15s;margin-left:6px;
+}
+.chat-tts-play:hover{background:rgba(71,201,229,.25)}
+.chat-tts-play svg{width:10px;height:10px;fill:var(--cyan)}
+.msg-row{display:flex;align-items:flex-end;gap:6px}
+
+/* ═══════════════════════════════════════════════════════════
    ANOMALY BAR
 ═══════════════════════════════════════════════════════════ */
 #anomaly-bar {
@@ -2716,29 +2755,40 @@ function renderAIInsights(stats, ltRows) {
     <div class="chat-header-info">
       <div class="chat-header-name">Consultor Oliver Cooks</div>
       <div class="chat-header-status">
-        <span class="chat-dot"></span> En línea — Análisis de ventas
+        <span class="chat-dot"></span>
+        <span id="chat-status-txt">Listo — con datos del dashboard</span>
       </div>
     </div>
-    <button class="chat-close" onclick="chatClose()">✕</button>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button class="chat-tts-btn" id="chat-tts-toggle" onclick="chatTtsToggle()" title="Leer respuestas en voz alta">
+        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      </button>
+      <button class="chat-close" onclick="chatClose()">✕</button>
+    </div>
   </div>
 
   <div id="chat-messages"></div>
 
+  <div id="chat-suggestions" class="chat-suggestions" style="display:none"></div>
+
   <div id="chat-footer">
-    <div id="chat-period-bar">
-      <div class="chat-period-badge" id="chat-period-badge-el">
-        <span id="chat-period-label">—</span>
-        <button onclick="chatResetPeriod()" title="Cambiar período">✕</button>
+    <div id="chat-period-bar" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 14px;border-top:1px solid var(--bdr)">
+        <div class="chat-period-chip">
+          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          <span id="chat-period-label">—</span>
+        </div>
+        <button onclick="chatResetPeriod()" title="Cambiar período" style="background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color .15s" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--t3)'">Cambiar ↺</button>
       </div>
     </div>
     <div class="chat-input-row">
-      <textarea id="chat-input" rows="1" placeholder="Escribí tu pregunta..." disabled
+      <textarea id="chat-input" rows="1" placeholder="Escribí tu pregunta..."
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"
         oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
       <button id="chat-voice" onclick="toggleVoice()" title="Hablar (voz)">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm0 2a2 2 0 0 1 2 2v7a2 2 0 0 1-4 0V5a2 2 0 0 1 2-2z"/><path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.93V21H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-3.07A7 7 0 0 0 19 11z"/></svg>
       </button>
-      <button id="chat-send" onclick="chatSend()" disabled>
+      <button id="chat-send" onclick="chatSend()">
         <svg viewBox="0 0 24 24"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
     </div>
@@ -2747,14 +2797,16 @@ function renderAIInsights(stats, ltRows) {
 
 <script>
 /* ═══════════════════════════════════════════
-   CHATBOT — Oliver Cooks Consultor IA
+   CHATBOT V2 — Oliver Cooks Consultor IA
+   Usa allData ya cargado, sin segunda llamada
 ═══════════════════════════════════════════ */
-const CHAT_API = AI_SERVER; // mismo servidor
+const CHAT_API = AI_SERVER;
 
 let chatOpen        = false;
 let chatPeriod      = null;   // { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD', label: '...' }
 let chatWaiting     = false;
 let chatInitialized = false;
+let chatTtsEnabled  = false;
 
 /* ── Helpers de fecha ── */
 function chatFmtDate(iso) {
@@ -2768,12 +2820,37 @@ function chatIsoMinus(days) {
   const d = new Date(); d.setDate(d.getDate()-days);
   return d.toISOString().slice(0,10);
 }
-function chatIsoFirstOfMonth() {
-  const d = new Date(); d.setDate(1);
-  return d.toISOString().slice(0,10);
+
+/* ── TTS ── */
+function chatTtsToggle() {
+  chatTtsEnabled = !chatTtsEnabled;
+  const btn = document.getElementById('chat-tts-toggle');
+  if (btn) btn.classList.toggle('active', chatTtsEnabled);
+  if (!chatTtsEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
 }
-function chatIsoFirstOfYear() {
-  return new Date().getFullYear() + '-01-01';
+
+function chatSpeak(html) {
+  if (!chatTtsEnabled || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const plain = html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ')
+    .replace(/\s{2,}/g,' ').trim();
+  if (!plain) return;
+  const utt = new SpeechSynthesisUtterance(plain);
+  utt.lang  = 'es-AR';
+  utt.rate  = 1.05;
+  utt.pitch = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const esVoice = voices.find(v => v.lang.startsWith('es'));
+  if (esVoice) utt.voice = esVoice;
+  window.speechSynthesis.speak(utt);
+}
+
+// Cargar voces al inicio (algunos navegadores las cargan asíncrono)
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 }
 
 /* ── Toggle panel ── */
@@ -2797,13 +2874,78 @@ document.getElementById('chat-fab').addEventListener('click', () => {
   }
 });
 
-/* ── Inicializar: saludo + selector de período ── */
+/* ── Inicializar: usar período del dashboard directamente ── */
 function chatInit() {
-  chatAppendBot(`
-    <strong>¡Buen día!</strong> Soy el consultor de ventas de Oliver Cooks.<br><br>
-    Para comenzar, indicame el <strong>período de análisis</strong> sobre el cual querés hacer consultas.
-  `);
-  setTimeout(() => chatAppendPeriodPicker(), 400);
+  const dashFrom = document.getElementById('dt-start')?.value;
+  const dashTo   = document.getElementById('dt-end')?.value;
+  const hasData  = typeof allData !== 'undefined' && Array.isArray(allData) && allData.length > 0;
+
+  if (hasData && dashFrom && dashTo) {
+    chatPeriod = { from: dashFrom, to: dashTo, label: `${chatFmtDate(dashFrom)} — ${chatFmtDate(dashTo)}` };
+    document.getElementById('chat-period-label').textContent = chatPeriod.label;
+    document.getElementById('chat-period-bar').style.display = 'flex';
+
+    const inp = document.getElementById('chat-input');
+    inp.disabled = false;
+    inp.placeholder = 'Preguntá sobre ventas, productos, clientes…';
+    document.getElementById('chat-send').disabled = false;
+
+    const totalVentas = allData.reduce((s,r) => s+(parseFloat(r.TotalLinea)||0), 0);
+    const nTickets    = allData.length;
+    chatAppendBot(
+      `<strong>¡Hola! Soy el consultor de ventas de Oliver Cooks.</strong><br><br>` +
+      `Tengo cargados <strong>${nTickets.toLocaleString('es-AR')} registros</strong> del período ` +
+      `<strong>${chatPeriod.label}</strong>.<br>` +
+      `Facturación total: <strong>$${totalVentas.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}</strong><br><br>` +
+      `¿Sobre qué querés consultarme?`
+    , false);
+    setTimeout(chatShowSuggestions, 500);
+  } else {
+    chatAppendBot(
+      `<strong>¡Hola!</strong> Soy el consultor de ventas de Oliver Cooks.<br><br>` +
+      `Para poder responderte con datos precisos, primero cargá el dashboard: ` +
+      `seleccioná un período y hacé clic en <strong>Actualizar</strong>. ` +
+      `Luego abrí el chat nuevamente.`
+    , false);
+  }
+}
+
+/* ── Sugerencias rápidas ── */
+const CHAT_SUGGESTIONS = [
+  '¿Cuál fue el producto más vendido?',
+  '¿Quiénes son los 5 mejores clientes?',
+  '¿Cómo fue la tendencia de ventas?',
+  '¿Qué sucursal facturó más?',
+  '¿Cuál fue el día con más ventas?',
+  'Comparar ventas por mes',
+  '¿Qué productos tienen menor rotación?',
+  'Resumen ejecutivo del período',
+];
+
+function chatShowSuggestions() {
+  const div = document.getElementById('chat-suggestions');
+  if (!div) return;
+  div.innerHTML = CHAT_SUGGESTIONS.map(s =>
+    `<button class="chat-sug" onclick="chatSugClick('${s.replace(/'/g,"\\'")}')">${s}</button>`
+  ).join('');
+  div.style.display = 'flex';
+}
+
+function chatSugClick(text) {
+  const inp = document.getElementById('chat-input');
+  inp.value = text;
+  chatSend();
+}
+
+/* ── Cambiar período ── */
+function chatResetPeriod() {
+  chatInitialized = false;
+  document.getElementById('chat-messages').innerHTML = '';
+  document.getElementById('chat-period-bar').style.display = 'none';
+  document.getElementById('chat-suggestions').style.display = 'none';
+  chatPeriod = null;
+  chatInitialized = true;
+  chatInit();
 }
 
 /* ── Agregar mensajes ── */
@@ -2811,7 +2953,7 @@ function chatNow() {
   return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
 }
 
-function chatAppendBot(html) {
+function chatAppendBot(html, speak=true) {
   const msgs = document.getElementById('chat-messages');
   const el = document.createElement('div');
   el.className = 'chat-msg bot';
@@ -2823,6 +2965,7 @@ function chatAppendBot(html) {
     </div>`;
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
+  if (speak) chatSpeak(html);
   return el;
 }
 
@@ -2860,113 +3003,140 @@ function chatRemoveTyping() {
   if (el) el.remove();
 }
 
-/* ── Selector de período ── */
-function chatAppendPeriodPicker() {
-  const today = chatIsoToday();
-  const msgs = document.getElementById('chat-messages');
-  const el = document.createElement('div');
-  el.className = 'chat-msg bot';
-  el.id = 'chat-period-picker-msg';
-  el.innerHTML = `
-    <div class="msg-avatar">🤖</div>
-    <div style="max-width:92%">
-      <div class="msg-bubble" style="max-width:100%">
-        <div class="chat-period-picker">
-          <div>
-            <div class="chat-period-shortcuts">
-              <button class="chat-shortcut" onclick="chatShortcut('week')">Últimos 7 días</button>
-              <button class="chat-shortcut" onclick="chatShortcut('month')">Este mes</button>
-              <button class="chat-shortcut" onclick="chatShortcut('quarter')">Últimos 90 días</button>
-              <button class="chat-shortcut" onclick="chatShortcut('year')">Este año</button>
-              <button class="chat-shortcut" onclick="chatShortcut('all')">Todo el historial</button>
-            </div>
-          </div>
-          <div>
-            <label>Desde</label>
-            <input type="date" id="chat-date-from" value="${chatIsoMinus(30)}" max="${today}">
-          </div>
-          <div>
-            <label>Hasta</label>
-            <input type="date" id="chat-date-to" value="${today}" max="${today}">
-          </div>
-          <button class="chat-period-confirm" onclick="chatConfirmPeriod()">Confirmar período →</button>
-        </div>
-      </div>
-      <div class="msg-time">${chatNow()}</div>
-    </div>`;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-}
+/* ── Construir contexto desde allData ── */
+function buildChatContext(data) {
+  if (!data || !data.length) return 'Sin datos disponibles.';
+  const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtI = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
 
-function chatShortcut(preset) {
-  const today = chatIsoToday();
-  const map = {
-    week:    { from: chatIsoMinus(6),  to: today },
-    month:   { from: chatIsoFirstOfMonth(), to: today },
-    quarter: { from: chatIsoMinus(89), to: today },
-    year:    { from: chatIsoFirstOfYear(), to: today },
-    all:     { from: '2020-01-01',     to: today },
-  };
-  const v = map[preset];
-  document.getElementById('chat-date-from').value = v.from;
-  document.getElementById('chat-date-to').value   = v.to;
-}
+  const totalVentas   = data.reduce((s,r) => s+(parseFloat(r.TotalLinea)||0), 0);
+  const totalCantidad = data.reduce((s,r) => s+(parseFloat(r.Cantidad)||0), 0);
+  const nTickets      = data.length;
+  const ticketProm    = nTickets ? totalVentas/nTickets : 0;
 
-function chatConfirmPeriod() {
-  const from  = document.getElementById('chat-date-from').value;
-  const to    = document.getElementById('chat-date-to').value;
-  if (!from || !to) return;
-  if (from > to) {
-    alert('La fecha de inicio debe ser anterior a la fecha de fin.');
-    return;
-  }
-  chatPeriod = { from, to, label: `${chatFmtDate(from)} — ${chatFmtDate(to)}` };
+  // Por cliente
+  const byCliente = {};
+  data.forEach(r => {
+    const c = (r.NombreCliente||'Sin nombre').trim();
+    if (!byCliente[c]) byCliente[c] = {v:0,t:0};
+    byCliente[c].v += parseFloat(r.TotalLinea)||0;
+    byCliente[c].t++;
+  });
+  const topClientes = Object.entries(byCliente)
+    .sort((a,b)=>b[1].v-a[1].v).slice(0,15)
+    .map(([n,d],i) => `  ${i+1}. ${n}: $${fmtN(d.v)} (${d.t} líneas)`).join('\n');
 
-  // Quitar el picker
-  const picker = document.getElementById('chat-period-picker-msg');
-  if (picker) picker.remove();
+  // Por producto
+  const byProd = {};
+  data.forEach(r => {
+    const p = prodName(r);
+    if (!byProd[p]) byProd[p] = {v:0,q:0};
+    byProd[p].v += parseFloat(r.TotalLinea)||0;
+    byProd[p].q += parseFloat(r.Cantidad)||0;
+  });
+  const topProd = Object.entries(byProd)
+    .sort((a,b)=>b[1].v-a[1].v).slice(0,15)
+    .map(([n,d],i) => `  ${i+1}. ${n}: $${fmtN(d.v)} (${fmtI(d.q)} u.)`).join('\n');
 
-  // Mostrar barra de período activo
-  document.getElementById('chat-period-label').textContent = chatPeriod.label;
-  document.getElementById('chat-period-bar').style.display = 'flex';
+  // Por depósito/sucursal
+  const bySuc = {};
+  data.forEach(r => {
+    const s = (r.NombreDeposito||r.CodigoDeposito||r.Sucursal||'Sin depósito').trim();
+    if (!bySuc[s]) bySuc[s] = 0;
+    bySuc[s] += parseFloat(r.TotalLinea)||0;
+  });
+  const sucLines = Object.entries(bySuc).sort((a,b)=>b[1]-a[1])
+    .map(([n,v]) => `  ${n}: $${fmtN(v)}`).join('\n');
 
-  // Habilitar input
-  const inp = document.getElementById('chat-input');
-  inp.disabled = false;
-  inp.placeholder = 'Preguntá sobre ventas, productos, clientes…';
-  document.getElementById('chat-send').disabled = false;
+  // Por mes
+  const byMes = {};
+  data.forEach(r => {
+    if (!r.FechaMovimiento) return;
+    const mes = r.FechaMovimiento.slice(0,7);
+    if (!byMes[mes]) byMes[mes] = 0;
+    byMes[mes] += parseFloat(r.TotalLinea)||0;
+  });
+  const mesLines = Object.entries(byMes).sort()
+    .map(([m,v]) => `  ${m}: $${fmtN(v)}`).join('\n');
 
-  chatAppendBot(`
-    <strong>Período configurado:</strong> ${chatPeriod.label}<br><br>
-    Ahora podés hacerme cualquier consulta sobre ventas. Por ejemplo:<br>
-    <span style="color:var(--cyan)">· ¿Cuál fue el producto más vendido?</span><br>
-    <span style="color:var(--cyan)">· ¿Qué sucursal tuvo mayor facturación?</span><br>
-    <span style="color:var(--cyan)">· ¿Quiénes son los 5 mejores clientes?</span>
-  `);
-  setTimeout(() => inp.focus(), 200);
-}
+  // Por día de semana
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const byDia = [0,0,0,0,0,0,0], byDiaN = [0,0,0,0,0,0,0];
+  data.forEach(r => {
+    if (!r.FechaMovimiento) return;
+    const d = new Date(r.FechaMovimiento.split('T')[0]+'T12:00:00').getDay();
+    byDia[d]  += parseFloat(r.TotalLinea)||0;
+    byDiaN[d]++;
+  });
+  const diaLines = dias.map((d,i) => byDiaN[i]>0
+    ? `  ${d}: $${fmtN(byDia[i])} (${byDiaN[i]} registros)` : null).filter(Boolean).join('\n');
 
-function chatResetPeriod() {
-  chatPeriod = null;
-  document.getElementById('chat-period-bar').style.display = 'none';
-  const inp = document.getElementById('chat-input');
-  inp.disabled = true;
-  inp.placeholder = 'Escribí tu pregunta...';
-  document.getElementById('chat-send').disabled = true;
-  chatAppendBot('Período reiniciado. Seleccioná un nuevo período para continuar.');
-  setTimeout(() => chatAppendPeriodPicker(), 400);
+  // Top 5 días
+  const byFecha = {};
+  data.forEach(r => {
+    if (!r.FechaMovimiento) return;
+    const f = r.FechaMovimiento.split('T')[0];
+    if (!byFecha[f]) byFecha[f] = 0;
+    byFecha[f] += parseFloat(r.TotalLinea)||0;
+  });
+  const top5dias = Object.entries(byFecha).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([f,v]) => `  ${fmtD(f)}: $${fmtN(v)}`).join('\n');
+
+  return `=== RESUMEN GENERAL ===
+Total facturado: $${fmtN(totalVentas)}
+Cantidad vendida: ${fmtI(totalCantidad)} unidades
+Total de líneas: ${fmtI(nTickets)}
+Ticket promedio por línea: $${fmtN(ticketProm)}
+
+=== TOP 15 CLIENTES POR FACTURACIÓN ===
+${topClientes}
+
+=== TOP 15 PRODUCTOS POR FACTURACIÓN ===
+${topProd}
+
+=== VENTAS POR DEPÓSITO/SUCURSAL ===
+${sucLines}
+
+=== VENTAS POR MES ===
+${mesLines}
+
+=== VENTAS POR DÍA DE SEMANA ===
+${diaLines}
+
+=== TOP 5 DÍAS CON MÁS VENTAS ===
+${top5dias}`;
 }
 
 /* ── Enviar consulta ── */
 async function chatSend() {
-  if (chatWaiting || !chatPeriod) return;
+  if (chatWaiting) return;
+
+  // Verificar datos disponibles
+  if (typeof allData === 'undefined' || !Array.isArray(allData) || allData.length === 0) {
+    chatAppendBot('No hay datos cargados en el dashboard. Por favor seleccioná un período y hacé clic en <strong>Actualizar</strong> primero.', false);
+    return;
+  }
+
   const inp  = document.getElementById('chat-input');
   const text = inp.value.trim();
   if (!text) return;
 
+  // Sincronizar período con el dashboard (por si cambió)
+  const dashFrom = document.getElementById('dt-start')?.value;
+  const dashTo   = document.getElementById('dt-end')?.value;
+  if (dashFrom && dashTo) {
+    const newLabel = `${chatFmtDate(dashFrom)} — ${chatFmtDate(dashTo)}`;
+    if (!chatPeriod || chatPeriod.from !== dashFrom || chatPeriod.to !== dashTo) {
+      chatPeriod = { from: dashFrom, to: dashTo, label: newLabel };
+      document.getElementById('chat-period-label').textContent = chatPeriod.label;
+      document.getElementById('chat-period-bar').style.display = 'flex';
+    }
+  }
+
   chatAppendUser(text);
   inp.value = '';
   inp.style.height = 'auto';
+  document.getElementById('chat-suggestions').style.display = 'none';
 
   chatWaiting = true;
   inp.disabled = true;
@@ -2974,56 +3144,52 @@ async function chatSend() {
   chatAppendTyping();
 
   try {
-    const r = await fetch(`${CHAT_API}/human-query`, {
+    const context = buildChatContext(allData);
+    const period  = chatPeriod ? chatPeriod.label : 'Período no especificado';
+
+    const r = await fetch(`${CHAT_API}/chat-query`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ human_query: text, from: chatPeriod.from, to: chatPeriod.to }),
-      signal:  AbortSignal.timeout(35000),
+      body:    JSON.stringify({ question: text, context, period }),
+      signal:  AbortSignal.timeout(55000),
     });
-
     chatRemoveTyping();
 
     if (!r.ok) throw new Error(`Error ${r.status}`);
     const j = await r.json();
 
     if (j.error) {
-      chatAppendBot(`<span style="color:var(--red)">⚠ ${j.error}</span>`);
+      chatAppendBot(`<span style="color:var(--red)">⚠ ${j.error}</span>`, false);
     } else {
-      const answer = j.answer ?? JSON.stringify(j);
-      chatAppendBot(chatFormatAnswer(answer));
+      chatAppendBot(chatFormatAnswer(j.answer ?? JSON.stringify(j)));
     }
   } catch (err) {
     chatRemoveTyping();
-    const isTimeout = err.name === 'TimeoutError';
-    chatAppendBot(`
-      <span style="color:var(--red)">
-        ${isTimeout
-          ? '⚠ La consulta tardó demasiado. Intentá una pregunta más específica.'
-          : `⚠ No se pudo conectar con el servidor de análisis.<br><small style="color:var(--t3)">Verificá que el servidor Python esté activo en el puerto 8000.</small>`}
-      </span>`);
+    const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
+    chatAppendBot(
+      `<span style="color:var(--red)">` +
+      (isTimeout
+        ? '⚠ La consulta tardó demasiado. Intentá una pregunta más específica.'
+        : '⚠ No se pudo conectar con el servidor. Verificá la conexión e intentá de nuevo.') +
+      `</span>`, false);
   } finally {
     chatWaiting = false;
     inp.disabled = false;
     document.getElementById('chat-send').disabled = false;
     inp.focus();
-    if (!chatOpen) {
-      document.getElementById('chat-badge').style.display = 'flex';
-    }
+    if (!chatOpen) document.getElementById('chat-badge').style.display = 'flex';
   }
 }
 
-/* ── Formatear respuesta (detecta listas y tablas) ── */
+/* ── Formatear respuesta markdown → HTML ── */
 function chatFormatAnswer(text) {
-  // Sanitizar básico
   const safe = text
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;');
 
-  // Negritas **texto**
   let html = safe.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
 
-  // Ítems de lista (líneas que empiezan con - o •)
   if (/^[\-•]\s/m.test(html)) {
     const lines = html.split('\n');
     let inList = false;
@@ -3039,7 +3205,6 @@ function chatFormatAnswer(text) {
     if (inList) html += '</ul>';
   }
 
-  // Saltos de línea dobles → párrafo
   html = html.replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
   return html;
 }
@@ -3205,7 +3370,7 @@ function startVoice(){
   if(!voiceRec){initVoice();if(!voiceRec){alert('Tu navegador no soporta voz. Usá Chrome.');return;}}
   if(!chatPeriod){
     if(!chatOpen){chatOpen=true;document.getElementById('chat-panel').classList.add('open');if(!chatInitialized){chatInitialized=true;chatInit();}}
-    chatAppendBot('Primero seleccioná un período para usar la voz 🎙️');return;
+    if(!chatPeriod){chatAppendBot('Primero cargá el dashboard para usar la voz 🎙️',false);return;}
   }
   voiceActive=true;document.getElementById('chat-voice')?.classList.add('listening');
   try{voiceRec.start();}catch(e){stopVoice();}

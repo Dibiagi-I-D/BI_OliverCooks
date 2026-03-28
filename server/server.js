@@ -290,6 +290,35 @@ app.get('/health', async (req, res) => {
 });
 
 /* ============================================================
+   POST /chat-query — Consultor IA con contexto pre-procesado
+============================================================ */
+app.post('/chat-query', async (req, res) => {
+  const { question, context, period } = req.body;
+  if (!question || !context) return res.status(400).json({ error: 'Faltan parámetros' });
+  try {
+    const msg = await anthropic.messages.create({
+      model:      'claude-3-haiku-20240307',
+      max_tokens: 1000,
+      system: `Sos el consultor de ventas de Oliver Cooks (aceite de oliva extra virgen premium, Mendoza, Argentina).
+Respondés preguntas del equipo comercial sobre sus datos de ventas de forma clara, precisa y profesional.
+
+REGLAS:
+- Respondé en español directo, sin saludar ni repetir la pregunta
+- Usá **negritas** para cifras y nombres clave
+- Listas con guiones cuando hay múltiples resultados (máx 8 ítems)
+- Valores monetarios con $ y separador de miles con punto (ej: $1.250.000)
+- Conclusión breve si aporta valor
+- Si los datos no alcanzan para responder, indicalo claramente`,
+      messages: [{ role: 'user', content: `Período: ${period}\nPregunta: ${question}\n\nDatos de ventas:\n${context}` }],
+    });
+    res.json({ answer: msg.content[0].text.trim() });
+  } catch (err) {
+    console.error('❌ chat-query:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================================================
    POST /rfm-analysis — Segmentación de clientes con Claude
 ============================================================ */
 app.post('/rfm-analysis', async (req, res) => {
