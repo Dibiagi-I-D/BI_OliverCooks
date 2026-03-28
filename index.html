@@ -955,6 +955,36 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 .chat-tts-play svg{width:10px;height:10px;fill:var(--cyan)}
 .msg-row{display:flex;align-items:flex-end;gap:6px}
 
+/* ── Chat nav pill ── */
+.chat-nav-pill {
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:8px;padding:4px 10px;border-radius:20px;
+  background:rgba(71,201,229,.1);border:1px solid rgba(71,201,229,.3);
+  color:var(--cyan);font-size:11px;cursor:pointer;transition:background .15s;
+  text-decoration:none;
+}
+.chat-nav-pill:hover{background:rgba(71,201,229,.22)}
+.chat-nav-pill svg{width:11px;height:11px;fill:var(--cyan);flex-shrink:0}
+
+/* ── Dashboard section highlight pulse ── */
+@keyframes dash-pulse {
+  0%   { box-shadow:0 0 0 0   rgba(71,201,229,.55), inset 0 0 0 0 rgba(71,201,229,.08); }
+  40%  { box-shadow:0 0 0 12px rgba(71,201,229,0),  inset 0 0 40px 0 rgba(71,201,229,.06); }
+  100% { box-shadow:0 0 0 0   rgba(71,201,229,0),  inset 0 0 0 0 rgba(71,201,229,0); }
+}
+.dash-highlight {
+  animation: dash-pulse 1.1s ease-out 2;
+  border-radius:12px;
+  outline: 1.5px solid rgba(71,201,229,.45);
+  outline-offset: 3px;
+}
+.dash-highlight-chart {
+  animation: dash-pulse 1.1s ease-out 3;
+  border-radius:8px;
+  outline: 1.5px solid rgba(71,201,229,.6);
+  outline-offset: 2px;
+}
+
 /* ═══════════════════════════════════════════════════════════
    ANOMALY BAR
 ═══════════════════════════════════════════════════════════ */
@@ -2944,6 +2974,7 @@ function chatResetPeriod() {
   document.getElementById('chat-period-bar').style.display = 'none';
   document.getElementById('chat-suggestions').style.display = 'none';
   chatPeriod = null;
+  window.__chatNavs = [];
   chatInitialized = true;
   chatInit();
 }
@@ -3161,7 +3192,19 @@ async function chatSend() {
     if (j.error) {
       chatAppendBot(`<span style="color:var(--red)">⚠ ${j.error}</span>`, false);
     } else {
-      chatAppendBot(chatFormatAnswer(j.answer ?? JSON.stringify(j)));
+      const formatted = chatFormatAnswer(j.answer ?? JSON.stringify(j));
+      const nav = chatNavigate(text, j.answer ?? '');
+      // Guardar nav en array indexado para que cada pill apunte al suyo
+      const navIdx = (window.__chatNavs = window.__chatNavs || []).length;
+      if (nav) window.__chatNavs.push(nav);
+      const navPill = nav
+        ? `<br><span class="chat-nav-pill" onclick="chatDoNavigate(window.__chatNavs[${navIdx}])" title="Ir a esa sección">` +
+          `<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>` +
+          `${nav.label}</span>`
+        : '';
+      chatAppendBot(formatted + navPill);
+      // Navegar automáticamente después de leer la respuesta
+      if (nav) setTimeout(() => chatDoNavigate(nav), 900);
     }
   } catch (err) {
     chatRemoveTyping();
@@ -3178,6 +3221,126 @@ async function chatSend() {
     document.getElementById('chat-send').disabled = false;
     inp.focus();
     if (!chatOpen) document.getElementById('chat-badge').style.display = 'flex';
+  }
+}
+
+/* ── Navegación automática del dashboard ── */
+const CHAT_NAV_MAP = [
+  {
+    score: (q) => kw(q, ['cliente','clientes','mejor cliente','top cliente','compraron','compradores','fidelidad','comprador']),
+    target: '#sec-clientes',
+    label: 'Ver Clientes en el dashboard',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['producto','productos','artículo','ítem','vendido','top producto','mayor venta','más vendido','rotación']),
+    target: '#sec-productos',
+    label: 'Ver Productos en el dashboard',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['litro','litros','envase','volumen','botella','damajuana','tetra','bidón','lt']),
+    target: '#sec-litros',
+    label: 'Ver Volumen por envase',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['mes','mensual','meses','por mes','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']),
+    target: '#sec-ventas',
+    label: 'Ver gráfico mensual',
+    chart: 'ch-mensual',
+  },
+  {
+    score: (q) => kw(q, ['tendencia','evolución','diario','por día','línea de tiempo','histórico','tiempo']),
+    target: '#sec-ventas',
+    label: 'Ver tendencia de ventas',
+    chart: 'ch-linea',
+  },
+  {
+    score: (q) => kw(q, ['semana','día de semana','lunes','martes','miércoles','jueves','viernes','sábado','domingo','fin de semana']),
+    target: '#sec-ventas',
+    label: 'Ver ventas por día de semana',
+    chart: 'ch-semana',
+  },
+  {
+    score: (q) => kw(q, ['media móvil','promedio móvil','suavizado','tendencia suavizada']),
+    target: '#sec-ventas',
+    label: 'Ver media móvil',
+    chart: 'ch-movil',
+  },
+  {
+    score: (q) => kw(q, ['rfm','segmento','segmentación','recurrencia','campeón','leal','riesgo','perdido','nuevo','potencial']),
+    target: '#rfm-section',
+    label: 'Ver segmentación RFM',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['anomalía','anomalías','inusual','pico','caída','detectado','comportamiento']),
+    target: '#anomaly-bar',
+    label: 'Ver anomalías detectadas',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['kpi','total','facturación','resumen','ticket promedio','facturamos','vendimos','resultado']),
+    target: '#sec-hero',
+    label: 'Ver KPIs principales',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['detalle','factura','listado','tabla','registro','comprobante','número']),
+    target: '#sec-detalle',
+    label: 'Ver tabla de detalle',
+    chart: null,
+  },
+];
+
+function kw(text, words) {
+  const t = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  let score = 0;
+  words.forEach(w => {
+    const wn = w.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if (t.includes(wn)) score += wn.split(' ').length; // multi-word = more weight
+  });
+  return score;
+}
+
+function chatNavigate(question, answerHtml) {
+  // Score all nav options against question + answer text
+  const combined = question + ' ' + answerHtml;
+  let best = null, bestScore = 0;
+  CHAT_NAV_MAP.forEach(nav => {
+    const s = nav.score(combined);
+    if (s > bestScore) { bestScore = s; best = nav; }
+  });
+  if (!best || bestScore < 1) return null;
+  return best;
+}
+
+function chatDoNavigate(nav) {
+  if (!nav) return;
+  const el = document.querySelector(nav.target);
+  if (!el) return;
+
+  // Scroll suave al elemento con offset de header
+  const offset = 80;
+  const top = el.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: 'smooth' });
+
+  // Pulso sobre la sección
+  setTimeout(() => {
+    el.classList.add('dash-highlight');
+    setTimeout(() => el.classList.remove('dash-highlight'), 2600);
+  }, 400);
+
+  // Si hay un gráfico específico, pulsarlo también
+  if (nav.chart) {
+    const canvas = document.getElementById(nav.chart);
+    if (canvas) {
+      setTimeout(() => {
+        canvas.classList.add('dash-highlight-chart');
+        setTimeout(() => canvas.classList.remove('dash-highlight-chart'), 3500);
+      }, 700);
+    }
   }
 }
 
