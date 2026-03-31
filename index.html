@@ -2128,7 +2128,7 @@ function renderProdTable(rows,page){
     <td style="text-align:right">${r.cls}</td>
     <td style="text-align:right">${r.facts}</td>
     <td style="text-align:right">${r.units.toLocaleString('es-AR',{maximumFractionDigits:1})}</td>
-    <td class="pp-prom-cell" style="text-align:right;color:var(--gold2)" onclick="openPrecioModal(${JSON.stringify(r.nombre)})">$${fmt(r.prom)}</td>
+    <td class="pp-prom-cell" style="text-align:right;color:var(--gold2)" data-prod="${r.nombre.replace(/"/g,'&quot;')}" onclick="openPrecioModal(this.dataset.prod)">$${fmt(r.prom)}</td>
     <td class="td-c" style="text-align:right">$${fmt(r.total)}</td>
   </tr>`).join('');
   renderPag('p-pg-info','p-pg-btns',page,pages,total,from,PS,p=>renderProdTable(rows,p));
