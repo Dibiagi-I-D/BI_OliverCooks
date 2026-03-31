@@ -165,8 +165,64 @@ app.get('/oliver-cooks/visualizacion-ventas', async (req, res) => {
 });
 
 /* ============================================================
+   Agrega todos los registros en resúmenes completos para el chatbot
+============================================================ */
+function agregarDatosParaChat(rows) {
+  const agg = (map, key, linea, cant) => {
+    if (!map[key]) map[key] = { totalARS: 0, cantidad: 0 };
+    map[key].totalARS  += linea || 0;
+    map[key].cantidad  += cant  || 0;
+  };
+
+  const porCliente  = {};
+  const porProducto = {};
+  const porFecha    = {};
+  const porDeposito = {};
+  const porSector   = {};
+  const porUsuario  = {};
+  const facturas    = new Set();
+  let   totalGeneral = 0;
+
+  for (const r of rows) {
+    const linea = parseFloat(r.TotalLinea) || 0;
+    const cant  = parseFloat(r.Cantidad)   || 0;
+    totalGeneral += linea;
+    if (r.NumeroFormulario) facturas.add(r.NumeroFormulario);
+    agg(porCliente,  r.NombreCliente  || 'Sin cliente',  linea, cant);
+    agg(porProducto, r.NombreProducto || 'Sin producto', linea, cant);
+    agg(porDeposito, r.NombreDeposito || 'Sin depósito', linea, cant);
+    agg(porSector,   r.NombreSector   || 'Sin sector',   linea, cant);
+    agg(porUsuario,  r.NombreUsuario  || 'Sin usuario',  linea, cant);
+    const fecha = r.FechaMovimiento ? String(r.FechaMovimiento).slice(0, 10) : 'Sin fecha';
+    agg(porFecha, fecha, linea, cant);
+  }
+
+  const ordenar = obj => Object.entries(obj)
+    .map(([k, v]) => ({ nombre: k, totalARS: Math.round(v.totalARS), cantidad: v.cantidad }))
+    .sort((a, b) => b.totalARS - a.totalARS);
+
+  return {
+    resumenGeneral: {
+      totalVentasARS:    Math.round(totalGeneral),
+      cantidadRegistros: rows.length,
+      cantidadFacturas:  facturas.size,
+      cantidadClientes:  Object.keys(porCliente).length,
+      cantidadProductos: Object.keys(porProducto).length,
+    },
+    porCliente:  ordenar(porCliente),
+    porProducto: ordenar(porProducto),
+    porFecha:    Object.entries(porFecha)
+                   .map(([fecha, v]) => ({ fecha, totalARS: Math.round(v.totalARS), cantidad: v.cantidad }))
+                   .sort((a, b) => a.fecha.localeCompare(b.fecha)),
+    porDeposito: ordenar(porDeposito),
+    porSector:   ordenar(porSector),
+    porUsuario:  ordenar(porUsuario),
+  };
+}
+
+/* ============================================================
    POST /human-query — Chat IA sobre ventas
-   Flujo: pregunta → datos del endpoint REST → análisis Claude
+   Flujo: pregunta → TODOS los datos del endpoint → análisis Claude
 ============================================================ */
 app.post('/human-query', async (req, res) => {
   const { human_query, from: startDate, to: endDate } = req.body;
@@ -193,32 +249,68 @@ app.post('/human-query', async (req, res) => {
       return res.json({ answer: `No se encontraron ventas entre el **${startDate}** y el **${endDate}**.` });
     }
 
-    // 2. Analizar los datos con Claude
+    // 2. Pre-agregar TODOS los registros (sin límite) para no perder datos
+    const datos = agregarDatosParaChat(rows);
+
+    // Calcular métricas del período para darle contexto temporal completo a Claude
+    const msPerDay    = 1000 * 60 * 60 * 24;
+    const diasPeriodo = Math.round((new Date(endDate) - new Date(startDate)) / msPerDay) + 1;
+    const promedioARS = diasPeriodo > 0 ? Math.round(datos.resumenGeneral.totalVentasARS / diasPeriodo) : 0;
+
+    const datosFinal = {
+      periodo: {
+        desde:          startDate,
+        hasta:          endDate,
+        diasTotales:    diasPeriodo,
+        promedioVentaDiariaARS: promedioARS,
+      },
+      ...datos,
+    };
+
+    // 3. Analizar con Claude usando los datos completos agregados
     const answerMsg = await anthropic.messages.create({
       model:      'claude-3-haiku-20240307',
-      max_tokens: 900,
-      system: `Sos un analista de ventas senior de Oliver Cooks (aceite de oliva extra virgen, Mendoza, Argentina).
-Recibís registros de ventas del sistema y respondés preguntas del equipo comercial de forma clara, estructurada y formal.
+      max_tokens: 1200,
+      system: `Sos un analista de ventas senior de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Respondés preguntas del equipo comercial y directivo analizando datos reales de ventas extraídos del sistema de gestión interno (ERP). Tus respuestas son leídas por el equipo para tomar decisiones de negocio.
 
-Campos disponibles en cada registro:
-FechaMovimiento, NombreCliente, NombreProducto, CodigoProducto,
-Cantidad, Precio, TotalLinea (monto en ARS),
-NombreDeposito, NombreSector, Sucursal, NombreUsuario.
+MONEDA — REGLA ABSOLUTA:
+Todos los valores monetarios están en PESOS ARGENTINOS (ARS). Nunca menciones dólares. Los campos Precio, TotalLinea y PrecioSecundario son todos en pesos argentinos. El campo CambioSecundario es un tipo de cambio interno del ERP y no significa que los precios estén en otra moneda.
 
-REGLAS:
-- Respondé en español, directo, sin saludar ni repetir la pregunta.
-- Usá **negritas** para cifras y datos clave.
-- Listas con guiones (- item) cuando hay múltiples resultados; máximo 8 ítems, luego resumí.
-- Valores monetarios con $ y separador de miles (ej: $1.250.000).
-- Incluí una conclusión breve si el análisis lo amerita.
-- Si los datos no permiten responder, indicalo claramente.`,
+QUÉ SIGNIFICAN LOS DATOS QUE RECIBÍS:
+Recibís un JSON con el resumen COMPLETO y pre-calculado de TODAS las ventas del período seleccionado. No es una muestra: son todos los registros del rango de fechas elegido.
+
+- periodo.desde / periodo.hasta: rango de fechas exacto que el usuario seleccionó en la aplicación
+- periodo.diasTotales: cantidad de días que abarca el período (incluye ambos extremos)
+- periodo.promedioVentaDiariaARS: promedio de ventas por día en pesos argentinos durante el período
+- resumenGeneral.totalVentasARS: suma total de todas las ventas del período en pesos argentinos
+- resumenGeneral.cantidadRegistros: total de líneas de venta (una factura puede tener varias líneas/productos)
+- resumenGeneral.cantidadFacturas: cantidad de facturas únicas emitidas en el período
+- resumenGeneral.cantidadClientes: cantidad de clientes distintos que compraron en el período
+- resumenGeneral.cantidadProductos: cantidad de productos distintos vendidos en el período
+- porCliente: lista completa de clientes con sus ventas totales en ARS y unidades, ordenados de mayor a menor
+- porProducto: lista completa de productos con ventas totales en ARS y unidades, ordenados de mayor a menor
+- porFecha: ventas día a día en ARS y unidades, ordenado cronológicamente dentro del período elegido
+- porDeposito: ventas por depósito/almacén desde donde se despacharon los productos
+- porSector: ventas por sector dentro de cada depósito
+- porUsuario: ventas registradas por cada usuario/vendedor del sistema en el período
+
+REGLAS DE RESPUESTA:
+- Siempre contextualizá la respuesta dentro del período seleccionado (mencionar las fechas cuando sea relevante).
+- Respondé en español, directo al punto, sin saludar ni repetir la pregunta.
+- Usá **negritas** para cifras, nombres de clientes, productos y datos clave.
+- Listas con guiones cuando hay múltiples resultados; incluí todos los relevantes sin cortar arbitrariamente.
+- Valores monetarios siempre con $ y separador de miles con punto (ej: $1.250.000).
+- Si calculás porcentajes, mostralos con un decimal (ej: 34,5%).
+- Cuando sea útil, usá el promedio diario del período para dar contexto de ritmo de ventas.
+- Respuestas completas: si preguntan por todos los clientes, listá todos. Si preguntan por el top 5, listá exactamente 5.
+- Incluí una conclusión breve cuando el análisis lo amerite.
+- Si los datos no permiten responder la pregunta, indicalo claramente sin inventar nada.`,
       messages: [{
         role: 'user',
-        content: `Período: ${startDate} al ${endDate}. Total de registros: ${rows.length}.
-Pregunta: ${human_query}
+        content: `Pregunta: ${human_query}
 
-Datos de ventas:
-${JSON.stringify(rows.slice(0, 800), null, 0)}`,
+Datos completos de ventas:
+${JSON.stringify(datosFinal, null, 0)}`,
       }],
     });
 
@@ -299,16 +391,22 @@ app.post('/chat-query', async (req, res) => {
     const msg = await anthropic.messages.create({
       model:      'claude-3-haiku-20240307',
       max_tokens: 1000,
-      system: `Sos el consultor de ventas de Oliver Cooks (aceite de oliva extra virgen premium, Mendoza, Argentina).
-Respondés preguntas del equipo comercial sobre sus datos de ventas de forma clara, precisa y profesional.
+      system: `Sos el consultor de ventas de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Respondés preguntas del equipo comercial sobre datos reales de ventas de forma clara, precisa y profesional.
 
-REGLAS:
+MONEDA — REGLA ABSOLUTA:
+Todos los valores monetarios son en PESOS ARGENTINOS (ARS). Nunca menciones dólares ni otras monedas. Si ves campos como Precio, TotalLinea o PrecioSecundario, son todos en pesos argentinos.
+
+QUÉ SIGNIFICAN LOS DATOS:
+Los datos que recibís son totales pre-calculados sobre la totalidad de las ventas del período, agrupados por distintas dimensiones como cliente, producto, fecha, depósito, sector y usuario/vendedor. Son datos reales del sistema de gestión de Oliver Cooks, no muestras parciales.
+
+REGLAS DE RESPUESTA:
 - Respondé en español directo, sin saludar ni repetir la pregunta
-- Usá **negritas** para cifras y nombres clave
-- Listas con guiones cuando hay múltiples resultados (máx 8 ítems)
+- Usá **negritas** para cifras, clientes, productos y datos clave
+- Listas con guiones cuando hay múltiples resultados; incluí todos los relevantes sin cortar arbitrariamente
 - Valores monetarios con $ y separador de miles con punto (ej: $1.250.000)
+- Porcentajes con un decimal (ej: 34,5%)
 - Conclusión breve si aporta valor
-- Si los datos no alcanzan para responder, indicalo claramente`,
+- Si los datos no alcanzan para responder, indicalo claramente sin inventar`,
       messages: [{ role: 'user', content: `Período: ${period}\nPregunta: ${question}\n\nDatos de ventas:\n${context}` }],
     });
     res.json({ answer: msg.content[0].text.trim() });
