@@ -517,7 +517,7 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
   transition:background .2s;
 }
 .ins-cell:hover { background:var(--ink3) }
-.ins-icon { font-size:22px; flex-shrink:0; opacity:.8 }
+.ins-icon { width:36px; height:36px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:rgba(71,201,229,.08); border:1px solid rgba(71,201,229,.18); border-radius:8px }
 .ins-val { font-size:18px; font-weight:800; color:var(--white); letter-spacing:-.3px }
 .ins-lbl { font-size:10px; color:var(--t3); text-transform:uppercase; letter-spacing:.8px; margin-top:3px }
 
@@ -1371,15 +1371,15 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   <div style="max-width:1400px;margin:0 auto;padding:0 80px">
     <div class="insights-row reveal">
       <div class="ins-cell">
-        <div class="ins-icon">💰</div>
+        <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
         <div><div class="ins-val" id="ins-prom">—</div><div class="ins-lbl">Ticket promedio</div></div>
       </div>
       <div class="ins-cell">
-        <div class="ins-icon">🏆</div>
+        <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
         <div><div class="ins-val" id="ins-tcl">—</div><div class="ins-lbl">Mejor cliente</div></div>
       </div>
       <div class="ins-cell">
-        <div class="ins-icon">🥇</div>
+        <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
         <div><div class="ins-val" id="ins-tpr">—</div><div class="ins-lbl">Producto estrella</div></div>
       </div>
     </div>
