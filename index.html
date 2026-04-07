@@ -3586,11 +3586,21 @@ let deudasFiltered = [];
 const DPS = 15; // filas por página en deudas
 
 async function loadDeudasSection(){
+  const s = document.getElementById('dt-start').value;
+  const e = document.getElementById('dt-end').value;
   try{
     const r = await fetch(DEUDAS_URL, {headers:{'Authorization':`Bearer ${API_KEY}`,'Content-Type':'application/json'}});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const j = await r.json();
-    deudasData = Array.isArray(j.data) ? j.data : [];
+    const all = Array.isArray(j.data) ? j.data : [];
+    // Filtrar por rango de FechaEmision igual que el resto del dashboard
+    deudasData = all.filter(row=>{
+      const fecha = row.FechaEmision?.slice(0,10);
+      if(!fecha) return true;
+      if(s && fecha < s) return false;
+      if(e && fecha > e) return false;
+      return true;
+    });
     deudasFiltered = [...deudasData];
     renderDeudasKPIs(deudasData);
     renderDeudasTable(deudasFiltered, 1);
