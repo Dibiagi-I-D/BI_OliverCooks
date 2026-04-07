@@ -994,6 +994,26 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 .chat-tts-play svg{width:10px;height:10px;fill:var(--cyan)}
 .msg-row{display:flex;align-items:flex-end;gap:6px}
 
+/* ── Chat inline chart ── */
+.chat-chart-wrap {
+  margin-top:10px;
+  background:#0d1117;
+  border-radius:10px;
+  padding:12px 10px 8px;
+  border:1px solid rgba(71,201,229,.18);
+  width:100%;
+  box-sizing:border-box;
+}
+.chat-chart-title {
+  font-size:10px;
+  color:var(--cyan);
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  margin-bottom:8px;
+  opacity:.8;
+}
+.chat-chart-canvas { max-height:220px; }
+
 /* ── Chat nav pill ── */
 .chat-nav-pill {
   display:inline-flex;align-items:center;gap:5px;
@@ -3330,6 +3350,107 @@ ${topDeudores}
 ${masViejas}`;
 }
 
+/* ── Renderizar gráfico inline en burbuja del chat ── */
+const CHAT_CHART_PALETTE = [
+  '#47c9e5','#C8A832','#7DB83A','#e05252','#e0a052',
+  '#a78bfa','#34d399','#f472b6','#60a5fa','#fb923c',
+  '#a3e635','#e879f9',
+];
+
+function chatRenderInlineChart(msgEl, chartData) {
+  if (!chartData || !chartData.labels || !chartData.datasets) return;
+
+  const id = 'chat-chart-' + Date.now();
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-chart-wrap';
+  wrap.innerHTML = `
+    ${chartData.title ? `<div class="chat-chart-title">${chartData.title}</div>` : ''}
+    <canvas id="${id}" class="chat-chart-canvas"></canvas>`;
+
+  const bubble = msgEl.querySelector('.msg-bubble');
+  if (bubble) bubble.appendChild(wrap);
+
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+
+  const type = chartData.type || 'bar';
+  const isRound = type === 'pie' || type === 'doughnut';
+
+  const datasets = chartData.datasets.map((ds, di) => {
+    if (isRound) {
+      return {
+        label: ds.label || '',
+        data: ds.data,
+        backgroundColor: CHAT_CHART_PALETTE,
+        borderColor: '#0d1117',
+        borderWidth: 2,
+      };
+    }
+    return {
+      label: ds.label || '',
+      data: ds.data,
+      backgroundColor: type === 'line'
+        ? 'rgba(71,201,229,.15)'
+        : CHAT_CHART_PALETTE[di % CHAT_CHART_PALETTE.length] + 'cc',
+      borderColor: CHAT_CHART_PALETTE[di % CHAT_CHART_PALETTE.length],
+      borderWidth: type === 'line' ? 2 : 1,
+      fill: type === 'line',
+      tension: 0.35,
+      pointRadius: chartData.labels.length > 20 ? 0 : 3,
+    };
+  });
+
+  new Chart(ctx, {
+    type,
+    data: { labels: chartData.labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: { duration: 500 },
+      plugins: {
+        legend: {
+          display: isRound || datasets.length > 1,
+          labels: { color: '#aaa', font: { size: 10 }, boxWidth: 10, padding: 8 },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = ctx.parsed.y ?? ctx.parsed;
+              if (typeof val === 'number' && val >= 1000) {
+                return ' $' + val.toLocaleString('es-AR');
+              }
+              return ' ' + (typeof val === 'number' ? val.toLocaleString('es-AR') : val);
+            },
+          },
+        },
+      },
+      scales: isRound ? {} : {
+        x: {
+          ticks: {
+            color: '#888',
+            font: { size: 9 },
+            maxRotation: 45,
+            maxTicksLimit: 12,
+          },
+          grid: { color: 'rgba(255,255,255,.04)' },
+        },
+        y: {
+          ticks: {
+            color: '#888',
+            font: { size: 9 },
+            callback: (v) => {
+              if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
+              if (v >= 1000)    return '$' + (v / 1000).toFixed(0) + 'K';
+              return v;
+            },
+          },
+          grid: { color: 'rgba(255,255,255,.06)' },
+        },
+      },
+    },
+  });
+}
+
 /* ── Enviar consulta ── */
 async function chatSend() {
   if (chatWaiting) return;
@@ -3384,8 +3505,9 @@ async function chatSend() {
     if (j.error) {
       chatAppendBot(`<span style="color:var(--red)">⚠ ${j.error}</span>`, false);
     } else {
-      const formatted = chatFormatAnswer(j.answer ?? JSON.stringify(j));
-      const nav = chatNavigate(text, j.answer ?? '');
+      const answerText = j.answer ?? JSON.stringify(j);
+      const formatted  = chatFormatAnswer(answerText);
+      const nav = chatNavigate(text, answerText);
       // Guardar nav en array indexado para que cada pill apunte al suyo
       const navIdx = (window.__chatNavs = window.__chatNavs || []).length;
       if (nav) window.__chatNavs.push(nav);
@@ -3394,7 +3516,13 @@ async function chatSend() {
           `<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>` +
           `${nav.label}</span>`
         : '';
-      chatAppendBot(formatted + navPill);
+      const msgEl = chatAppendBot(formatted + navPill);
+      // Renderizar gráfico inline si Claude lo incluyó
+      if (j.chart) {
+        chatRenderInlineChart(msgEl, j.chart);
+        const msgs = document.getElementById('chat-messages');
+        setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 100);
+      }
       // Navegar automáticamente después de leer la respuesta
       if (nav) setTimeout(() => chatDoNavigate(nav), 900);
     }

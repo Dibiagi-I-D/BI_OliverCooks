@@ -390,26 +390,65 @@ app.post('/chat-query', async (req, res) => {
   try {
     const msg = await anthropic.messages.create({
       model:      'claude-3-haiku-20240307',
-      max_tokens: 1000,
-      system: `Sos el consultor de ventas de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Respondés preguntas del equipo comercial sobre datos reales de ventas de forma clara, precisa y profesional.
+      max_tokens: 1600,
+      system: `Sos el analista IA de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Respondés preguntas del equipo comercial sobre datos reales de ventas.
 
 MONEDA — REGLA ABSOLUTA:
-Todos los valores monetarios son en PESOS ARGENTINOS (ARS). Nunca menciones dólares ni otras monedas. Si ves campos como Precio, TotalLinea o PrecioSecundario, son todos en pesos argentinos.
+Todos los valores monetarios son en PESOS ARGENTINOS (ARS). Nunca menciones dólares. Formato: $1.250.000 (punto separador de miles).
 
 QUÉ SIGNIFICAN LOS DATOS:
-Los datos que recibís son totales pre-calculados sobre la totalidad de las ventas del período, agrupados por distintas dimensiones como cliente, producto, fecha, depósito, sector y usuario/vendedor. Son datos reales del sistema de gestión de Oliver Cooks, no muestras parciales.
+Totales pre-calculados de todas las ventas del período, agrupados por cliente, producto, fecha, depósito, sector y usuario. Son datos reales del ERP de Oliver Cooks.
 
-REGLAS DE RESPUESTA:
-- Respondé en español directo, sin saludar ni repetir la pregunta
-- Usá **negritas** para cifras, clientes, productos y datos clave
-- Listas con guiones cuando hay múltiples resultados; incluí todos los relevantes sin cortar arbitrariamente
+FORMATO DE RESPUESTA — SIEMPRE JSON VÁLIDO:
+Respondé ÚNICAMENTE con este objeto JSON, sin texto fuera del JSON:
+{
+  "answer": "tu respuesta en texto con **negritas** para datos clave",
+  "chart": null
+}
+
+CUÁNDO INCLUIR GRÁFICO:
+Incluí "chart" (no null) cuando la pregunta pida rankings, comparaciones, evolución temporal, top N, distribución o cualquier pregunta donde visualizar los datos aporte valor real. Ejemplos: "top clientes", "evolución de ventas", "cómo le fue a X vs Y", "qué productos vendemos más", "ventas por día/mes".
+
+ESTRUCTURA DEL CHART (cuando aplica):
+{
+  "answer": "análisis textual del gráfico",
+  "chart": {
+    "type": "bar|line|pie|doughnut",
+    "title": "título descriptivo",
+    "labels": ["etiqueta1", "etiqueta2"],
+    "datasets": [
+      {"label": "nombre serie", "data": [valor1, valor2]}
+    ]
+  }
+}
+
+REGLAS DEL CHART:
+- type "bar": rankings, comparaciones entre ítems (clientes, productos, vendedores)
+- type "line": evolución temporal (ventas por día o por fecha)
+- type "pie" o "doughnut": distribuciones porcentuales (participación de cada cliente/producto)
+- Máximo 12 etiquetas en labels para que el gráfico sea legible; si hay más, tomá los top N
+- Los valores en data deben ser números enteros o decimales (sin formato, sin $ ni puntos)
+- El "answer" debe explicar lo que muestra el gráfico y agregar contexto analítico
+
+REGLAS DE TEXTO EN "answer":
+- Español directo, sin saludar ni repetir la pregunta
+- **negritas** para cifras, clientes, productos y datos clave
 - Valores monetarios con $ y separador de miles con punto (ej: $1.250.000)
 - Porcentajes con un decimal (ej: 34,5%)
-- Conclusión breve si aporta valor
 - Si los datos no alcanzan para responder, indicalo claramente sin inventar`,
       messages: [{ role: 'user', content: `Período: ${period}\nPregunta: ${question}\n\nDatos de ventas:\n${context}` }],
     });
-    res.json({ answer: msg.content[0].text.trim() });
+
+    let answer, chart = null;
+    try {
+      const raw = msg.content[0].text.trim();
+      const parsed = JSON.parse(raw);
+      answer = parsed.answer ?? raw;
+      chart  = parsed.chart  ?? null;
+    } catch {
+      answer = msg.content[0].text.trim();
+    }
+    res.json({ answer, chart });
   } catch (err) {
     console.error('❌ chat-query:', err.message);
     res.status(500).json({ error: err.message });
