@@ -1751,7 +1751,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     </div>
 
     <!-- KPIs de deudas -->
-    <div class="reveal" style="max-width:1400px;margin:0 auto;padding:0 40px 28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <div class="reveal" style="max-width:1400px;margin:0 auto;padding:0 40px 28px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
       <div class="deuda-kpi-card">
         <div class="deuda-kpi-label">Deuda Total</div>
         <div class="deuda-kpi-val" id="dk-total">—</div>
@@ -1761,11 +1761,6 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <div class="deuda-kpi-label">Cliente con Mayor Deuda</div>
         <div class="deuda-kpi-val red" id="dk-top-cli">—</div>
         <div class="deuda-kpi-sub" id="dk-top-monto">—</div>
-      </div>
-      <div class="deuda-kpi-card">
-        <div class="deuda-kpi-label">Promedio Dias Vencidos</div>
-        <div class="deuda-kpi-val gold" id="dk-dias">—</div>
-        <div class="deuda-kpi-sub">dias promedio de mora</div>
       </div>
     </div>
 
@@ -3612,8 +3607,6 @@ async function loadDeudasSection(){
 
 function renderDeudasKPIs(data){
   const total = data.reduce((s,r)=>s+r.MontoDeuda,0);
-  const diasProm = data.length ? Math.round(data.reduce((s,r)=>s+r.DiasVencidos,0)/data.length) : 0;
-  // cliente con mayor deuda total
   const byClient = {};
   data.forEach(r=>{ byClient[r.Cliente]=(byClient[r.Cliente]||0)+r.MontoDeuda; });
   const topCli = Object.entries(byClient).sort((a,b)=>b[1]-a[1])[0];
@@ -3622,7 +3615,6 @@ function renderDeudasKPIs(data){
   document.getElementById('dk-facturas').textContent = data.length + ' facturas vencidas';
   document.getElementById('dk-top-cli').textContent = topCli ? topCli[0] : '—';
   document.getElementById('dk-top-monto').textContent = topCli ? '$'+fmt(topCli[1])+' adeudados' : '—';
-  document.getElementById('dk-dias').textContent = diasProm;
 }
 
 function renderDeudasTable(rows, page){
