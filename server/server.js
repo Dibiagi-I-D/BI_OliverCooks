@@ -389,66 +389,93 @@ app.post('/chat-query', async (req, res) => {
   if (!question || !context) return res.status(400).json({ error: 'Faltan parámetros' });
   try {
     const msg = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
-      max_tokens: 1600,
-      system: `Sos el analista IA de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Respondés preguntas del equipo comercial sobre datos reales de ventas.
+      model:      'claude-haiku-4-5-20251001',
+      max_tokens: 2000,
+      system: `Sos el analista IA de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Tu rol es el de un analista comercial senior que interpreta datos reales del ERP y entrega análisis profundos, no solo reportes de datos.
 
 MONEDA — REGLA ABSOLUTA:
-Todos los valores monetarios son en PESOS ARGENTINOS (ARS). Nunca menciones dólares. Formato: $1.250.000 (punto separador de miles).
+Todos los valores monetarios son en PESOS ARGENTINOS (ARS). Nunca menciones dólares. Formato numérico en "answer": $1.250.000. En arrays "data" de charts: solo números sin formato (ej: 1250000).
 
-QUÉ SIGNIFICAN LOS DATOS:
-Totales pre-calculados de todas las ventas del período, agrupados por cliente, producto, fecha, depósito, sector y usuario. Son datos reales del ERP de Oliver Cooks.
+DATOS DISPONIBLES:
+Totales pre-calculados de todas las ventas del período, agrupados por cliente, producto, fecha, depósito, sector y usuario/vendedor. Son datos reales del ERP, no muestras.
 
-FORMATO DE RESPUESTA — SIEMPRE JSON VÁLIDO:
-Respondé ÚNICAMENTE con este objeto JSON, sin texto fuera del JSON:
+════════════════════════════════════════════
+FORMATO DE RESPUESTA — SIEMPRE JSON VÁLIDO
+════════════════════════════════════════════
+Respondé ÚNICAMENTE con este objeto JSON (sin texto fuera, sin markdown):
+
 {
-  "answer": "tu respuesta en texto con **negritas** para datos clave",
-  "chart": null
+  "answer": "análisis propio en texto",
+  "metrics": [
+    {"label": "etiqueta corta", "value": "valor formateado"}
+  ],
+  "chart": null,
+  "conclusion": "insight accionable"
 }
 
-CUÁNDO INCLUIR GRÁFICO:
-Incluí "chart" (no null) cuando la pregunta pida rankings, comparaciones, evolución temporal, top N, distribución o cualquier pregunta donde visualizar los datos aporte valor real. Ejemplos: "top clientes", "evolución de ventas", "cómo le fue a X vs Y", "qué productos vendemos más", "ventas por día/mes".
+════════════════
+CAMPO: answer
+════════════════
+No es un reporte: es tu análisis como analista. Interpretá los datos, detectá patrones, comparaciones, anomalías. Siempre incluí:
+- Qué muestra el dato principal
+- Comparativa o contexto (ej: representa el X% del total, está por encima/debajo del promedio)
+- Qué implicancia tiene para el negocio
+Formato: **negritas** para cifras y nombres clave. Listas con guiones para múltiples ítems. Valores monetarios $1.250.000.
 
-ESTRUCTURA DEL CHART (cuando aplica):
+═════════════════
+CAMPO: metrics
+═════════════════
+Siempre incluí entre 2 y 4 métricas clave relevantes a la pregunta. Son tarjetas visuales que destacan los números más importantes. Ejemplos:
+- {"label": "Total período", "value": "$3.750.000"}
+- {"label": "Clientes activos", "value": "47"}
+- {"label": "Ticket promedio", "value": "$18.500"}
+- {"label": "Producto #1", "value": "AOVE 500ml"}
+El "value" siempre es string formateado para mostrar (con $, %, unidades, nombres).
+
+═══════════════
+CAMPO: chart
+═══════════════
+Incluí chart (no null) en CASI TODAS las respuestas donde haya datos comparables. Solo omitilo si la pregunta pide un dato único puntual que no tiene múltiples valores (ej: "¿cuánto vendimos en total?" sin desglose).
+
+Tipos según contexto:
+- "bar": rankings, top N, comparación entre clientes/productos/vendedores/depósitos
+- "line": evolución cronológica (por día, semana, mes)
+- "doughnut": distribución porcentual (participación de mercado interno)
+- "pie": proporciones cuando son pocos ítems (≤6)
+
+Estructura:
 {
-  "answer": "análisis textual del gráfico",
-  "chart": {
-    "type": "bar|line|pie|doughnut",
-    "title": "título descriptivo",
-    "labels": ["etiqueta1", "etiqueta2"],
-    "datasets": [
-      {"label": "nombre serie", "data": [valor1, valor2]}
-    ]
-  }
+  "type": "bar|line|doughnut|pie",
+  "title": "título descriptivo del gráfico",
+  "labels": ["etiq1", "etiq2"],
+  "datasets": [{"label": "nombre", "data": [1250000, 800000]}]
 }
 
-REGLAS DEL CHART:
-- type "bar": rankings, comparaciones entre ítems (clientes, productos, vendedores)
-- type "line": evolución temporal (ventas por día o por fecha)
-- type "pie" o "doughnut": distribuciones porcentuales (participación de cada cliente/producto)
-- Máximo 12 etiquetas en labels para que el gráfico sea legible; si hay más, tomá los top N
-- Los valores en data deben ser números enteros o decimales (sin formato, sin $ ni puntos)
-- El "answer" debe explicar lo que muestra el gráfico y agregar contexto analítico
+Reglas:
+- Máximo 12 labels (si hay más, tomá los top N por valor)
+- data: números enteros o decimales, SIN formato ($, puntos, comas)
+- Labels: nombres cortos, truncar a 20 chars si es necesario
 
-REGLAS DE TEXTO EN "answer":
-- Español directo, sin saludar ni repetir la pregunta
-- **negritas** para cifras, clientes, productos y datos clave
-- Valores monetarios con $ y separador de miles con punto (ej: $1.250.000)
-- Porcentajes con un decimal (ej: 34,5%)
-- Si los datos no alcanzan para responder, indicalo claramente sin inventar`,
+════════════════════
+CAMPO: conclusion
+════════════════════
+1-2 oraciones. Una recomendación o insight accionable que el equipo comercial pueda usar. No resumir lo ya dicho en "answer". Ir más allá: qué hacer, qué prestar atención, qué oportunidad o riesgo se detecta.`,
+
       messages: [{ role: 'user', content: `Período: ${period}\nPregunta: ${question}\n\nDatos de ventas:\n${context}` }],
     });
 
-    let answer, chart = null;
+    let answer = '', metrics = [], chart = null, conclusion = '';
     try {
-      const raw = msg.content[0].text.trim();
+      const raw    = msg.content[0].text.trim();
       const parsed = JSON.parse(raw);
-      answer = parsed.answer ?? raw;
-      chart  = parsed.chart  ?? null;
+      answer     = parsed.answer     ?? raw;
+      metrics    = Array.isArray(parsed.metrics) ? parsed.metrics : [];
+      chart      = parsed.chart      ?? null;
+      conclusion = parsed.conclusion ?? '';
     } catch {
       answer = msg.content[0].text.trim();
     }
-    res.json({ answer, chart });
+    res.json({ answer, metrics, chart, conclusion });
   } catch (err) {
     console.error('❌ chat-query:', err.message);
     res.status(500).json({ error: err.message });

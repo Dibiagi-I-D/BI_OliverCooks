@@ -994,25 +994,45 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 .chat-tts-play svg{width:10px;height:10px;fill:var(--cyan)}
 .msg-row{display:flex;align-items:flex-end;gap:6px}
 
-/* ── Chat inline chart ── */
+/* ── Chat inline analysis artifacts ── */
+.chat-metrics-row {
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;
+}
+.chat-metric-card {
+  flex:1 1 calc(50% - 3px);min-width:90px;
+  background:#0d1117;border:1px solid rgba(71,201,229,.2);
+  border-radius:8px;padding:7px 10px;box-sizing:border-box;
+}
+.chat-metric-label {
+  font-size:9px;color:var(--t3);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chat-metric-value {
+  font-size:13px;font-weight:700;color:var(--cyan);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .chat-chart-wrap {
   margin-top:10px;
   background:#0d1117;
   border-radius:10px;
   padding:12px 10px 8px;
   border:1px solid rgba(71,201,229,.18);
-  width:100%;
-  box-sizing:border-box;
+  width:100%;box-sizing:border-box;
 }
 .chat-chart-title {
-  font-size:10px;
-  color:var(--cyan);
-  text-transform:uppercase;
-  letter-spacing:.6px;
-  margin-bottom:8px;
-  opacity:.8;
+  font-size:10px;color:var(--cyan);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:8px;opacity:.8;
 }
 .chat-chart-canvas { max-height:220px; }
+.chat-conclusion {
+  margin-top:10px;
+  background:rgba(200,168,50,.07);
+  border-left:3px solid var(--gold,#C8A832);
+  border-radius:0 8px 8px 0;
+  padding:8px 12px;
+  font-size:12px;color:var(--t2);
+  line-height:1.5;
+}
 
 /* ── Chat nav pill ── */
 .chat-nav-pill {
@@ -3350,7 +3370,7 @@ ${topDeudores}
 ${masViejas}`;
 }
 
-/* ── Renderizar gráfico inline en burbuja del chat ── */
+/* ── Renderizar análisis completo en burbuja del chat ── */
 const CHAT_CHART_PALETTE = [
   '#47c9e5','#C8A832','#7DB83A','#e05252','#e0a052',
   '#a78bfa','#34d399','#f472b6','#60a5fa','#fb923c',
@@ -3358,97 +3378,119 @@ const CHAT_CHART_PALETTE = [
 ];
 
 function chatRenderInlineChart(msgEl, chartData) {
-  if (!chartData || !chartData.labels || !chartData.datasets) return;
+  chatRenderAnalysis(msgEl, { chart: chartData });
+}
 
-  const id = 'chat-chart-' + Date.now();
-  const wrap = document.createElement('div');
-  wrap.className = 'chat-chart-wrap';
-  wrap.innerHTML = `
-    ${chartData.title ? `<div class="chat-chart-title">${chartData.title}</div>` : ''}
-    <canvas id="${id}" class="chat-chart-canvas"></canvas>`;
-
+function chatRenderAnalysis(msgEl, { metrics, chart, conclusion }) {
   const bubble = msgEl.querySelector('.msg-bubble');
-  if (bubble) bubble.appendChild(wrap);
+  if (!bubble) return;
 
-  const ctx = document.getElementById(id);
-  if (!ctx) return;
+  // ── Métricas KPI ──
+  if (Array.isArray(metrics) && metrics.length > 0) {
+    const row = document.createElement('div');
+    row.className = 'chat-metrics-row';
+    row.innerHTML = metrics.map(m => `
+      <div class="chat-metric-card">
+        <div class="chat-metric-label">${m.label ?? ''}</div>
+        <div class="chat-metric-value">${m.value ?? ''}</div>
+      </div>`).join('');
+    bubble.appendChild(row);
+  }
 
-  const type = chartData.type || 'bar';
-  const isRound = type === 'pie' || type === 'doughnut';
+  // ── Gráfico Chart.js ──
+  if (chart && chart.labels && chart.datasets) {
+    const id   = 'chat-chart-' + Date.now();
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-chart-wrap';
+    wrap.innerHTML = `
+      ${chart.title ? `<div class="chat-chart-title">${chart.title}</div>` : ''}
+      <canvas id="${id}" class="chat-chart-canvas"></canvas>`;
+    bubble.appendChild(wrap);
 
-  const datasets = chartData.datasets.map((ds, di) => {
-    if (isRound) {
-      return {
+    const ctx     = document.getElementById(id);
+    const type    = chart.type || 'bar';
+    const isRound = type === 'pie' || type === 'doughnut';
+
+    const datasets = chart.datasets.map((ds, di) => {
+      if (isRound) return {
         label: ds.label || '',
         data: ds.data,
         backgroundColor: CHAT_CHART_PALETTE,
         borderColor: '#0d1117',
         borderWidth: 2,
       };
-    }
-    return {
-      label: ds.label || '',
-      data: ds.data,
-      backgroundColor: type === 'line'
-        ? 'rgba(71,201,229,.15)'
-        : CHAT_CHART_PALETTE[di % CHAT_CHART_PALETTE.length] + 'cc',
-      borderColor: CHAT_CHART_PALETTE[di % CHAT_CHART_PALETTE.length],
-      borderWidth: type === 'line' ? 2 : 1,
-      fill: type === 'line',
-      tension: 0.35,
-      pointRadius: chartData.labels.length > 20 ? 0 : 3,
-    };
-  });
+      return {
+        label: ds.label || '',
+        data: ds.data,
+        backgroundColor: type === 'line'
+          ? 'rgba(71,201,229,.15)'
+          : CHAT_CHART_PALETTE[di % CHAT_CHART_PALETTE.length] + 'bb',
+        borderColor: CHAT_CHART_PALETTE[di % CHAT_CHART_PALETTE.length],
+        borderWidth: type === 'line' ? 2 : 1,
+        fill: type === 'line',
+        tension: 0.35,
+        pointRadius: chart.labels.length > 20 ? 0 : 3,
+        pointHoverRadius: 5,
+      };
+    });
 
-  new Chart(ctx, {
-    type,
-    data: { labels: chartData.labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      animation: { duration: 500 },
-      plugins: {
-        legend: {
-          display: isRound || datasets.length > 1,
-          labels: { color: '#aaa', font: { size: 10 }, boxWidth: 10, padding: 8 },
-        },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const val = ctx.parsed.y ?? ctx.parsed;
-              if (typeof val === 'number' && val >= 1000) {
-                return ' $' + val.toLocaleString('es-AR');
-              }
-              return ' ' + (typeof val === 'number' ? val.toLocaleString('es-AR') : val);
+    new Chart(ctx, {
+      type,
+      data: { labels: chart.labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        animation: { duration: 600 },
+        plugins: {
+          legend: {
+            display: isRound || datasets.length > 1,
+            labels: { color: '#aaa', font: { size: 10 }, boxWidth: 10, padding: 8 },
+          },
+          tooltip: {
+            backgroundColor: '#1a1f2e',
+            borderColor: 'rgba(71,201,229,.3)',
+            borderWidth: 1,
+            titleColor: '#47c9e5',
+            bodyColor: '#ccc',
+            callbacks: {
+              label: (c) => {
+                const v = c.parsed.y ?? c.parsed;
+                if (typeof v === 'number' && v >= 1000)
+                  return ' $' + v.toLocaleString('es-AR');
+                return ' ' + (typeof v === 'number' ? v.toLocaleString('es-AR') : v);
+              },
             },
           },
         },
-      },
-      scales: isRound ? {} : {
-        x: {
-          ticks: {
-            color: '#888',
-            font: { size: 9 },
-            maxRotation: 45,
-            maxTicksLimit: 12,
+        scales: isRound ? {} : {
+          x: {
+            ticks: { color: '#777', font: { size: 9 }, maxRotation: 40, maxTicksLimit: 12 },
+            grid:  { color: 'rgba(255,255,255,.03)' },
           },
-          grid: { color: 'rgba(255,255,255,.04)' },
-        },
-        y: {
-          ticks: {
-            color: '#888',
-            font: { size: 9 },
-            callback: (v) => {
-              if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
-              if (v >= 1000)    return '$' + (v / 1000).toFixed(0) + 'K';
-              return v;
+          y: {
+            ticks: {
+              color: '#777',
+              font: { size: 9 },
+              callback: v => {
+                if (v >= 1000000) return '$' + (v/1000000).toFixed(1) + 'M';
+                if (v >= 1000)    return '$' + (v/1000).toFixed(0) + 'K';
+                return v;
+              },
             },
+            grid: { color: 'rgba(255,255,255,.05)' },
           },
-          grid: { color: 'rgba(255,255,255,.06)' },
         },
       },
-    },
-  });
+    });
+  }
+
+  // ── Conclusión destacada ──
+  if (conclusion && conclusion.trim()) {
+    const box = document.createElement('div');
+    box.className = 'chat-conclusion';
+    box.textContent = conclusion;
+    bubble.appendChild(box);
+  }
 }
 
 /* ── Enviar consulta ── */
@@ -3517,11 +3559,12 @@ async function chatSend() {
           `${nav.label}</span>`
         : '';
       const msgEl = chatAppendBot(formatted + navPill);
-      // Renderizar gráfico inline si Claude lo incluyó
-      if (j.chart) {
-        chatRenderInlineChart(msgEl, j.chart);
+      // Renderizar métricas, gráfico y conclusión si Claude los incluyó
+      const hasArtifacts = j.chart || (Array.isArray(j.metrics) && j.metrics.length) || j.conclusion;
+      if (hasArtifacts) {
+        chatRenderAnalysis(msgEl, { metrics: j.metrics, chart: j.chart, conclusion: j.conclusion });
         const msgs = document.getElementById('chat-messages');
-        setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 100);
+        setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 150);
       }
       // Navegar automáticamente después de leer la respuesta
       if (nav) setTimeout(() => chatDoNavigate(nav), 900);
