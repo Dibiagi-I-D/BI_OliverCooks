@@ -3101,6 +3101,9 @@ const CHAT_SUGGESTIONS = [
   'Comparar ventas por mes',
   '¿Qué productos tienen menor rotación?',
   'Resumen ejecutivo del período',
+  '¿Cuánto se adeuda en total?',
+  '¿Qué cliente tiene la mayor deuda?',
+  '¿Cuáles son las facturas más antiguas sin cobrar?',
 ];
 
 function chatShowSuggestions() {
@@ -3289,6 +3292,44 @@ ${diaLines}
 ${top5dias}`;
 }
 
+/* ── Contexto de deudas ── */
+function buildDeudasContext() {
+  if (!deudasData || !deudasData.length) return '';
+  const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const totalDeuda = deudasData.reduce((s,r)=>s+(r.MontoDeuda||0),0);
+
+  // Por cliente
+  const byCliente = {};
+  deudasData.forEach(r=>{
+    const c = r.Cliente?.trim()||'Sin nombre';
+    if(!byCliente[c]) byCliente[c]={monto:0,facturas:0,diasMax:0};
+    byCliente[c].monto   += r.MontoDeuda||0;
+    byCliente[c].facturas++;
+    byCliente[c].diasMax  = Math.max(byCliente[c].diasMax, r.DiasVencidos||0);
+  });
+  const topDeudores = Object.entries(byCliente)
+    .sort((a,b)=>b[1].monto-a[1].monto).slice(0,10)
+    .map(([n,d],i)=>`  ${i+1}. ${n}: $${fmtN(d.monto)} — ${d.facturas} factura(s) — max ${d.diasMax} días vencida`).join('\n');
+
+  // Facturas más antiguas
+  const masViejas = [...deudasData].sort((a,b)=>(b.DiasVencidos||0)-(a.DiasVencidos||0)).slice(0,5)
+    .map(r=>`  ${r.Cliente}: $${fmtN(r.MontoDeuda)} — ${r.DiasVencidos} días vencida (${r.TipoDoc} ${r.NroDoc})`).join('\n');
+
+  const diasProm = Math.round(deudasData.reduce((s,r)=>s+(r.DiasVencidos||0),0)/deudasData.length);
+
+  return `\n=== DEUDAS DE CLIENTES ===
+Total adeudado: $${fmtN(totalDeuda)}
+Facturas vencidas: ${deudasData.length}
+Promedio días vencidos: ${diasProm} días
+
+=== TOP 10 CLIENTES CON MAYOR DEUDA ===
+${topDeudores}
+
+=== FACTURAS MÁS ANTIGUAS SIN COBRAR ===
+${masViejas}`;
+}
+
 /* ── Enviar consulta ── */
 async function chatSend() {
   if (chatWaiting) return;
@@ -3326,7 +3367,7 @@ async function chatSend() {
   chatAppendTyping();
 
   try {
-    const context = buildChatContext(allData);
+    const context = buildChatContext(allData) + buildDeudasContext();
     const period  = chatPeriod ? chatPeriod.label : 'Período no especificado';
 
     const r = await fetch(`${CHAT_API}/chat-query`, {
@@ -3441,6 +3482,12 @@ const CHAT_NAV_MAP = [
     score: (q) => kw(q, ['detalle','factura','listado','tabla','registro','comprobante','número']),
     target: '#sec-detalle',
     label: 'Ver tabla de detalle',
+    chart: null,
+  },
+  {
+    score: (q) => kw(q, ['deuda','deudas','adeuda','vencida','vencido','mora','cobrar','cobro','pendiente','cuenta corriente','acreencia']),
+    target: '#sec-deudas',
+    label: 'Ver deudas de clientes',
     chart: null,
   },
 ];
