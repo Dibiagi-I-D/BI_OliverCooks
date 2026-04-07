@@ -704,13 +704,52 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 .reveal { opacity:0; transform:translateY(20px); transition:opacity .6s ease, transform .6s ease }
 .reveal.visible { opacity:1; transform:none }
 
+/* ── DEUDA KPI CARDS ── */
+.deuda-kpi-card {
+  background:var(--ink3);
+  border:1px solid var(--bdr);
+  border-radius:10px;
+  padding:22px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.deuda-kpi-label {
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  color:var(--cyan);
+}
+.deuda-kpi-val {
+  font-size:26px;
+  font-weight:800;
+  color:var(--t1);
+  letter-spacing:-.5px;
+}
+.deuda-kpi-val.red  { color:var(--red) }
+.deuda-kpi-val.gold { color:var(--gold) }
+.deuda-kpi-sub { font-size:12px; color:var(--t3) }
+.dias-badge {
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:4px;
+  font-size:11px;
+  font-weight:700;
+}
+.dias-badge.alto   { background:rgba(224,82,82,.18);  color:var(--red)  }
+.dias-badge.medio  { background:rgba(200,168,50,.18); color:var(--gold) }
+.dias-badge.bajo   { background:rgba(71,201,229,.12); color:var(--cyan) }
+
 /* ── RESPONSIVE ── */
 @media(max-width:1100px) {
   .kpi-strip { grid-template-columns:repeat(2,1fr) }
+  #sec-deudas .deuda-kpi-card:nth-child(n) { grid-column: auto }
   .cg-64,.cg-55 { grid-template-columns:1fr }
   .insights-row { grid-template-columns:1fr 1fr }
 }
 @media(max-width:800px) {
+  #sec-deudas [style*="grid-template-columns:repeat(3"] { grid-template-columns:1fr!important }
   .login-layout { grid-template-columns:1fr }
   .lv-panel { display:none }
   .dash-section, .section-wrap { padding-left:24px; padding-right:24px }
@@ -1215,6 +1254,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
       <a class="nb-link" href="#sec-litros" data-section="litros">Por Litro</a>
       <a class="nb-link" href="#sec-productos" data-section="productos">Productos</a>
       <a class="nb-link" href="#sec-clientes" data-section="clientes">Clientes</a>
+      <a class="nb-link" href="#sec-deudas" data-section="deudas">Deudas</a>
       <a class="nb-link" href="#sec-detalle" data-section="detalle">Detalle</a>
     </div>
 
@@ -1702,6 +1742,56 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     </div>
   </div>
 
+  <!-- ═══════ DEUDAS DE CLIENTES ═══════ -->
+  <section id="sec-deudas" style="padding-bottom:0">
+    <div class="section-wrap reveal">
+      <div class="sec-eyebrow"><span class="num">07</span> Deudas</div>
+      <h2 class="sec-title">Deudas de Clientes</h2>
+      <p class="sec-sub">Estado de cuenta corriente. Facturas vencidas y montos adeudados por cliente.</p>
+    </div>
+
+    <!-- KPIs de deudas -->
+    <div class="reveal" style="max-width:1400px;margin:0 auto;padding:0 40px 28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <div class="deuda-kpi-card">
+        <div class="deuda-kpi-label">Deuda Total</div>
+        <div class="deuda-kpi-val" id="dk-total">—</div>
+        <div class="deuda-kpi-sub" id="dk-facturas">— facturas vencidas</div>
+      </div>
+      <div class="deuda-kpi-card">
+        <div class="deuda-kpi-label">Cliente con Mayor Deuda</div>
+        <div class="deuda-kpi-val red" id="dk-top-cli">—</div>
+        <div class="deuda-kpi-sub" id="dk-top-monto">—</div>
+      </div>
+      <div class="deuda-kpi-card">
+        <div class="deuda-kpi-label">Promedio Dias Vencidos</div>
+        <div class="deuda-kpi-val gold" id="dk-dias">—</div>
+        <div class="deuda-kpi-sub">dias promedio de mora</div>
+      </div>
+    </div>
+
+    <!-- Tabla deudas -->
+    <div class="table-shell reveal" style="max-width:1400px;margin:0 auto;border-left:none;border-right:none;border-top:1px solid var(--bdr)">
+      <div class="table-topbar">
+        <div><div class="table-title">Facturas Vencidas</div><div class="table-sub" id="dk-sub">—</div></div>
+        <input class="search-input" id="dk-search" placeholder="Buscar cliente..." oninput="filterDeudas(this.value)">
+      </div>
+      <div class="tw">
+        <table><thead><tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Tipo Doc</th>
+          <th style="text-align:right">Nro Doc</th>
+          <th style="text-align:right">F. Emisión</th>
+          <th style="text-align:right">F. Vencimiento</th>
+          <th style="text-align:right">Monto Deuda</th>
+          <th style="text-align:right">Dias Vencidos</th>
+        </tr></thead>
+        <tbody id="dk-body"></tbody></table>
+      </div>
+      <div class="pagination"><span class="pg-info" id="dk-pg-info">—</span><div class="pg-btns" id="dk-pg-btns"></div></div>
+    </div>
+  </section>
+
 </div><!-- /pg-dash -->
 
 <script>
@@ -1792,7 +1882,7 @@ function onScroll(){
   const nb=document.getElementById('navbar');
   if(scrollY>20) nb.classList.add('scrolled'); else nb.classList.remove('scrolled');
   // Scroll-spy
-  const sections=['sec-hero','sec-ventas','sec-litros','sec-productos','sec-clientes','sec-detalle'];
+  const sections=['sec-hero','sec-ventas','sec-litros','sec-productos','sec-clientes','sec-deudas','sec-detalle'];
   let active='hero';
   sections.forEach(id=>{
     const el=document.getElementById(id);
@@ -1845,6 +1935,7 @@ async function loadDashboard(){
     updateMeta(allData,s,e);
     renderAIInsights(stats, ltDataFull);
     renderRFMSection(allData);
+    loadDeudasSection();
     runAnomalyDetection(stats);
     addChartClickListeners();
     showLoad(false);
@@ -3486,6 +3577,71 @@ async function runRFMAnalysis(){
 function showRFMDetail(seg){
   if(!rfmData)return;const cs=rfmData.segments[seg],cfg=RFM_CFG[seg];if(!cs?.length)return;
   openDrillDown('segmento_rfm',cfg.label+' — '+cs.length+' clientes',{segmento:cfg.label,descripcion:cfg.sub,clientes:cs.length,total_facturado:cs.reduce((s,c)=>s+c.total,0).toFixed(0),top_clientes:cs.slice(0,6).map(c=>c.nombre+': $'+fmt(c.total)+', '+c.frecuencia+' fac., '+c.diasDesde+'d').join(' | '),dias_promedio_sin_comprar:Math.round(cs.reduce((s,c)=>s+c.diasDesde,0)/cs.length)});
+}
+
+/* ═══ DEUDAS DE CLIENTES ═══ */
+const DEUDAS_URL = 'https://apirest-dibiagi.onrender.com/oliver-cooks/deudas-clientes';
+let deudasData = [];
+let deudasFiltered = [];
+const DPS = 15; // filas por página en deudas
+
+async function loadDeudasSection(){
+  try{
+    const r = await fetch(DEUDAS_URL, {headers:{'Authorization':`Bearer ${API_KEY}`,'Content-Type':'application/json'}});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    deudasData = Array.isArray(j.data) ? j.data : [];
+    deudasFiltered = [...deudasData];
+    renderDeudasKPIs(deudasData);
+    renderDeudasTable(deudasFiltered, 1);
+  }catch(err){
+    console.error('Error cargando deudas:', err);
+    document.getElementById('dk-sub').textContent = 'Error al cargar datos de deudas';
+  }
+}
+
+function renderDeudasKPIs(data){
+  const total = data.reduce((s,r)=>s+r.MontoDeuda,0);
+  const diasProm = data.length ? Math.round(data.reduce((s,r)=>s+r.DiasVencidos,0)/data.length) : 0;
+  // cliente con mayor deuda total
+  const byClient = {};
+  data.forEach(r=>{ byClient[r.Cliente]=(byClient[r.Cliente]||0)+r.MontoDeuda; });
+  const topCli = Object.entries(byClient).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('dk-total').textContent = '$'+fmt(total);
+  document.getElementById('dk-facturas').textContent = data.length + ' facturas vencidas';
+  document.getElementById('dk-top-cli').textContent = topCli ? topCli[0] : '—';
+  document.getElementById('dk-top-monto').textContent = topCli ? '$'+fmt(topCli[1])+' adeudados' : '—';
+  document.getElementById('dk-dias').textContent = diasProm;
+}
+
+function renderDeudasTable(rows, page){
+  const total=rows.length, pages=Math.max(1,Math.ceil(total/DPS));
+  page=Math.max(1,Math.min(page,pages));
+  const from=(page-1)*DPS, slice=rows.slice(from,from+DPS);
+  document.getElementById('dk-sub').textContent=total.toLocaleString('es-AR')+' facturas';
+  const tbody=document.getElementById('dk-body');
+  tbody.innerHTML=slice.map((r,i)=>{
+    const dias=r.DiasVencidos;
+    const badge=dias>365?'alto':dias>180?'medio':'bajo';
+    return `<tr>
+      <td style="color:var(--t3);font-size:11px">${from+i+1}</td>
+      <td style="font-weight:600">${r.Cliente}</td>
+      <td style="color:var(--t2);font-size:12px">${r.TipoDoc}</td>
+      <td style="text-align:right;color:var(--t2);font-size:12px">${r.NroDoc}</td>
+      <td style="text-align:right;font-size:12px">${fmtD(r.FechaEmision?.slice(0,10))}</td>
+      <td style="text-align:right;font-size:12px">${fmtD(r.FechaVencimiento?.slice(0,10))}</td>
+      <td style="text-align:right;font-weight:700;color:var(--red)">$${fmt(r.MontoDeuda)}</td>
+      <td style="text-align:right"><span class="dias-badge ${badge}">${dias}d</span></td>
+    </tr>`;
+  }).join('');
+  renderPag('dk-pg-info','dk-pg-btns',page,pages,total,from,DPS,p=>renderDeudasTable(rows,p));
+}
+
+function filterDeudas(q){
+  const t=q.trim().toLowerCase();
+  deudasFiltered=t?deudasData.filter(r=>r.Cliente.toLowerCase().includes(t)):([...deudasData]);
+  renderDeudasTable(deudasFiltered,1);
 }
 
 /* ═══ ANOMALÍAS ═══ */
