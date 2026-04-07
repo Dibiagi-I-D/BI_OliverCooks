@@ -406,7 +406,7 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
 .kpi-strip {
   display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
   background:var(--bdr); border:1px solid var(--bdr); border-radius:8px;
-  overflow:hidden; max-width:900px;
+  overflow:hidden; max-width:1200px;
 }
 .kpi-cell {
   background:rgba(8,8,8,.85); backdrop-filter:blur(12px);
@@ -428,8 +428,8 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
   text-transform:uppercase; letter-spacing:1.2px; margin-bottom:8px;
 }
 .kpi-cell-value {
-  font-size:28px; font-weight:900; color:var(--white); letter-spacing:-1px;
-  line-height:1;
+  font-size:clamp(18px,2vw,28px); font-weight:900; color:var(--white); letter-spacing:-1px;
+  line-height:1.1; word-break:break-all;
 }
 .kpi-cell-value.cyan { color:var(--cyan) }
 .kpi-cell-sub {
