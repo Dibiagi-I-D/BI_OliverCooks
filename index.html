@@ -381,7 +381,7 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
   padding: 0 80px; pointer-events: none;
   opacity: 0; transition: opacity .6s;
 }
-.hero-kpi-overlay.hq-on { opacity: 1 }
+.hero-kpi-overlay.hq-on { opacity: 1; pointer-events: auto; }
 /* Scroll hint */
 .hero-scroll-hint {
   position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
@@ -404,17 +404,23 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
 
 /* KPI strip */
 .kpi-strip {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
   background:var(--bdr); border:1px solid var(--bdr); border-radius:8px;
-  overflow:hidden; max-width:1200px;
+  overflow:hidden; max-width:900px;
 }
 .kpi-cell {
   background:rgba(8,8,8,.85); backdrop-filter:blur(12px);
   padding:24px 28px;
   position:relative; overflow:hidden;
   transition:background .2s;
+  cursor:pointer;
 }
-.kpi-cell:hover { background:rgba(71,201,229,.04) }
+.kpi-cell:hover { background:rgba(71,201,229,.08) }
+.kpi-cell-hint {
+  font-size:9px; color:var(--t3); margin-top:10px;
+  opacity:0; transition:opacity .2s; letter-spacing:.4px;
+}
+.kpi-cell:hover .kpi-cell-hint { opacity:1 }
 /* Border beam effect on KPI cells */
 .kpi-cell::before {
   content:''; position:absolute; inset:0;
@@ -1222,6 +1228,44 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 .pp-prom-cell:hover { opacity:.75 }
 
 /* ═══════════════════════════════════════════════════════════
+   KPI DETAIL MODAL
+═══════════════════════════════════════════════════════════ */
+#kpi-modal {
+  display:none;position:fixed;inset:0;z-index:9997;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(5px);
+  align-items:center;justify-content:center;padding:20px;
+}
+#kpi-modal.open { display:flex }
+.kpi-panel {
+  background:var(--ink2);border:1px solid var(--bdr2);border-radius:14px;
+  max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column;
+  animation:ddIn .22s ease;
+}
+.kpi-panel-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 13px;border-bottom:1px solid var(--bdr);
+  position:sticky;top:0;background:var(--ink2);z-index:1;border-radius:14px 14px 0 0;
+}
+.kpi-panel-title { font-size:13px;font-weight:700;color:var(--cyan) }
+.kpi-panel-sub { font-size:10px;color:var(--t3);margin-top:2px }
+.kpi-mini-strip { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 20px 10px }
+.kpi-mini-card { background:var(--ink3);border:1px solid var(--bdr);border-radius:8px;padding:10px;text-align:center }
+.kpi-mini-val { font-size:15px;font-weight:700;color:var(--cyan) }
+.kpi-mini-lbl { font-size:9px;color:var(--t3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px }
+.kpi-panel-body { overflow-y:auto;padding:0 20px 20px }
+.kpi-panel-close { background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;padding:2px 4px;line-height:1;transition:color .15s }
+.kpi-panel-close:hover { color:var(--white) }
+.kpi-detail-table { width:100%;border-collapse:collapse;font-size:12px;margin-top:8px }
+.kpi-detail-table th { text-align:left;color:var(--t3);font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;border-bottom:1px solid var(--bdr);font-weight:600 }
+.kpi-detail-table th.r { text-align:right }
+.kpi-detail-table td { padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--t1) }
+.kpi-detail-table td.r { text-align:right }
+.kpi-detail-table tr:last-child td { border-bottom:none }
+.kpi-detail-table tr:hover td { background:var(--ink3) }
+.kpi-bar-wrap { background:rgba(255,255,255,.06);border-radius:3px;height:4px;margin-top:3px;overflow:hidden }
+.kpi-bar-fill { background:var(--cyan);height:4px;border-radius:3px;transition:width .4s }
+
+/* ═══════════════════════════════════════════════════════════
    VOICE BUTTON
 ═══════════════════════════════════════════════════════════ */
 #chat-voice {
@@ -1241,6 +1285,35 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,.35)}
   50%{box-shadow:0 0 0 7px rgba(224,82,82,0)}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CALC TIP (íconos de ayuda con fórmula)
+═══════════════════════════════════════════════════════════ */
+.calc-tip-icon {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:13px;height:13px;border-radius:50%;
+  background:rgba(71,201,229,.12);border:1px solid rgba(71,201,229,.28);
+  color:var(--cyan);font-size:8px;font-weight:700;font-style:normal;
+  cursor:pointer;margin-left:5px;vertical-align:middle;
+  transition:background .15s,border-color .15s;flex-shrink:0;
+  line-height:1;user-select:none;
+}
+.calc-tip-icon:hover { background:rgba(71,201,229,.25);border-color:rgba(71,201,229,.6) }
+#calc-tip-box {
+  position:fixed;z-index:99999;
+  background:var(--ink2);border:1px solid var(--bdr2);border-radius:10px;
+  padding:13px 15px;max-width:290px;width:max-content;
+  box-shadow:0 8px 32px rgba(0,0,0,.65);
+  display:none;pointer-events:none;
+}
+#calc-tip-box.open { display:block }
+.ctb-title { font-size:11px;font-weight:700;color:var(--cyan);margin-bottom:5px }
+.ctb-formula {
+  font-size:10px;color:var(--t1);background:rgba(71,201,229,.06);
+  border:1px solid rgba(71,201,229,.15);border-radius:6px;
+  padding:5px 8px;font-family:monospace;margin:6px 0;word-break:break-word;
+}
+.ctb-desc { font-size:10.5px;color:var(--t3);line-height:1.55 }
 
 /* ═══════════════════════════════════════════════════════════
    EXPORT BUTTONS
@@ -1263,6 +1336,13 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 <body>
 
 <div id="progress-bar"></div>
+
+<!-- Tooltip de ayuda con fórmulas -->
+<div id="calc-tip-box">
+  <div class="ctb-title" id="ctb-title"></div>
+  <div class="ctb-formula" id="ctb-formula"></div>
+  <div class="ctb-desc" id="ctb-desc"></div>
+</div>
 
 <!-- ▓ LOADING ▓ -->
 <div id="loading">
@@ -1414,25 +1494,23 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div class="dr-meta"><strong id="dr-records">—</strong> registros · <strong id="dr-days">—</strong> dias de datos</div>
         </div>
         <div class="kpi-strip">
-          <div class="kpi-cell">
+          <div class="kpi-cell" onclick="openKpiModal('total')">
             <div class="kpi-cell-label">Total Vendido</div>
             <div class="kpi-cell-value cyan" id="kpi-total">—</div>
-            <div class="kpi-cell-sub" id="kpi-total-s">—</div>
+            <div class="kpi-cell-sub" id="kpi-total-s">—<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')" style="margin-left:6px">i</i></div>
+            <div class="kpi-cell-hint">Ver desglose →</div>
           </div>
-          <div class="kpi-cell">
+          <div class="kpi-cell" onclick="openKpiModal('facturas')">
             <div class="kpi-cell-label">Facturas Emitidas</div>
             <div class="kpi-cell-value" id="kpi-fact">—</div>
             <div class="kpi-cell-sub" id="kpi-fact-s">—</div>
+            <div class="kpi-cell-hint">Ver desglose →</div>
           </div>
-          <div class="kpi-cell">
+          <div class="kpi-cell" onclick="openKpiModal('clientes')">
             <div class="kpi-cell-label">Clientes Atendidos</div>
             <div class="kpi-cell-value" id="kpi-cl">—</div>
             <div class="kpi-cell-sub" id="kpi-cl-s">—</div>
-          </div>
-          <div class="kpi-cell">
-            <div class="kpi-cell-label">Productos Distintos</div>
-            <div class="kpi-cell-value" id="kpi-pr">—</div>
-            <div class="kpi-cell-sub" id="kpi-pr-s">—</div>
+            <div class="kpi-cell-hint">Ver desglose →</div>
           </div>
         </div>
       </div>
@@ -1451,7 +1529,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="insights-row reveal">
       <div class="ins-cell">
         <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div><div class="ins-val" id="ins-prom">—</div><div class="ins-lbl">Ticket promedio</div></div>
+        <div><div class="ins-val" id="ins-prom">—</div><div class="ins-lbl">Ticket promedio<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')">i</i></div></div>
       </div>
       <div class="ins-cell">
         <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
@@ -1500,7 +1578,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
       </div>
       <div class="chart-card" style="border-left:1px solid var(--bdr)">
         <div class="cc-meta">
-          <div><div class="cc-title">Tendencia con Media Movil (7 dias)</div><div class="cc-sub">Suaviza los picos para ver la tendencia real</div></div>
+          <div><div class="cc-title">Tendencia con Media Movil (7 dias)<i class="calc-tip-icon" onclick="showCalcTip(event,'media-movil')">i</i></div><div class="cc-sub">Suaviza los picos para ver la tendencia real</div></div>
           <span class="cc-tag gold">Media Movil</span>
         </div>
         <div class="cc-canvas short"><canvas id="ch-movil"></canvas></div>
@@ -1528,7 +1606,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <div class="kpi-cell">
           <div class="kpi-cell-label">Ingreso por Litro</div>
           <div class="kpi-cell-value" id="lt-precio">—</div>
-          <div class="kpi-cell-sub">Promedio ponderado $/L</div>
+          <div class="kpi-cell-sub">Promedio ponderado $/L<i class="calc-tip-icon" onclick="showCalcTip(event,'prom-ponderado-litro')">i</i></div>
         </div>
         <div class="kpi-cell">
           <div class="kpi-cell-label">Producto Top en Volumen</div>
@@ -1572,7 +1650,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none;border-top:none">
       <div class="chart-card">
         <div class="cc-meta">
-          <div><div class="cc-title">Evolucion del Precio Promedio por Litro</div><div class="cc-sub">Como cambia el precio efectivo $/L mes a mes</div></div>
+          <div><div class="cc-title">Evolucion del Precio Promedio por Litro<i class="calc-tip-icon" onclick="showCalcTip(event,'evol-precio-litro')">i</i></div><div class="cc-sub">Como cambia el precio efectivo $/L mes a mes</div></div>
           <span class="cc-tag">Tendencia</span>
         </div>
         <div class="cc-canvas short"><canvas id="ch-lt-evol"></canvas></div>
@@ -1663,7 +1741,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <table><thead><tr>
           <th>#</th><th>Producto</th><th>Codigo</th>
           <th style="text-align:right">Clientes</th><th style="text-align:right">Facturas</th>
-          <th style="text-align:right">Unidades</th><th style="text-align:right">Precio Prom.</th>
+          <th style="text-align:right">Unidades</th><th style="text-align:right">Precio Prom.<i class="calc-tip-icon" onclick="showCalcTip(event,'precio-prom-simple')">i</i></th>
           <th style="text-align:right">Total Vendido</th>
         </tr></thead>
         <tbody id="p-body"></tbody></table>
@@ -1705,7 +1783,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <table><thead><tr>
           <th>#</th><th>Cliente</th>
           <th style="text-align:right">Facturas</th><th style="text-align:right">Unidades</th>
-          <th style="text-align:right">Total Comprado</th><th style="text-align:right">Ticket Prom.</th>
+          <th style="text-align:right">Total Comprado</th><th style="text-align:right">Ticket Prom.<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom-cliente')">i</i></th>
         </tr></thead>
         <tbody id="c-body"></tbody></table>
       </div>
@@ -1718,7 +1796,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
       <div>
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--cyan);margin-bottom:6px">Inteligencia de Clientes</div>
-        <div style="font-size:20px;font-weight:700;color:var(--t1)">Segmentación RFM</div>
+        <div style="font-size:20px;font-weight:700;color:var(--t1)">Segmentación RFM<i class="calc-tip-icon" onclick="showCalcTip(event,'rfm')" style="vertical-align:middle;margin-left:8px">i</i></div>
         <div style="font-size:12px;color:var(--t3);margin-top:4px" id="rfm-sub">Clasificación por Recencia · Frecuencia · Monto — hacé click en un segmento para analizarlo</div>
       </div>
       <button class="export-btn" onclick="runRFMAnalysis()" id="rfm-ai-btn" style="margin-top:4px">
@@ -1818,6 +1896,21 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <tbody id="pp-tbody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ KPI DETAIL MODAL ══ -->
+  <div id="kpi-modal">
+    <div class="kpi-panel">
+      <div class="kpi-panel-header">
+        <div>
+          <div class="kpi-panel-title" id="kpi-modal-title">—</div>
+          <div class="kpi-panel-sub" id="kpi-modal-sub">—</div>
+        </div>
+        <button class="kpi-panel-close" onclick="closeKpiModal()">✕</button>
+      </div>
+      <div class="kpi-mini-strip" id="kpi-modal-kpis"></div>
+      <div class="kpi-panel-body" id="kpi-modal-body"></div>
     </div>
   </div>
 
@@ -2109,11 +2202,9 @@ function renderKPIs(s){
   animC('kpi-total',s.total,true);
   animC('kpi-fact',s.nFacts,false);
   animC('kpi-cl',s.nCl,false);
-  animC('kpi-pr',s.nPr,false);
   document.getElementById('kpi-total-s').textContent='Prom. $'+fmt(s.prom)+' por factura';
   document.getElementById('kpi-fact-s').textContent=s.nFacts+' comprobantes emitidos';
   document.getElementById('kpi-cl-s').textContent=s.nCl+' clientes unicos';
-  document.getElementById('kpi-pr-s').textContent=s.nPr+' productos diferentes';
 }
 function renderInsights(s){
   document.getElementById('ins-prom').textContent='$'+fmt(s.prom);
@@ -2808,55 +2899,99 @@ async function getAIInsight(id, prompt) {
 }
 
 function renderAIInsights(stats, ltRows) {
-  const FMT = 'Datos del panel de ventas de Oliver Cooks (aceite de oliva extra virgen premium, Mendoza, Argentina). Analizá en profundidad todos los datos que te presento.';
+  const FMT = 'Sos el Analista IA de Oliver Cooks (aceite de oliva extra virgen, Mendoza). Analizá ÚNICAMENTE los datos exactos que te proporciono. No inventes valores, tendencias ni porcentajes que no estén en los datos. Si algo no se puede concluir con certeza, no lo menciones.';
 
   const mn = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const sn = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
 
-  // 1. Ventas por dia
-  const dias10 = stats.diasOrd.slice(-10).map(([d,v])=>`${fmtD(d)}: $${Math.round(v).toLocaleString('es-AR')}`).join(', ');
-  getAIInsight('linea', `${FMT}\n\nDatos — ventas diarias de aceite Oliver Cooks (ultimos 10 dias): ${dias10}.`);
+  // 1. Ventas diarias — últimos 30 días completos
+  const diasSlice = stats.diasOrd.slice(-30);
+  const dias = diasSlice.map(([d,v])=>`${fmtD(d)}: $${Math.round(v).toLocaleString('es-AR')}`).join(' | ');
+  const promDia = diasSlice.length ? Math.round(diasSlice.reduce((s,[,v])=>s+v,0)/diasSlice.length) : 0;
+  getAIInsight('linea', `${FMT}\n\nGráfico: línea de ventas diarias (últimos ${diasSlice.length} días). Promedio diario del período: $${promDia.toLocaleString('es-AR')}.\nDatos: ${dias}.`);
 
-  // 2. Ventas mensuales
-  const mR = stats.meses.map(([ym,v])=>{ const[y,m]=ym.split('-'); return `${mn[+m-1]} ${y}: $${Math.round(v).toLocaleString('es-AR')}`; }).join(', ');
+  // 2. Ventas mensuales — serie completa con mejor y peor mes
+  const mR = stats.meses.map(([ym,v])=>{ const[y,m]=ym.split('-'); return `${mn[+m-1]} ${y}: $${Math.round(v).toLocaleString('es-AR')}`; }).join(' | ');
   const mejorMes = stats.meses.reduce((a,b)=>b[1]>a[1]?b:a, stats.meses[0]||['',0]);
-  const mmLabel = mejorMes[0] ? (([y,m])=>`${mn[+m-1]} ${y}`)(mejorMes[0].split('-')) : '';
-  getAIInsight('mensual', `${FMT}\n\nDatos — ventas mensuales: ${mR}. El mejor mes fue ${mmLabel} con $${Math.round(mejorMes[1]).toLocaleString('es-AR')}.`);
+  const peorMes  = stats.meses.reduce((a,b)=>b[1]<a[1]?b:a, stats.meses[0]||['',0]);
+  const mmLabel  = mejorMes[0] ? (([y,m])=>`${mn[+m-1]} ${y}`)(mejorMes[0].split('-')) : '';
+  const mpLabel  = peorMes[0]  ? (([y,m])=>`${mn[+m-1]} ${y}`)(peorMes[0].split('-'))  : '';
+  getAIInsight('mensual', `${FMT}\n\nGráfico: barras de ventas mensuales (${stats.meses.length} meses). Mejor: ${mmLabel} $${Math.round(mejorMes[1]).toLocaleString('es-AR')}. Peor: ${mpLabel} $${Math.round(peorMes[1]).toLocaleString('es-AR')}.\nSerie completa: ${mR}.`);
 
-  // 3. Dia de semana
-  const semR = [0,1,2,3,4,5,6].map(i=>`${sn[i]}: $${Math.round(stats.diasSem[i]||0).toLocaleString('es-AR')}`).join(', ');
-  const topDia = [0,1,2,3,4,5,6].reduce((a,i)=>(stats.diasSem[i]||0)>(stats.diasSem[a]||0)?i:a,0);
-  getAIInsight('semana', `${FMT}\n\nDatos — ventas acumuladas por dia de la semana: ${semR}. El dia con mas ventas es ${sn[topDia]}.`);
+  // 3. Día de semana — todos los días con valor y % sobre total
+  const totalSem = [0,1,2,3,4,5,6].reduce((s,i)=>s+(stats.diasSem[i]||0),0);
+  const semStr = [0,1,2,3,4,5,6].map(i=>{
+    const v=stats.diasSem[i]||0;
+    const pct=totalSem>0?(v/totalSem*100).toFixed(1):0;
+    return `${sn[i]}: $${Math.round(v).toLocaleString('es-AR')} (${pct}%)`;
+  }).join(' | ');
+  getAIInsight('semana', `${FMT}\n\nGráfico: barras de ventas acumuladas por día de la semana. Total del período: $${Math.round(totalSem).toLocaleString('es-AR')}.\nDatos: ${semStr}.`);
 
-  // 4. Media movil
-  const ultMov  = stats.movil.slice(-1)[0]||0;
-  const ultReal = stats.diasOrd.slice(-1)[0]?.[1]||0;
-  const diff    = ultReal - ultMov;
-  const pct     = ultMov > 0 ? (diff/ultMov*100).toFixed(0) : 0;
-  getAIInsight('movil', `${FMT}\n\nDatos — media movil (7 dias) del ultimo dia: $${Math.round(ultMov).toLocaleString('es-AR')}. Venta real del ultimo dia: $${Math.round(ultReal).toLocaleString('es-AR')} (${pct > 0 ? '+' : ''}${pct}% vs la media).`);
+  // 4. Media móvil — últimos 30 días: real vs media
+  const nMov = Math.min(30, stats.diasOrd.length);
+  const movilSerie = stats.diasOrd.slice(-nMov).map(([d,v], i) => {
+    const idx = stats.diasOrd.length - nMov + i;
+    const media = Math.round(stats.movil[idx]||0);
+    const real  = Math.round(v);
+    const dif   = media>0 ? ((real-media)/media*100).toFixed(0) : 0;
+    return `${fmtD(d)}: $${real.toLocaleString('es-AR')} real / $${media.toLocaleString('es-AR')} media (${dif>0?'+':''}${dif}%)`;
+  }).join(' | ');
+  getAIInsight('movil', `${FMT}\n\nGráfico: línea de ventas reales vs media móvil 7 días (${nMov} días).\nDatos: ${movilSerie}.`);
 
-  // 5-8. Seccion Por Litro
+  // 5–8. Sección Por Litro
   if (ltRows && ltRows.length > 0) {
-    const topV = ltRows.filter(r=>r.litros>0).slice(0,5).map(r=>`${r.nombre} (${r.litros.toFixed(0)}L, envase ${labelEnvase(r.envase)})`).join(' | ');
-    getAIInsight('lt-vol', `${FMT}\n\nDatos — ranking de productos por litros vendidos: ${topV}.`);
+    // 5. Volumen por litros — todos los productos
+    const totalLit = ltRows.reduce((s,r)=>s+(r.litros||0),0);
+    const volAll = ltRows.filter(r=>r.litros>0)
+      .map(r=>`${r.nombre}: ${r.litros.toFixed(0)}L (${(r.litros/totalLit*100).toFixed(1)}% del vol., ${labelEnvase(r.envase)}, $${Math.round(r.totalFacturado).toLocaleString('es-AR')})`)
+      .join(' | ');
+    getAIInsight('lt-vol', `${FMT}\n\nGráfico: barras de litros vendidos por producto. Total: ${totalLit.toFixed(0)} litros.\nRanking completo: ${volAll}.`);
 
-    const topP = [...ltRows].filter(r=>r.precioPorLitro).sort((a,b)=>b.precioPorLitro-a.precioPorLitro).slice(0,5).map(r=>`${r.nombre}: $${r.precioPorLitro.toFixed(0)}/L`).join(' | ');
-    const lowP = [...ltRows].filter(r=>r.precioPorLitro).sort((a,b)=>a.precioPorLitro-b.precioPorLitro).slice(0,2).map(r=>`${r.nombre}: $${r.precioPorLitro.toFixed(0)}/L`).join(' | ');
-    getAIInsight('lt-precio', `${FMT}\n\nDatos — productos con mayor precio por litro: ${topP}. Con menor precio/litro: ${lowP}.`);
+    // 6. Precio por litro — ranking completo de mayor a menor
+    const pplAll = [...ltRows].filter(r=>r.precioPorLitro&&r.litros>0)
+      .sort((a,b)=>b.precioPorLitro-a.precioPorLitro)
+      .map(r=>`${r.nombre}: $${r.precioPorLitro.toFixed(0)}/L (${r.litros.toFixed(0)}L, $${Math.round(r.totalFacturado).toLocaleString('es-AR')})`)
+      .join(' | ');
+    getAIInsight('lt-precio', `${FMT}\n\nGráfico: barras de precio por litro por producto, de mayor a menor.\nRanking completo: ${pplAll}.`);
 
-    const evolMeses = [...(new Map(stats.meses))].sort((a,b)=>a[0].localeCompare(b[0])).slice(-4);
-    const evolStr = evolMeses.map(([ym])=>{ const[y,m]=ym.split('-'); return `${mn[+m-1]} ${y}`; }).join(', ');
-    getAIInsight('lt-evol', `${FMT}\n\nDatos — grafico de linea con dos ejes: eje izquierdo = precio promedio en $/litro mes a mes, eje derecho = litros vendidos por mes. Periodo visible: ${evolStr}.`);
+    // 7. Evolución precio/litro mensual — datos reales calculados desde allData
+    const mesesPplAI = new Map();
+    (typeof allData !== 'undefined' ? allData : []).forEach(r => {
+      const env = extractEnvase(prodName(r));
+      if (env === null) return;
+      const cant   = parseFloat(r.Cantidad)||0;
+      const total  = parseFloat(r.TotalLinea)||0;
+      const litros = cant * env;
+      if (!r.FechaMovimiento || litros <= 0) return;
+      const ym = r.FechaMovimiento.slice(0,7);
+      if (!mesesPplAI.has(ym)) mesesPplAI.set(ym, {litros:0, total:0});
+      const mv = mesesPplAI.get(ym);
+      mv.litros += litros; mv.total += total;
+    });
+    const evolAI = [...mesesPplAI.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([ym,v])=>{
+      const [y,m] = ym.split('-');
+      const ppl = v.litros > 0 ? Math.round(v.total/v.litros) : null;
+      return ppl ? `${mn[+m-1]} ${y}: $${ppl.toLocaleString('es-AR')}/L, ${v.litros.toFixed(0)} litros` : null;
+    }).filter(Boolean).join(' | ');
+    getAIInsight('lt-evol', `${FMT}\n\nGráfico: línea doble (eje izq = $/litro promedio, eje der = litros vendidos) por mes.\nDatos reales: ${evolAI}.`);
 
-    const scTop = ltRows.filter(r=>r.precioPorLitro&&r.litros>0).sort((a,b)=>b.totalFacturado-a.totalFacturado).slice(0,3).map(r=>`${r.nombre}: ${r.litros.toFixed(0)}L a $${r.precioPorLitro.toFixed(0)}/L`).join(' | ');
-    getAIInsight('lt-scatter', `${FMT}\n\nDatos — grafico de burbujas donde cada producto es un punto: eje X = litros vendidos, eje Y = precio por litro, tamano de burbuja = ingresos totales. Productos mas importantes: ${scTop}.`);
+    // 8. Scatter burbujas — todos los productos con sus 3 dimensiones
+    const scAll = ltRows.filter(r=>r.precioPorLitro&&r.litros>0)
+      .sort((a,b)=>b.totalFacturado-a.totalFacturado)
+      .map(r=>`${r.nombre}: ${r.litros.toFixed(0)}L (eje X), $${r.precioPorLitro.toFixed(0)}/L (eje Y), $${Math.round(r.totalFacturado).toLocaleString('es-AR')} ingresos (tamaño burbuja)`)
+      .join(' | ');
+    getAIInsight('lt-scatter', `${FMT}\n\nGráfico de burbujas: X=litros vendidos, Y=precio/litro, tamaño=ingresos totales. Cuadrante ideal = alto volumen + alto precio/litro.\nTodos los productos: ${scAll}.`);
   }
 
-  // 9. Participacion de clientes
-  const topCl3 = stats.topCl.slice(0,3).map(([n,v])=>`${n}: $${Math.round(v).toLocaleString('es-AR')}`).join(' | ');
-  const concPct = stats.total > 0 ? (stats.topCl.slice(0,3).reduce((s,[,v])=>s+v,0)/stats.total*100).toFixed(0) : 0;
-  const totalCl = stats.nCl;
-  getAIInsight('cl-pie', `${FMT}\n\nDatos — cartera de clientes: ${totalCl} clientes en total. Top 3: ${topCl3}. Esos 3 clientes representan el ${concPct}% del total facturado.`);
+  // 9. Participación de clientes — top 10 con % real
+  const top10 = stats.topCl.slice(0,10);
+  const top10sum = top10.reduce((s,[,v])=>s+v,0);
+  const clStr = top10.map(([n,v])=>{
+    const pct = stats.total>0 ? (v/stats.total*100).toFixed(1) : '0';
+    return `${n}: $${Math.round(v).toLocaleString('es-AR')} (${pct}%)`;
+  }).join(' | ');
+  const restoPct = stats.total>0 ? (100 - top10sum/stats.total*100).toFixed(1) : '0';
+  getAIInsight('cl-pie', `${FMT}\n\nGráfico: torta de participación de clientes. Total período: $${Math.round(stats.total).toLocaleString('es-AR')}. Total clientes: ${stats.nCl}.\nTop ${top10.length}: ${clStr}.\nResto de clientes (${stats.nCl - top10.length}): ${restoPct}% del total.`);
 }
 </script>
 
@@ -4146,8 +4281,8 @@ function openPrecioModal(nombreProducto){
   document.getElementById('pp-modal-title').textContent=nombreProducto;
   document.getElementById('pp-modal-subtitle').textContent=lineas.length+' líneas de venta en el período seleccionado';
   document.getElementById('pp-kpis').innerHTML=`
-    <div class="pp-kpi"><div class="pp-kpi-val">$${fmt(promSimple)}</div><div class="pp-kpi-lbl">Precio Prom. Simple</div></div>
-    <div class="pp-kpi"><div class="pp-kpi-val">$${fmt(promPonderado)}</div><div class="pp-kpi-lbl">Precio Prom. Ponderado</div></div>
+    <div class="pp-kpi"><div class="pp-kpi-val">$${fmt(promSimple)}</div><div class="pp-kpi-lbl">Precio Prom. Simple<i class="calc-tip-icon" onclick="showCalcTip(event,'precio-prom-simple')">i</i></div></div>
+    <div class="pp-kpi"><div class="pp-kpi-val">$${fmt(promPonderado)}</div><div class="pp-kpi-lbl">Precio Prom. Ponderado<i class="calc-tip-icon" onclick="showCalcTip(event,'precio-prom-ponderado')">i</i></div></div>
     <div class="pp-kpi"><div class="pp-kpi-val">$${fmt(precioMin)}</div><div class="pp-kpi-lbl">Precio Mínimo</div></div>
     <div class="pp-kpi"><div class="pp-kpi-val">$${fmt(precioMax)}</div><div class="pp-kpi-lbl">Precio Máximo</div></div>
   `;
@@ -4175,6 +4310,219 @@ function openPrecioModal(nombreProducto){
 }
 function closePrecioModal(){document.getElementById('pp-modal').classList.remove('open');}
 document.getElementById('pp-modal').addEventListener('click',function(e){if(e.target===this)closePrecioModal();});
+
+/* ═══ KPI DETAIL MODAL ═══ */
+function openKpiModal(type){
+  if(!allData.length){return;}
+  const s=processData(allData);
+  let title,sub,kpisHtml,bodyHtml;
+
+  if(type==='total'){
+    title='Total Vendido';
+    sub='Desglose del total facturado en el período';
+    // Best month
+    const bestMes=s.meses.length?[...s.meses].sort((a,b)=>b[1]-a[1])[0]:null;
+    const promMes=s.meses.length?s.total/s.meses.length:0;
+    kpisHtml=`
+      <div class="kpi-mini-card"><div class="kpi-mini-val">$${fmt(s.total)}</div><div class="kpi-mini-lbl">Total período</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val">$${fmt(promMes)}</div><div class="kpi-mini-lbl">Promedio mensual<i class="calc-tip-icon" onclick="showCalcTip(event,'promedio-mensual')">i</i></div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val">${bestMes?fmtMes(bestMes[0]):'—'}</div><div class="kpi-mini-lbl">Mejor mes</div></div>`;
+    // Table: ventas por mes
+    const maxMes=bestMes?bestMes[1]:1;
+    const rowsMes=s.meses.map(([ym,v])=>`
+      <tr>
+        <td>${fmtMes(ym)}</td>
+        <td class="r">$${fmt(v)}</td>
+        <td class="r">${((v/s.total)*100).toFixed(1)}%</td>
+        <td style="padding:7px 8px;width:120px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((v/maxMes)*100).toFixed(1)}%"></div></div>
+        </td>
+      </tr>`).reverse().join('');
+    // Top 5 products
+    const topPrRows=s.topPr.slice(0,10).map(([n,v],i)=>`
+      <tr>
+        <td><span style="color:var(--t3);font-size:10px">${i+1}.</span> ${n}</td>
+        <td class="r">$${fmt(v)}</td>
+        <td class="r">${((v/s.total)*100).toFixed(1)}%</td>
+        <td></td>
+      </tr>`).join('');
+    bodyHtml=`
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Ventas por mes</p>
+      <table class="kpi-detail-table">
+        <thead><tr><th>Mes</th><th class="r">Total ARS</th><th class="r">% total</th><th></th></tr></thead>
+        <tbody>${rowsMes}</tbody>
+      </table>
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 4px">Top 10 productos por facturación</p>
+      <table class="kpi-detail-table">
+        <thead><tr><th>Producto</th><th class="r">Total ARS</th><th class="r">% total</th><th></th></tr></thead>
+        <tbody>${topPrRows}</tbody>
+      </table>`;
+  }
+  else if(type==='facturas'){
+    title='Facturas Emitidas';
+    sub='Desglose de comprobantes emitidos en el período';
+    // Monthly invoice count
+    const mFactsMap=new Map(), mTotalMap=new Map();
+    allData.forEach(r=>{
+      if(r.FechaMovimiento){
+        const ym=r.FechaMovimiento.slice(0,7);
+        if(!mFactsMap.has(ym))mFactsMap.set(ym,new Set());
+        mFactsMap.get(ym).add(String(r.NumeroFormulario||''));
+        mTotalMap.set(ym,(mTotalMap.get(ym)||0)+(parseFloat(r.TotalLinea)||0));
+      }
+    });
+    const mFactsArr=[...mFactsMap.entries()].map(([ym,set])=>({ym,count:set.size,total:mTotalMap.get(ym)||0})).sort((a,b)=>a.ym.localeCompare(b.ym));
+    const bestFactMes=mFactsArr.length?[...mFactsArr].sort((a,b)=>b.count-a.count)[0]:null;
+    const maxFact=bestFactMes?bestFactMes.count:1;
+    kpisHtml=`
+      <div class="kpi-mini-card"><div class="kpi-mini-val">${s.nFacts.toLocaleString('es-AR')}</div><div class="kpi-mini-lbl">Total facturas</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val">$${fmt(s.prom)}</div><div class="kpi-mini-lbl">Ticket promedio<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')">i</i></div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val">${bestFactMes?fmtMes(bestFactMes.ym):'—'}</div><div class="kpi-mini-lbl">Mes más activo</div></div>`;
+    const rowsFact=mFactsArr.map(({ym,count,total})=>`
+      <tr>
+        <td>${fmtMes(ym)}</td>
+        <td class="r">${count.toLocaleString('es-AR')}</td>
+        <td class="r">$${fmt(total)}</td>
+        <td class="r">${count?'$'+fmt(total/count):'—'}</td>
+        <td style="padding:7px 8px;width:100px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((count/maxFact)*100).toFixed(1)}%"></div></div>
+        </td>
+      </tr>`).reverse().join('');
+    bodyHtml=`
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Facturas por mes</p>
+      <table class="kpi-detail-table">
+        <thead><tr><th>Mes</th><th class="r"># Facturas</th><th class="r">Total ARS</th><th class="r">Prom./factura</th><th></th></tr></thead>
+        <tbody>${rowsFact}</tbody>
+      </table>`;
+  }
+  else if(type==='clientes'){
+    title='Clientes Atendidos';
+    sub='Ranking de clientes por facturación en el período';
+    const topCl=s.topCl;
+    const top1Pct=topCl[0]?((topCl[0][1]/s.total)*100).toFixed(1)+'%':'—';
+    const top5Total=topCl.slice(0,5).reduce((a,[,v])=>a+v,0);
+    const top5Pct=s.total?((top5Total/s.total)*100).toFixed(1)+'%':'—';
+    kpisHtml=`
+      <div class="kpi-mini-card"><div class="kpi-mini-val">${s.nCl.toLocaleString('es-AR')}</div><div class="kpi-mini-lbl">Clientes únicos</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val">${topCl[0]?topCl[0][0].split(' ')[0]:'—'}</div><div class="kpi-mini-lbl">Cliente #1 (${top1Pct})</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val">${top5Pct}</div><div class="kpi-mini-lbl">Concentración top 5<i class="calc-tip-icon" onclick="showCalcTip(event,'concentracion-top5')">i</i></div></div>`;
+    const maxCl=topCl[0]?topCl[0][1]:1;
+    // Get all clients (not just top 10)
+    const allCls=[...new Map(allData.map(r=>[(r.NombreCliente||'Sin nombre').trim(),0])).keys()];
+    const clTotals=new Map();
+    allData.forEach(r=>{const cl=(r.NombreCliente||'Sin nombre').trim();clTotals.set(cl,(clTotals.get(cl)||0)+(parseFloat(r.TotalLinea)||0));});
+    const clArr=[...clTotals.entries()].sort((a,b)=>b[1]-a[1]);
+    const rowsCl=clArr.map(([n,v],i)=>`
+      <tr>
+        <td><span style="color:var(--t3);font-size:10px">${i+1}.</span> ${n}</td>
+        <td class="r">$${fmt(v)}</td>
+        <td class="r">${((v/s.total)*100).toFixed(1)}%</td>
+        <td style="padding:7px 8px;width:100px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((v/clArr[0][1])*100).toFixed(1)}%"></div></div>
+        </td>
+      </tr>`).join('');
+    bodyHtml=`
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Todos los clientes por facturación</p>
+      <table class="kpi-detail-table">
+        <thead><tr><th>Cliente</th><th class="r">Total ARS</th><th class="r">% total</th><th></th></tr></thead>
+        <tbody>${rowsCl}</tbody>
+      </table>`;
+  }
+
+  document.getElementById('kpi-modal-title').textContent=title;
+  document.getElementById('kpi-modal-sub').textContent=sub;
+  document.getElementById('kpi-modal-kpis').innerHTML=kpisHtml;
+  document.getElementById('kpi-modal-body').innerHTML=bodyHtml;
+  document.getElementById('kpi-modal').classList.add('open');
+}
+
+function closeKpiModal(){document.getElementById('kpi-modal').classList.remove('open');}
+document.getElementById('kpi-modal').addEventListener('click',function(e){if(e.target===this)closeKpiModal();});
+
+function fmtMes(ym){
+  if(!ym)return'—';
+  const [y,m]=ym.split('-');
+  const nombres=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return(nombres[parseInt(m,10)-1]||m)+' '+y;
+}
+
+/* ═══ CALC TIP — ícono de ayuda con fórmula ═══ */
+const CALC_TIPS = {
+  'ticket-prom': {
+    title: 'Ticket Promedio',
+    formula: 'Total Vendido ÷ Facturas Emitidas',
+    desc: 'Cuánto factura Oliver Cooks en promedio por cada comprobante. Un valor alto puede indicar pedidos mayoristas. Sube cuando hay menos facturas de alto monto, y baja cuando hay muchas facturas pequeñas.'
+  },
+  'media-movil': {
+    title: 'Media Móvil 7 días',
+    formula: 'Promedio de ventas de los últimos 7 días (inclusive)',
+    desc: 'Para cada día, se suman las ventas de ese día y los 6 anteriores, y se divide por la cantidad de días disponibles. Suaviza los picos y caídas puntuales para mostrar la tendencia real del negocio.'
+  },
+  'prom-ponderado-litro': {
+    title: 'Ingreso Promedio por Litro (Ponderado)',
+    formula: 'Total Facturado ÷ Total Litros Vendidos',
+    desc: 'Divide el total facturado de los productos con envase detectado entre los litros totales vendidos. Es "ponderado" porque los productos de mayor volumen tienen más peso: vender 1.000 L a $100/L influye más que vender 10 L a $500/L.'
+  },
+  'evol-precio-litro': {
+    title: 'Evolución Precio $/Litro por Mes',
+    formula: 'Total facturado del mes ÷ Litros vendidos del mes',
+    desc: 'Para cada mes, calcula el precio efectivo por litro. Permite ver si el precio de venta real está subiendo o bajando. Puede variar por cambios en lista de precios, mix de productos o descuentos aplicados.'
+  },
+  'precio-prom-simple': {
+    title: 'Precio Promedio Simple',
+    formula: 'Suma de precios unitarios ÷ Cantidad de líneas de venta',
+    desc: 'Promedio aritmético de todos los precios registrados para ese producto. No considera cuántas unidades se vendieron a cada precio: una venta de 1 unidad pesa igual que una de 1.000.'
+  },
+  'precio-prom-ponderado': {
+    title: 'Precio Promedio Ponderado',
+    formula: 'Total Facturado ÷ Unidades Vendidas',
+    desc: 'Divide el total facturado entre las unidades vendidas. A diferencia del promedio simple, las ventas de mayor volumen tienen más peso. Es el precio efectivo real por unidad considerando todos los pedidos.'
+  },
+  'ticket-prom-cliente': {
+    title: 'Ticket Promedio por Cliente',
+    formula: 'Total comprado por el cliente ÷ Sus facturas emitidas',
+    desc: 'Cuánto gasta este cliente en promedio por cada pedido. Útil para distinguir clientes frecuentes de bajo monto (muchas facturas pequeñas) vs. clientes esporádicos de alto valor (pocas facturas grandes).'
+  },
+  'rfm': {
+    title: 'Segmentación RFM',
+    formula: 'R + F + M → Score 1 a 5 en cada dimensión (por percentil)',
+    desc: 'Clasifica cada cliente en 3 dimensiones: R (Recencia) = días desde la última compra (menos días = mejor); F (Frecuencia) = cantidad de facturas (más = mejor); M (Monto) = total facturado (más = mejor). Cada cliente recibe un puntaje de 1 a 5 según su posición relativa en el ranking. Los segmentos (Champions, Leales, etc.) combinan estos scores con reglas predefinidas.'
+  },
+  'promedio-mensual': {
+    title: 'Promedio Mensual de Ventas',
+    formula: 'Total del Período ÷ Cantidad de Meses con actividad',
+    desc: 'Divide el total vendido en el período entre la cantidad de meses en los que hubo al menos una venta. Permite comparar el nivel de actividad mensual entre distintos períodos.'
+  },
+  'concentracion-top5': {
+    title: 'Concentración Top 5 Clientes',
+    formula: 'Ventas de los 5 mejores clientes ÷ Total Vendido × 100',
+    desc: 'Qué porcentaje del total facturado representan los 5 clientes más importantes. Una concentración alta (>70%) indica dependencia de pocos clientes, lo que puede ser un riesgo si alguno deja de comprar.'
+  },
+  'anomalia-zscore': {
+    title: 'Detección de Anomalías (Z-Score)',
+    formula: 'Z = (Venta del día − Promedio diario) ÷ Desvío Estándar',
+    desc: 'Mide cuántos desvíos estándar se aleja la venta de un día respecto al promedio histórico. Si Z ≥ 1.9: pico inusual. Si Z ≤ −1.9: caída inusual. El desvío estándar mide la dispersión típica de las ventas diarias.'
+  }
+};
+
+function showCalcTip(e, key){
+  e.stopPropagation();
+  const tip=CALC_TIPS[key];
+  if(!tip) return;
+  document.getElementById('ctb-title').textContent=tip.title;
+  document.getElementById('ctb-formula').textContent=tip.formula;
+  document.getElementById('ctb-desc').textContent=tip.desc;
+  const box=document.getElementById('calc-tip-box');
+  box.style.left='-9999px'; box.style.top='-9999px';
+  box.classList.add('open');
+  const r=e.target.getBoundingClientRect(), bw=box.offsetWidth||290, bh=box.offsetHeight||120;
+  let x=r.left, y=r.bottom+8;
+  if(x+bw>window.innerWidth-12) x=window.innerWidth-bw-12;
+  if(x<8) x=8;
+  if(y+bh>window.innerHeight-12) y=r.top-bh-8;
+  box.style.left=x+'px'; box.style.top=y+'px';
+}
+document.addEventListener('click',()=>document.getElementById('calc-tip-box')?.classList.remove('open'));
 </script>
 </body>
 </html>
