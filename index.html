@@ -956,45 +956,82 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 }
 
 /* ══════════════════════════════════════════
-   CHAT — MODO SPLIT (panel lateral 50%)
+   CHAT — MODO SPLIT (dos paneles independientes)
 ══════════════════════════════════════════ */
+
+/* Body: bloqueamos el scroll global — cada mitad scrollea por separado */
+body.chat-split {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Navbar: solo la mitad izquierda */
+body.chat-split .navbar {
+  right: 50vw;
+  transition: right .3s ease;
+}
+
+/* Dashboard: panel fijo izquierdo con scroll propio */
+body.chat-split #pg-dash {
+  position: fixed !important;
+  top: 0; left: 0;
+  width: 50vw !important;
+  height: 100vh !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 !important;
+  box-sizing: border-box;
+  border-right: 1px solid var(--bdr2);
+}
+
+/* Secciones internas: que no desborden el panel */
+body.chat-split #pg-dash .dash-section {
+  padding-left: 32px;
+  padding-right: 32px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+body.chat-split #pg-dash .dash-section.full {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* FAB oculto en split */
+body.chat-split #chat-fab { display: none !important }
+
+/* Chat panel: panel fijo derecho, pantalla completa */
 #chat-panel.split-mode {
-  top:0; right:0; bottom:0;
-  width:50vw; height:100vh; max-height:none;
-  border-radius:0;
-  border:none; border-left:1px solid var(--bdr2);
-  opacity:1; pointer-events:all; transform:none;
-  z-index:850;
+  top: 0; right: 0; bottom: 0;
+  width: 50vw; height: 100vh; max-height: none;
+  border-radius: 0;
+  border: none; border-left: 1px solid var(--bdr2);
+  opacity: 1; pointer-events: all; transform: none;
+  z-index: 850;
 }
 #chat-panel.split-mode #chat-messages {
-  flex:1; max-height:none;
+  flex: 1; max-height: none;
 }
-/* Navbar y dashboard se comprimen a la mitad izquierda */
-body.chat-split .navbar {
-  right:50vw;
-  transition:right .3s ease;
-}
-body.chat-split #pg-dash {
-  margin-right:50vw;
-  transition:margin-right .3s ease;
-}
-body.chat-split #chat-fab { display:none !important }
 
 /* Botón minimizar (split → flotante) */
 .chat-split-btn {
-  width:28px; height:28px; border-radius:7px;
-  background:none; border:1px solid var(--bdr);
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-  flex-shrink:0; transition:all .15s; color:var(--t3); padding:0;
+  width: 28px; height: 28px; border-radius: 7px;
+  background: none; border: 1px solid var(--bdr);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .15s; color: var(--t3); padding: 0;
 }
-.chat-split-btn:hover { border-color:var(--cyan); background:rgba(71,201,229,.08); color:var(--cyan) }
-.chat-split-btn svg { width:13px; height:13px; fill:currentColor; pointer-events:none }
+.chat-split-btn:hover { border-color: var(--cyan); background: rgba(71,201,229,.08); color: var(--cyan) }
+.chat-split-btn svg { width: 13px; height: 13px; fill: currentColor; pointer-events: none }
 
-/* Mobile: split no aplica */
-@media(max-width:768px) {
-  body.chat-split .navbar { right:0 }
-  body.chat-split #pg-dash { margin-right:0 }
-  #chat-panel.split-mode { width:100vw; border-left:none }
+/* Mobile: el split no aplica, vuelve al comportamiento normal */
+@media(max-width: 768px) {
+  body.chat-split { overflow: auto; height: auto }
+  body.chat-split .navbar { right: 0 }
+  body.chat-split #pg-dash {
+    position: static !important; width: auto !important;
+    height: auto !important; overflow: visible; border-right: none;
+  }
+  body.chat-split #pg-dash .dash-section { padding-left: 20px; padding-right: 20px }
+  #chat-panel.split-mode { width: 100vw; border-left: none }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3127,17 +3164,20 @@ function chatEnterSplit() {
   panel.classList.add('open', 'split-mode');
   document.body.classList.add('chat-split');
   document.getElementById('chat-minimize-btn').style.display = 'flex';
-  // Redibujar gráficos Chart.js al cambiar tamaño del contenedor
-  setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+  // Redibujar todos los gráficos Chart.js tras el cambio de layout
+  setTimeout(() => {
+    window.dispatchEvent(new Event('resize'));
+    // Scroll del dashboard al inicio para orientar al usuario
+    document.getElementById('pg-dash').scrollTop = 0;
+  }, 50);
 }
 
 function chatMinimize() {
-  // Vuelve al widget flotante sin cerrar el chat
   const panel = document.getElementById('chat-panel');
   panel.classList.remove('split-mode');
   document.body.classList.remove('chat-split');
   document.getElementById('chat-minimize-btn').style.display = 'none';
-  setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
 }
 
 function chatClose() {
@@ -3146,7 +3186,7 @@ function chatClose() {
   panel.classList.remove('open', 'split-mode');
   document.body.classList.remove('chat-split');
   document.getElementById('chat-minimize-btn').style.display = 'none';
-  setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
 }
 
 document.getElementById('chat-fab').addEventListener('click', () => {
