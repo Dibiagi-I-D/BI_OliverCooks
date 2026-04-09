@@ -956,82 +956,42 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 }
 
 /* ══════════════════════════════════════════
-   CHAT — MODO SPLIT (dos paneles independientes)
+   CHAT — MODAL CENTRADO
 ══════════════════════════════════════════ */
 
-/* Body: bloqueamos el scroll global — cada mitad scrollea por separado */
-body.chat-split {
-  overflow: hidden;
-  height: 100vh;
+/* Overlay oscuro detrás del modal */
+#chat-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 2998;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity .25s;
 }
+#chat-overlay.open { display: block; opacity: 1 }
 
-/* Navbar: solo la mitad izquierda */
-body.chat-split .navbar {
-  right: 50vw;
-  transition: right .3s ease;
+/* El panel pasa a modal centrado */
+#chat-panel {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(.96);
+  bottom: auto; right: auto;
+  width: min(680px, 92vw);
+  height: min(700px, 88vh);
+  max-height: none;
+  border-radius: 20px;
+  z-index: 2999;
 }
-
-/* Dashboard: panel fijo izquierdo con scroll propio */
-body.chat-split #pg-dash {
-  position: fixed !important;
-  top: 0; left: 0;
-  width: 50vw !important;
-  height: 100vh !important;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 0 !important;
-  box-sizing: border-box;
-  border-right: 1px solid var(--bdr2);
+#chat-panel.open {
+  opacity: 1; pointer-events: all;
+  transform: translate(-50%,-50%) scale(1);
 }
-
-/* Secciones internas: que no desborden el panel */
-body.chat-split #pg-dash .dash-section {
-  padding-left: 32px;
-  padding-right: 32px;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-body.chat-split #pg-dash .dash-section.full {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-/* FAB oculto en split */
-body.chat-split #chat-fab { display: none !important }
-
-/* Chat panel: panel fijo derecho, pantalla completa */
-#chat-panel.split-mode {
-  top: 0; right: 0; bottom: 0;
-  width: 50vw; height: 100vh; max-height: none;
-  border-radius: 0;
-  border: none; border-left: 1px solid var(--bdr2);
-  opacity: 1; pointer-events: all; transform: none;
-  z-index: 850;
-}
-#chat-panel.split-mode #chat-messages {
+#chat-panel #chat-messages {
   flex: 1; max-height: none;
 }
 
-/* Botón minimizar (split → flotante) */
-.chat-split-btn {
-  width: 28px; height: 28px; border-radius: 7px;
-  background: none; border: 1px solid var(--bdr);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: all .15s; color: var(--t3); padding: 0;
-}
-.chat-split-btn:hover { border-color: var(--cyan); background: rgba(71,201,229,.08); color: var(--cyan) }
-.chat-split-btn svg { width: 13px; height: 13px; fill: currentColor; pointer-events: none }
-
-/* Mobile: el split no aplica, vuelve al comportamiento normal */
-@media(max-width: 768px) {
-  body.chat-split { overflow: auto; height: auto }
-  body.chat-split .navbar { right: 0 }
-  body.chat-split #pg-dash {
-    position: static !important; width: auto !important;
-    height: auto !important; overflow: visible; border-right: none;
-  }
-  body.chat-split #pg-dash .dash-section { padding-left: 20px; padding-right: 20px }
-  #chat-panel.split-mode { width: 100vw; border-left: none }
+@media(max-width:520px) {
+  #chat-panel { width: 96vw; height: 90vh; border-radius: 16px }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1947,8 +1907,9 @@ function doLogout(){
   document.getElementById('pg-dash').classList.remove('visible');
   document.getElementById('pg-dash').style.display='none';
   document.getElementById('chat-fab').style.display='none';
-  document.getElementById('chat-panel').classList.remove('open','split-mode');
-  document.body.classList.remove('chat-split');
+  document.getElementById('chat-panel').classList.remove('open');
+  document.getElementById('chat-overlay').classList.remove('open');
+  document.body.style.overflow = '';
   const login=document.getElementById('pg-login');
   login.style.display='';
   login.classList.remove('out');
@@ -3049,6 +3010,9 @@ function renderAIInsights(stats, ltRows) {
   <svg viewBox="0 0 24 24"><path d="M12 3C6.486 3 2 6.701 2 11.25c0 2.274 1.078 4.33 2.84 5.84L4 21l4.353-2.175A11.3 11.3 0 0 0 12 19.5c5.514 0 10-3.701 10-8.25S17.514 3 12 3Z"/></svg>
 </button>
 
+<!-- OVERLAY -->
+<div id="chat-overlay" onclick="chatClose()"></div>
+
 <!-- PANEL -->
 <div id="chat-panel">
   <div class="chat-header">
@@ -3063,10 +3027,6 @@ function renderAIInsights(stats, ltRows) {
     <div style="display:flex;align-items:center;gap:6px">
       <button class="chat-tts-btn" id="chat-tts-toggle" onclick="chatTtsToggle()" title="Leer respuestas en voz alta">
         <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-      </button>
-      <!-- Botón minimizar a flotante -->
-      <button class="chat-split-btn" id="chat-minimize-btn" onclick="chatMinimize()" title="Minimizar panel" style="display:none">
-        <svg viewBox="0 0 24 24"><path d="M15 3h6v6h-2V5h-4V3zM9 3H3v6h2V5h4V3zM15 21h6v-6h-2v4h-4v2zM9 21H3v-6h2v4h4v2z"/></svg>
       </button>
       <button class="chat-close" onclick="chatClose()">✕</button>
     </div>
@@ -3158,53 +3118,30 @@ if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 }
 
-/* ── Toggle panel ── */
-function chatEnterSplit() {
-  const panel = document.getElementById('chat-panel');
-  panel.classList.add('open', 'split-mode');
-  document.body.classList.add('chat-split');
-  document.getElementById('chat-minimize-btn').style.display = 'flex';
-  // Redibujar todos los gráficos Chart.js tras el cambio de layout
-  setTimeout(() => {
-    window.dispatchEvent(new Event('resize'));
-    // Scroll del dashboard al inicio para orientar al usuario
-    document.getElementById('pg-dash').scrollTop = 0;
-  }, 50);
-}
-
-function chatMinimize() {
-  const panel = document.getElementById('chat-panel');
-  panel.classList.remove('split-mode');
-  document.body.classList.remove('chat-split');
-  document.getElementById('chat-minimize-btn').style.display = 'none';
-  setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-}
-
+/* ── Toggle modal ── */
 function chatClose() {
   chatOpen = false;
-  const panel = document.getElementById('chat-panel');
-  panel.classList.remove('open', 'split-mode');
-  document.body.classList.remove('chat-split');
-  document.getElementById('chat-minimize-btn').style.display = 'none';
-  setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+  document.getElementById('chat-panel').classList.remove('open');
+  document.getElementById('chat-overlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 document.getElementById('chat-fab').addEventListener('click', () => {
-  if (chatOpen) {
-    chatClose();
-    return;
-  }
-  chatOpen = true;
-  if (!chatInitialized) {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  document.getElementById('chat-overlay').classList.toggle('open', chatOpen);
+  document.body.style.overflow = chatOpen ? 'hidden' : '';
+  if (chatOpen && !chatInitialized) {
     chatInitialized = true;
     chatInit();
   }
-  chatEnterSplit();
-  document.getElementById('chat-badge').style.display = 'none';
-  setTimeout(() => {
-    const msgs = document.getElementById('chat-messages');
-    msgs.scrollTop = msgs.scrollHeight;
-  }, 100);
+  if (chatOpen) {
+    document.getElementById('chat-badge').style.display = 'none';
+    setTimeout(() => {
+      const msgs = document.getElementById('chat-messages');
+      msgs.scrollTop = msgs.scrollHeight;
+    }, 100);
+  }
 });
 
 /* ── Inicializar: usar período del dashboard directamente ── */
