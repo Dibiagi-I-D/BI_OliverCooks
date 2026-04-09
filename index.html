@@ -675,6 +675,58 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   background:rgba(200,168,50,.07); border-left:2px solid var(--gold);
   border-radius:0 6px 6px 0; font-size:12px; color:var(--t1); line-height:1.6;
 }
+/* ── AI MINI-CHAT ── */
+.ai-chat-thread {
+  display:flex;flex-direction:column;gap:8px;
+  padding:10px 16px 0;
+  max-height:340px;overflow-y:auto;
+}
+.ai-chat-msg {
+  display:flex;flex-direction:column;gap:2px;
+}
+.ai-chat-msg.user { align-items:flex-end }
+.ai-chat-msg.assistant { align-items:flex-start }
+.ai-chat-bubble {
+  max-width:85%;padding:7px 11px;border-radius:10px;
+  font-size:11.5px;line-height:1.6;
+}
+.ai-chat-msg.user .ai-chat-bubble {
+  background:rgba(71,201,229,.14);border:1px solid rgba(71,201,229,.25);
+  color:var(--t1);border-radius:10px 10px 2px 10px;
+}
+.ai-chat-msg.assistant .ai-chat-bubble {
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  color:var(--t1);border-radius:10px 10px 10px 2px;
+}
+.ai-chat-bubble strong { font-weight:600;color:var(--white) }
+.ai-chat-bubble.thinking {
+  color:var(--t3);font-style:italic;font-size:11px;
+  background:none;border:none;padding-left:4px;
+}
+.ai-chat-input-row {
+  display:flex;align-items:center;gap:6px;
+  padding:10px 12px 12px;
+  border-top:1px solid rgba(71,201,229,.06);
+  margin-top:10px;
+}
+.ai-chat-input {
+  flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(71,201,229,.15);
+  border-radius:7px;padding:6px 10px;color:var(--t1);font-size:11.5px;
+  font-family:inherit;outline:none;transition:border-color .15s;
+  resize:none;height:32px;line-height:1.4;
+}
+.ai-chat-input:focus { border-color:rgba(71,201,229,.4) }
+.ai-chat-input::placeholder { color:var(--t3) }
+.ai-chat-send {
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  background:rgba(71,201,229,.12);border:1px solid rgba(71,201,229,.25);
+  color:var(--cyan);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.ai-chat-send:hover { background:rgba(71,201,229,.25) }
+.ai-chat-send:disabled { opacity:.35;cursor:default }
+.ai-chat-send svg { width:13px;height:13px }
+
 /* Shimmer skeleton while loading */
 .ai-box.loading .ai-box-body {
   padding:14px 16px; gap:8px;
@@ -1150,7 +1202,11 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   transition:border-color .2s,transform .15s,box-shadow .2s;
 }
 .rfm-card:hover { border-color:var(--bdr2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3) }
-.rfm-card-icon { font-size:20px;line-height:1 }
+.rfm-card-icon {
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:2px;flex-shrink:0;
+}
 .rfm-card-name { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t2) }
 .rfm-card-count { font-size:28px;font-weight:800;line-height:1.1 }
 .rfm-card-sub { font-size:10.5px;color:var(--t3);line-height:1.4 }
@@ -1609,7 +1665,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 
     <!-- KPI litros strip -->
     <div style="max-width:1400px;margin:0 auto;padding:0 80px 0" class="reveal">
-      <div class="kpi-strip" style="max-width:100%;grid-template-columns:repeat(5,1fr)">
+      <div class="kpi-strip" style="max-width:100%;grid-template-columns:repeat(4,1fr)">
         <div class="kpi-cell">
           <div class="kpi-cell-label">Litros Vendidos</div>
           <div class="kpi-cell-value cyan" id="lt-litros">—</div>
@@ -1630,11 +1686,6 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div class="kpi-cell-value" id="lt-top-precio" style="font-size:14px;line-height:1.3;margin-top:4px">—</div>
           <div class="kpi-cell-sub" id="lt-top-precio-s">Producto premium</div>
         </div>
-        <div class="kpi-cell">
-          <div class="kpi-cell-label">Productos Identificados</div>
-          <div class="kpi-cell-value" id="lt-cobertura">—</div>
-          <div class="kpi-cell-sub" id="lt-cobertura-s">Con tamano detectado</div>
-        </div>
       </div>
     </div>
 
@@ -1645,7 +1696,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div><div class="cc-title">Top 15 Productos por Litros Vendidos</div><div class="cc-sub">Volumen total en litros · tamano detectado del nombre</div></div>
           <span class="cc-tag">Volumen</span>
         </div>
-        <div class="cc-canvas" style="height:380px"><canvas id="ch-lt-vol"></canvas></div>
+        <div class="cc-canvas" style="height:380px;overflow:visible"><canvas id="ch-lt-vol"></canvas></div>
         <div class="ai-box loading" id="ai-lt-vol"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Analisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
       </div>
       <div class="chart-card" style="border-left:1px solid var(--bdr)">
@@ -1653,7 +1704,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div><div class="cc-title">Precio por Litro por Producto</div><div class="cc-sub">$/L efectivo = Total facturado / Litros vendidos</div></div>
           <span class="cc-tag gold">$/Litro</span>
         </div>
-        <div class="cc-canvas" style="height:380px"><canvas id="ch-lt-precio"></canvas></div>
+        <div class="cc-canvas" style="height:380px;overflow:visible"><canvas id="ch-lt-precio"></canvas></div>
         <div class="ai-box loading" id="ai-lt-precio"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Analisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
       </div>
     </div>
@@ -2619,16 +2670,16 @@ function renderLitrosSection(data) {
   document.getElementById('lt-top-precio').textContent = topPrecio ? topPrecio.nombre : '—';
   document.getElementById('lt-top-precio-s').textContent = topPrecio ? '$' + fmt(topPrecio.precioPorLitro) + ' / litro' : '—';
 
-  document.getElementById('lt-cobertura').textContent = idPct + '%';
-  document.getElementById('lt-cobertura-s').textContent = rowsId.length + ' de ' + totalProductos.size + ' productos';
 
   // Chart 1: Top 15 por litros (bar horizontal)
   const top15vol = rowsId.slice(0, 15);
+  const volCanvasWrap = document.getElementById('ch-lt-vol').parentElement;
+  volCanvasWrap.style.height = Math.max(380, top15vol.length * 52) + 'px';
   killChart('lt-vol');
   charts['lt-vol'] = new Chart(document.getElementById('ch-lt-vol'), {
     type: 'bar',
     data: {
-      labels: top15vol.map(r => wrapLabel(r.nombre, 24)),
+      labels: top15vol.map(r => r.nombre),
       datasets: [{
         label: 'Litros vendidos',
         data: top15vol.map(r => +r.litros.toFixed(2)),
@@ -2638,6 +2689,7 @@ function renderLitrosSection(data) {
     },
     options: {
       responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      layout: { padding: { right: 8 } },
       plugins: {
         legend: { display: false },
         tooltip: { backgroundColor: CO.bg, borderColor: CO.bdr, borderWidth: 1,
@@ -2645,18 +2697,42 @@ function renderLitrosSection(data) {
       },
       scales: {
         x: { grid: { color: CO.grid }, ticks: { ...CO.tick, callback: v => v + ' L' } },
-        y: { grid: { display: false }, ticks: { color: '#e8e8e8', font: { family:'Inter', size:11 } } }
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: '#e8e8e8',
+            font: { family: 'Inter', size: 11 },
+            autoSkip: false,
+            maxRotation: 0,
+            padding: 6,
+            callback: function(val, idx) {
+              const label = this.getLabelForValue(val);
+              // Wrap at word boundaries ~20 chars per line
+              const words = label.split(' ');
+              const lines = []; let line = '';
+              for (const w of words) {
+                if (line && line.length + w.length + 1 > 20) { lines.push(line); line = w; }
+                else { line = line ? line + ' ' + w : w; }
+              }
+              if (line) lines.push(line);
+              return lines;
+            }
+          },
+          afterFit(scale){ scale.width = 170; }
+        }
       }
     }
   });
 
   // Chart 2: Precio/litro por producto (bar horizontal)
   const top15ppl = [...rowsId].filter(r=>r.precioPorLitro).sort((a,b)=>b.precioPorLitro-a.precioPorLitro).slice(0,15);
+  const pplCanvasWrap = document.getElementById('ch-lt-precio').parentElement;
+  pplCanvasWrap.style.height = Math.max(380, top15ppl.length * 52) + 'px';
   killChart('lt-precio-ch');
   charts['lt-precio-ch'] = new Chart(document.getElementById('ch-lt-precio'), {
     type: 'bar',
     data: {
-      labels: top15ppl.map(r => wrapLabel(r.nombre, 24)),
+      labels: top15ppl.map(r => r.nombre),
       datasets: [{
         label: '$/Litro',
         data: top15ppl.map(r => +r.precioPorLitro.toFixed(2)),
@@ -2666,6 +2742,7 @@ function renderLitrosSection(data) {
     },
     options: {
       responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      layout: { padding: { right: 8 } },
       plugins: {
         legend: { display: false },
         tooltip: { backgroundColor: CO.bg, borderColor: CO.bdr, borderWidth: 1,
@@ -2673,7 +2750,28 @@ function renderLitrosSection(data) {
       },
       scales: {
         x: { grid: { color: CO.grid }, ticks: { ...CO.tick, callback: v => '$' + shortN(v) } },
-        y: { grid: { display: false }, ticks: { color: '#e8e8e8', font: { family:'Inter', size:11 } } }
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: '#e8e8e8',
+            font: { family: 'Inter', size: 11 },
+            autoSkip: false,
+            maxRotation: 0,
+            padding: 6,
+            callback: function(val, idx) {
+              const label = this.getLabelForValue(val);
+              const words = label.split(' ');
+              const lines = []; let line = '';
+              for (const w of words) {
+                if (line && line.length + w.length + 1 > 20) { lines.push(line); line = w; }
+                else { line = line ? line + ' ' + w : w; }
+              }
+              if (line) lines.push(line);
+              return lines;
+            }
+          },
+          afterFit(scale){ scale.width = 170; }
+        }
       }
     }
   });
@@ -2879,9 +2977,34 @@ function aiFormatText(text) {
   return `<p class="ai-prose-p">${html}</p>`;
 }
 
+// Almacena el contexto de datos de cada gráfico para el chat de seguimiento
+const chartContexts = {};
+
 async function getAIInsight(id, prompt) {
   const el = document.getElementById('ai-' + id);
   if (!el) return;
+  chartContexts[id] = prompt; // guardar contexto para el chat
+
+  function buildBox(bodyHtml, withChat=true) {
+    el.classList.remove('loading');
+    el.innerHTML = `
+      <div class="ai-box-header">
+        <span class="ai-box-icon">◆</span>
+        <span class="ai-label">Análisis IA</span>
+        <span style="margin-left:auto;font-size:9px;color:var(--t3);letter-spacing:.5px">PREGUNTÁ SOBRE ESTE GRÁFICO ↓</span>
+      </div>
+      <div class="ai-box-body ai-prose">${bodyHtml}</div>
+      ${withChat ? `
+      <div class="ai-chat-thread" id="aict-${id}"></div>
+      <div class="ai-chat-input-row">
+        <input class="ai-chat-input" id="aici-${id}" placeholder="Preguntá sobre este gráfico..." maxlength="300"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chartChatSend('${id}')}" />
+        <button class="ai-chat-send" id="aicb-${id}" onclick="chartChatSend('${id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>` : ''}`;
+  }
+
   try {
     const r = await fetch(AI_SERVER + '/ai-insight', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -2890,113 +3013,289 @@ async function getAIInsight(id, prompt) {
     });
     if (!r.ok) throw new Error();
     const j = await r.json();
-    const text = (j.text || '').trim();
-    el.classList.remove('loading');
-    el.innerHTML = `
-      <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div>
-      <div class="ai-box-body ai-prose">${aiFormatText(text)}</div>`;
+    buildBox(aiFormatText((j.text||'').trim()));
   } catch {
-    el.classList.remove('loading');
-    el.innerHTML = `
-      <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div>
-      <div class="ai-box-body"><p class="ai-prose-p" style="color:var(--t3)">No se pudo conectar con el servidor de análisis.</p></div>`;
+    buildBox(`<p class="ai-prose-p" style="color:var(--t3)">No se pudo conectar con el servidor de análisis.</p>`, false);
   }
 }
 
+async function chartChatSend(id) {
+  const input = document.getElementById('aici-' + id);
+  const btn   = document.getElementById('aicb-' + id);
+  const thread= document.getElementById('aict-' + id);
+  if (!input || !thread) return;
+  const q = input.value.trim();
+  if (!q) return;
+
+  input.value = '';
+  btn.disabled = true;
+
+  // Mensaje del usuario
+  thread.innerHTML += `<div class="ai-chat-msg user"><div class="ai-chat-bubble">${q.replace(/</g,'&lt;')}</div></div>`;
+
+  // Indicador de escritura
+  const thinkId = 'think-' + id + '-' + Date.now();
+  thread.innerHTML += `<div class="ai-chat-msg assistant" id="${thinkId}"><div class="ai-chat-bubble thinking">Analizando...</div></div>`;
+  thread.scrollTop = thread.scrollHeight;
+
+  const ctx = chartContexts[id] || '';
+  const fullPrompt = `${ctx}\n\n---\nPREGUNTA DE SEGUIMIENTO: ${q}\n\nInstrucciones para responder: usá ÚNICAMENTE los datos del contexto del gráfico provisto arriba. Respondé en español rioplatense, formal y directo. Si la pregunta pide un dato que no está en el contexto, decilo claramente. Usá negritas para cifras y nombres clave. Sé conciso — máximo 4-5 líneas salvo que la pregunta requiera más detalle.`;
+
+  try {
+    const r = await fetch(AI_SERVER + '/ai-insight', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt: fullPrompt }),
+      signal: AbortSignal.timeout(45000),
+    });
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    const text = (j.text||'').trim();
+    const thinkEl = document.getElementById(thinkId);
+    if (thinkEl) thinkEl.outerHTML = `<div class="ai-chat-msg assistant"><div class="ai-chat-bubble">${aiFormatText(text)}</div></div>`;
+  } catch {
+    const thinkEl = document.getElementById(thinkId);
+    if (thinkEl) thinkEl.outerHTML = `<div class="ai-chat-msg assistant"><div class="ai-chat-bubble thinking">No se pudo obtener respuesta.</div></div>`;
+  }
+
+  btn.disabled = false;
+  thread.scrollTop = thread.scrollHeight;
+  input.focus();
+}
+
 function renderAIInsights(stats, ltRows) {
-  const FMT = 'Sos el Analista IA de Oliver Cooks (aceite de oliva extra virgen, Mendoza). Analizá ÚNICAMENTE los datos exactos que te proporciono. No inventes valores, tendencias ni porcentajes que no estén en los datos. Si algo no se puede concluir con certeza, no lo menciones.';
+  const IDENTIDAD = `Sos el Analista IA interno de Oliver Cooks, productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Los datos son del ERP real de la empresa (sistema de facturación, no muestras). Respondé en español rioplatense, formal y directo. Usá negritas para cifras, nombres y datos clave. Todos los valores monetarios son en Pesos Argentinos (ARS). Formato de moneda: $1.250.000 (punto como separador de miles). Porcentajes con un decimal: 34,5%. NO inventes valores, tendencias ni interpretaciones que no estén respaldadas por los datos provistos. Si algo no se puede afirmar con los datos disponibles, no lo menciones. Estructura la respuesta con bullets cuando haya múltiples puntos.`;
 
   const mn = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const sn = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
 
-  // 1. Ventas diarias — últimos 30 días completos
+  // ── 1. Ventas diarias ──
   const diasSlice = stats.diasOrd.slice(-30);
-  const dias = diasSlice.map(([d,v])=>`${fmtD(d)}: $${Math.round(v).toLocaleString('es-AR')}`).join(' | ');
   const promDia = diasSlice.length ? Math.round(diasSlice.reduce((s,[,v])=>s+v,0)/diasSlice.length) : 0;
-  getAIInsight('linea', `${FMT}\n\nGráfico: línea de ventas diarias (últimos ${diasSlice.length} días). Promedio diario del período: $${promDia.toLocaleString('es-AR')}.\nDatos: ${dias}.`);
+  const maxDia = diasSlice.reduce((a,b)=>b[1]>a[1]?b:a, diasSlice[0]||['',0]);
+  const minDia = diasSlice.filter(([,v])=>v>0).reduce((a,b)=>b[1]<a[1]?b:a, diasSlice[0]||['',0]);
+  const diasConVenta = diasSlice.filter(([,v])=>v>0).length;
+  const diasSinVenta = diasSlice.length - diasConVenta;
+  const diasStr = diasSlice.map(([d,v])=>`${fmtD(d)}: $${Math.round(v).toLocaleString('es-AR')}`).join(' | ');
+  getAIInsight('linea', `${IDENTIDAD}
 
-  // 2. Ventas mensuales — serie completa con mejor y peor mes
+GRÁFICO: Línea de ventas diarias — muestra el total facturado (suma de TotalLinea de todas las líneas de factura) agrupado por día de movimiento, para los últimos ${diasSlice.length} días con actividad del período seleccionado. Cada punto de la línea = total ARS facturado ese día.
+
+MÉTRICAS CLAVE:
+- Días analizados: ${diasSlice.length} (${diasConVenta} con ventas, ${diasSinVenta} sin ventas)
+- Promedio diario del período: $${promDia.toLocaleString('es-AR')}
+- Día de mayor facturación: ${fmtD(maxDia[0])} con $${Math.round(maxDia[1]).toLocaleString('es-AR')}
+- Día de menor facturación (con venta): ${fmtD(minDia[0])} con $${Math.round(minDia[1]).toLocaleString('es-AR')}
+- Total del período (últimos ${diasSlice.length} días): $${Math.round(diasSlice.reduce((s,[,v])=>s+v,0)).toLocaleString('es-AR')}
+
+SERIE COMPLETA DÍA A DÍA: ${diasStr}
+
+Analizá: tendencia general (sube, baja, estable), días pico, días caída, variabilidad, patrones. Sé concreto con fechas y cifras exactas.`);
+
+  // ── 2. Ventas mensuales ──
   const mR = stats.meses.map(([ym,v])=>{ const[y,m]=ym.split('-'); return `${mn[+m-1]} ${y}: $${Math.round(v).toLocaleString('es-AR')}`; }).join(' | ');
   const mejorMes = stats.meses.reduce((a,b)=>b[1]>a[1]?b:a, stats.meses[0]||['',0]);
   const peorMes  = stats.meses.reduce((a,b)=>b[1]<a[1]?b:a, stats.meses[0]||['',0]);
   const mmLabel  = mejorMes[0] ? (([y,m])=>`${mn[+m-1]} ${y}`)(mejorMes[0].split('-')) : '';
   const mpLabel  = peorMes[0]  ? (([y,m])=>`${mn[+m-1]} ${y}`)(peorMes[0].split('-'))  : '';
-  getAIInsight('mensual', `${FMT}\n\nGráfico: barras de ventas mensuales (${stats.meses.length} meses). Mejor: ${mmLabel} $${Math.round(mejorMes[1]).toLocaleString('es-AR')}. Peor: ${mpLabel} $${Math.round(peorMes[1]).toLocaleString('es-AR')}.\nSerie completa: ${mR}.`);
+  const totalPeriodo = stats.meses.reduce((s,[,v])=>s+v,0);
+  const promMensual = stats.meses.length ? Math.round(totalPeriodo/stats.meses.length) : 0;
+  const crecMes = stats.meses.length>=2 ? ((stats.meses[stats.meses.length-1][1]/stats.meses[stats.meses.length-2][1]-1)*100).toFixed(1) : null;
+  getAIInsight('mensual', `${IDENTIDAD}
 
-  // 3. Día de semana — todos los días con valor y % sobre total
+GRÁFICO: Barras de ventas mensuales — cada barra es la sumatoria total facturada en ese mes calendario (de todos los días del mes), para la serie completa del período seleccionado. Permite ver la evolución y estacionalidad mensual del negocio.
+
+MÉTRICAS CLAVE:
+- Meses en el período: ${stats.meses.length}
+- Total del período: $${Math.round(totalPeriodo).toLocaleString('es-AR')}
+- Promedio mensual: $${promMensual.toLocaleString('es-AR')}
+- Mejor mes: ${mmLabel} — $${Math.round(mejorMes[1]).toLocaleString('es-AR')} (${totalPeriodo>0?((mejorMes[1]/totalPeriodo)*100).toFixed(1):0}% del total)
+- Peor mes: ${mpLabel} — $${Math.round(peorMes[1]).toLocaleString('es-AR')} (${totalPeriodo>0?((peorMes[1]/totalPeriodo)*100).toFixed(1):0}% del total)
+- Diferencia mejor vs peor: $${Math.round(mejorMes[1]-peorMes[1]).toLocaleString('es-AR')} (${peorMes[1]>0?((mejorMes[1]/peorMes[1]-1)*100).toFixed(1):'-'}% más)
+${crecMes!==null?`- Último mes vs anterior: ${parseFloat(crecMes)>=0?'+':''}${crecMes}%`:''}
+
+SERIE COMPLETA MES A MES: ${mR}
+
+Analizá: tendencia de crecimiento/decrecimiento, estacionalidad, variabilidad entre meses, conclusión sobre el estado del negocio en el período.`);
+
+  // ── 3. Día de semana ──
   const totalSem = [0,1,2,3,4,5,6].reduce((s,i)=>s+(stats.diasSem[i]||0),0);
-  const semStr = [0,1,2,3,4,5,6].map(i=>{
-    const v=stats.diasSem[i]||0;
-    const pct=totalSem>0?(v/totalSem*100).toFixed(1):0;
-    return `${sn[i]}: $${Math.round(v).toLocaleString('es-AR')} (${pct}%)`;
-  }).join(' | ');
-  getAIInsight('semana', `${FMT}\n\nGráfico: barras de ventas acumuladas por día de la semana. Total del período: $${Math.round(totalSem).toLocaleString('es-AR')}.\nDatos: ${semStr}.`);
+  const semData = [0,1,2,3,4,5,6].map(i=>({dia:sn[i], v:stats.diasSem[i]||0, pct:totalSem>0?((stats.diasSem[i]||0)/totalSem*100).toFixed(1):'0'}));
+  const mejorDia = semData.reduce((a,b)=>parseFloat(b.pct)>parseFloat(a.pct)?b:a);
+  const peorDia  = semData.filter(d=>d.v>0).reduce((a,b)=>parseFloat(b.pct)<parseFloat(a.pct)?b:a, semData[1]);
+  const semStr = semData.map(d=>`${d.dia}: $${Math.round(d.v).toLocaleString('es-AR')} (${d.pct}%)`).join(' | ');
+  getAIInsight('semana', `${IDENTIDAD}
 
-  // 4. Media móvil — últimos 30 días: real vs media
+GRÁFICO: Barras de ventas acumuladas por día de la semana — suma todas las ventas del período según el día de la semana en que ocurrieron (Lunes, Martes, etc.). NO es el promedio diario, es la acumulación total. Muestra qué días concentran más actividad comercial.
+
+MÉTRICAS CLAVE:
+- Total acumulado del período: $${Math.round(totalSem).toLocaleString('es-AR')}
+- Día más activo: ${mejorDia.dia} — $${Math.round(mejorDia.v).toLocaleString('es-AR')} (${mejorDia.pct}% del total semanal)
+- Día menos activo (con ventas): ${peorDia.dia} — $${Math.round(peorDia.v).toLocaleString('es-AR')} (${peorDia.pct}%)
+- Días sin ventas registradas: ${semData.filter(d=>d.v===0).map(d=>d.dia).join(', ')||'ninguno'}
+
+ACUMULADO POR DÍA: ${semStr}
+
+Analizá: patrón de días fuertes vs débiles, si hay concentración en ciertos días, qué implica esto para la operación logística y comercial de Oliver Cooks (ej. si los lunes concentran pedidos, probablemente los clientes hacen sus pedidos al inicio de semana).`);
+
+  // ── 4. Media móvil ──
   const nMov = Math.min(30, stats.diasOrd.length);
-  const movilSerie = stats.diasOrd.slice(-nMov).map(([d,v], i) => {
+  const movilData = stats.diasOrd.slice(-nMov).map(([d,v], i) => {
     const idx = stats.diasOrd.length - nMov + i;
     const media = Math.round(stats.movil[idx]||0);
     const real  = Math.round(v);
     const dif   = media>0 ? ((real-media)/media*100).toFixed(0) : 0;
-    return `${fmtD(d)}: $${real.toLocaleString('es-AR')} real / $${media.toLocaleString('es-AR')} media (${dif>0?'+':''}${dif}%)`;
-  }).join(' | ');
-  getAIInsight('movil', `${FMT}\n\nGráfico: línea de ventas reales vs media móvil 7 días (${nMov} días).\nDatos: ${movilSerie}.`);
+    return { d, real, media, dif };
+  });
+  const sobreMov = movilData.filter(x=>x.real>x.media).length;
+  const bajMov   = movilData.filter(x=>x.real<x.media&&x.real>0).length;
+  const maxDesvio = movilData.reduce((a,b)=>Math.abs(b.dif)>Math.abs(a.dif)?b:a, movilData[0]||{d:'',real:0,media:0,dif:0});
+  const movilStr = movilData.map(x=>`${fmtD(x.d)}: $${x.real.toLocaleString('es-AR')} real / $${x.media.toLocaleString('es-AR')} media (${x.dif>0?'+':''}${x.dif}%)`).join(' | ');
+  getAIInsight('movil', `${IDENTIDAD}
 
-  // 5–8. Sección Por Litro
+GRÁFICO: Línea doble de ventas reales vs media móvil de 7 días — la línea real muestra la venta diaria exacta; la media móvil suaviza los picos calculando el promedio de los 7 días anteriores (incluido el día actual). Cuando la línea real está POR ENCIMA de la media móvil, ese día fue mejor que la tendencia reciente; cuando está POR DEBAJO, fue peor.
+
+MÉTRICAS CLAVE:
+- Días analizados: ${nMov}
+- Días por encima de la media móvil: ${sobreMov} (${nMov>0?(sobreMov/nMov*100).toFixed(0):0}% de los días)
+- Días por debajo de la media móvil: ${bajMov}
+- Mayor desvío puntual: ${fmtD(maxDesvio.d)} con ${maxDesvio.dif>0?'+':''}${maxDesvio.dif}% respecto a su media
+
+SERIE COMPLETA (real / media / desvío%): ${movilStr}
+
+Analizá: si la tendencia de la media móvil es alcista o bajista, qué días fueron outliers significativos (positivos o negativos), si el negocio está acelerando o desacelerando en el período reciente.`);
+
+  // ── 5–8. Sección Por Litro ──
   if (ltRows && ltRows.length > 0) {
-    // 5. Volumen por litros — todos los productos
     const totalLit = ltRows.reduce((s,r)=>s+(r.litros||0),0);
+    const totalFactLit = ltRows.reduce((s,r)=>s+(r.totalFacturado||0),0);
+    const top3vol = ltRows.filter(r=>r.litros>0).slice(0,3);
     const volAll = ltRows.filter(r=>r.litros>0)
-      .map(r=>`${r.nombre}: ${r.litros.toFixed(0)}L (${(r.litros/totalLit*100).toFixed(1)}% del vol., ${labelEnvase(r.envase)}, $${Math.round(r.totalFacturado).toLocaleString('es-AR')})`)
+      .map(r=>`${r.nombre}: ${r.litros.toFixed(0)} L — ${(r.litros/totalLit*100).toFixed(1)}% del vol. total — envase ${labelEnvase(r.envase)} — $${Math.round(r.totalFacturado).toLocaleString('es-AR')} facturado`)
       .join(' | ');
-    getAIInsight('lt-vol', `${FMT}\n\nGráfico: barras de litros vendidos por producto. Total: ${totalLit.toFixed(0)} litros.\nRanking completo: ${volAll}.`);
+    getAIInsight('lt-vol', `${IDENTIDAD}
 
-    // 6. Precio por litro — ranking completo de mayor a menor
-    const pplAll = [...ltRows].filter(r=>r.precioPorLitro&&r.litros>0)
-      .sort((a,b)=>b.precioPorLitro-a.precioPorLitro)
-      .map(r=>`${r.nombre}: $${r.precioPorLitro.toFixed(0)}/L (${r.litros.toFixed(0)}L, $${Math.round(r.totalFacturado).toLocaleString('es-AR')})`)
-      .join(' | ');
-    getAIInsight('lt-precio', `${FMT}\n\nGráfico: barras de precio por litro por producto, de mayor a menor.\nRanking completo: ${pplAll}.`);
+GRÁFICO: Barras horizontales de litros vendidos por producto — ranking de mayor a menor volumen en litros. El volumen se calcula multiplicando la cantidad vendida (unidades) por el tamaño del envase detectado en el nombre del producto (ej. "1 lts" = 1 litro por unidad). Solo incluye productos con envase identificable.
 
-    // 7. Evolución precio/litro mensual — datos reales calculados desde allData
+MÉTRICAS CLAVE:
+- Total litros vendidos en el período: ${totalLit.toFixed(0)} L
+- Total facturado de estos productos: $${Math.round(totalFactLit).toLocaleString('es-AR')}
+- Precio promedio ponderado del período: $${totalLit>0?fmt(totalFactLit/totalLit):0}/L
+- Productos con volumen detectado: ${ltRows.filter(r=>r.litros>0).length}
+- Top 3 por volumen: ${top3vol.map(r=>`${r.nombre} (${r.litros.toFixed(0)}L, ${(r.litros/totalLit*100).toFixed(1)}%)`).join(' / ')}
+
+RANKING COMPLETO: ${volAll}
+
+Analizá: qué productos dominan el volumen, si hay concentración en pocos productos, qué formatos (tamaños de envase) son los más demandados en litros, implicancias logísticas.`);
+
+    // 6. Precio por litro
+    const pplRows = [...ltRows].filter(r=>r.precioPorLitro&&r.litros>0).sort((a,b)=>b.precioPorLitro-a.precioPorLitro);
+    const pplMax = pplRows[0];
+    const pplMin = pplRows[pplRows.length-1];
+    const pplProm = totalLit>0 ? totalFactLit/totalLit : 0;
+    const pplAll = pplRows.map(r=>`${r.nombre}: $${r.precioPorLitro.toFixed(0)}/L — ${r.litros.toFixed(0)} L vendidos — $${Math.round(r.totalFacturado).toLocaleString('es-AR')} total facturado`).join(' | ');
+    getAIInsight('lt-precio', `${IDENTIDAD}
+
+GRÁFICO: Barras horizontales de precio efectivo por litro ($/L) por producto, ordenadas de mayor a menor precio. El $/L se calcula como: Total Facturado del producto ÷ Litros Vendidos del producto. Refleja el precio real de venta ponderado por las cantidades, no el precio de lista.
+
+MÉTRICAS CLAVE:
+- Precio $/L más alto: ${pplMax?pplMax.nombre:'-'} a $${pplMax?pplMax.precioPorLitro.toFixed(0):0}/L (${pplMax?pplMax.litros.toFixed(0):0} L vendidos)
+- Precio $/L más bajo: ${pplMin?pplMin.nombre:'-'} a $${pplMin?pplMin.precioPorLitro.toFixed(0):0}/L (${pplMin?pplMin.litros.toFixed(0):0} L vendidos)
+- Diferencia entre mayor y menor $/L: $${pplMax&&pplMin?(pplMax.precioPorLitro-pplMin.precioPorLitro).toFixed(0):0}/L (${pplMax&&pplMin&&pplMin.precioPorLitro>0?((pplMax.precioPorLitro/pplMin.precioPorLitro-1)*100).toFixed(0):0}% más caro)
+- Promedio ponderado global $/L: $${pplProm.toFixed(0)}/L
+- Productos analizados: ${pplRows.length}
+
+RANKING COMPLETO (mayor a menor $/L): ${pplAll}
+
+Analizá: qué productos generan más ingreso por litro (son los más rentables en precio), si los productos más caros/L también tienen buen volumen, brecha de precios entre productos premium y estándar.`);
+
+    // 7. Evolución precio/litro mensual
     const mesesPplAI = new Map();
     (typeof allData !== 'undefined' ? allData : []).forEach(r => {
       const env = extractEnvase(prodName(r));
       if (env === null) return;
-      const cant   = parseFloat(r.Cantidad)||0;
-      const total  = parseFloat(r.TotalLinea)||0;
-      const litros = cant * env;
-      if (!r.FechaMovimiento || litros <= 0) return;
+      const cant  = parseFloat(r.Cantidad)||0;
+      const total = parseFloat(r.TotalLinea)||0;
+      const lts   = cant * env;
+      if (!r.FechaMovimiento || lts <= 0) return;
       const ym = r.FechaMovimiento.slice(0,7);
       if (!mesesPplAI.has(ym)) mesesPplAI.set(ym, {litros:0, total:0});
-      const mv = mesesPplAI.get(ym);
-      mv.litros += litros; mv.total += total;
+      const mv = mesesPplAI.get(ym); mv.litros += lts; mv.total += total;
     });
-    const evolAI = [...mesesPplAI.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([ym,v])=>{
+    const evolEntries = [...mesesPplAI.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+    const evolAI = evolEntries.map(([ym,v])=>{
       const [y,m] = ym.split('-');
       const ppl = v.litros > 0 ? Math.round(v.total/v.litros) : null;
-      return ppl ? `${mn[+m-1]} ${y}: $${ppl.toLocaleString('es-AR')}/L, ${v.litros.toFixed(0)} litros` : null;
-    }).filter(Boolean).join(' | ');
-    getAIInsight('lt-evol', `${FMT}\n\nGráfico: línea doble (eje izq = $/litro promedio, eje der = litros vendidos) por mes.\nDatos reales: ${evolAI}.`);
+      return ppl ? `${mn[+m-1]} ${y}: $${ppl.toLocaleString('es-AR')}/L, ${v.litros.toFixed(0)} L` : null;
+    }).filter(Boolean);
+    const evol1 = evolAI[0]||'', evolN = evolAI[evolAI.length-1]||'';
+    const evolPplArr = evolEntries.map(([,v])=>v.litros>0?v.total/v.litros:null).filter(Boolean);
+    const pplEvMax = evolPplArr.length ? Math.max(...evolPplArr) : 0;
+    const pplEvMin = evolPplArr.length ? Math.min(...evolPplArr) : 0;
+    getAIInsight('lt-evol', `${IDENTIDAD}
 
-    // 8. Scatter burbujas — todos los productos con sus 3 dimensiones
-    const scAll = ltRows.filter(r=>r.precioPorLitro&&r.litros>0)
-      .sort((a,b)=>b.totalFacturado-a.totalFacturado)
-      .map(r=>`${r.nombre}: ${r.litros.toFixed(0)}L (eje X), $${r.precioPorLitro.toFixed(0)}/L (eje Y), $${Math.round(r.totalFacturado).toLocaleString('es-AR')} ingresos (tamaño burbuja)`)
-      .join(' | ');
-    getAIInsight('lt-scatter', `${FMT}\n\nGráfico de burbujas: X=litros vendidos, Y=precio/litro, tamaño=ingresos totales. Cuadrante ideal = alto volumen + alto precio/litro.\nTodos los productos: ${scAll}.`);
+GRÁFICO: Línea doble con doble eje — eje izquierdo (línea): precio efectivo $/L promedio ponderado mensual; eje derecho (barras): litros totales vendidos ese mes. Permite detectar si el precio sube o baja mes a mes y si está correlacionado con el volumen.
+
+MÉTRICAS CLAVE:
+- Meses con datos: ${evolAI.length}
+- Primer mes del período: ${evol1}
+- Último mes del período: ${evolN}
+- Mayor $/L registrado en el período: $${Math.round(pplEvMax).toLocaleString('es-AR')}/L
+- Menor $/L registrado: $${Math.round(pplEvMin).toLocaleString('es-AR')}/L
+- Variación $/L entre extremos: ${pplEvMin>0?((pplEvMax/pplEvMin-1)*100).toFixed(1):0}%
+
+SERIE MES A MES: ${evolAI.join(' | ')}
+
+Analizá: tendencia del precio por litro (inflación, aumentos de lista, cambio de mix de productos), si hay correlación entre volumen y precio (meses de mayor volumen = precio más bajo por descuentos, o al revés), estacionalidad de precios.`);
+
+    // 8. Scatter burbujas
+    const scRows = ltRows.filter(r=>r.precioPorLitro&&r.litros>0).sort((a,b)=>b.totalFacturado-a.totalFacturado);
+    const scAll = scRows.map(r=>`${r.nombre}: X=${r.litros.toFixed(0)}L, Y=$${r.precioPorLitro.toFixed(0)}/L, ingresos=$${Math.round(r.totalFacturado).toLocaleString('es-AR')}`).join(' | ');
+    const cuadranteIdeal = scRows.filter(r=>r.litros>totalLit/scRows.length&&r.precioPorLitro>pplProm);
+    getAIInsight('lt-scatter', `${IDENTIDAD}
+
+GRÁFICO: Scatter de burbujas donde cada burbuja es un producto. Eje X = litros vendidos (volumen), Eje Y = precio efectivo $/L, Tamaño de burbuja = ingresos totales generados. El cuadrante ideal (arriba a la derecha) = alto volumen + alto precio/L = mayor contribución al negocio.
+
+MÉTRICAS DE REFERENCIA:
+- Volumen promedio por producto: ${scRows.length>0?(totalLit/scRows.length).toFixed(0):0} L
+- Precio $/L promedio ponderado global: $${pplProm.toFixed(0)}/L
+- Productos en cuadrante ideal (alto vol + alto $/L): ${cuadranteIdeal.length > 0 ? cuadranteIdeal.map(r=>r.nombre).join(', ') : 'ninguno con estos umbrales'}
+- Total productos en el gráfico: ${scRows.length}
+
+TODOS LOS PRODUCTOS (X=litros, Y=$/L, ingresos): ${scAll}
+
+Analizá: qué productos están en el cuadrante ideal, cuáles son alto volumen/bajo precio (commodities), cuáles son bajo volumen/alto precio (nicho premium), cuáles tienen bajo desempeño en ambas dimensiones. Mencioná productos por nombre con sus valores exactos.`);
   }
 
-  // 9. Participación de clientes — top 10 con % real
+  // ── 9. Participación de clientes ──
   const top10 = stats.topCl.slice(0,10);
   const top10sum = top10.reduce((s,[,v])=>s+v,0);
+  const top3cl = top10.slice(0,3);
+  const top1pct = stats.total>0?(top10[0]?.[1]||0)/stats.total*100:0;
+  const top3pct = stats.total>0?top3cl.reduce((s,[,v])=>s+v,0)/stats.total*100:0;
   const clStr = top10.map(([n,v])=>{
     const pct = stats.total>0 ? (v/stats.total*100).toFixed(1) : '0';
-    return `${n}: $${Math.round(v).toLocaleString('es-AR')} (${pct}%)`;
+    const factsCl = [...new Set(allData.filter(r=>(r.NombreCliente||'').trim()===n).map(r=>String(r.NumeroFormulario||'')))].length;
+    return `${n}: $${Math.round(v).toLocaleString('es-AR')} (${pct}% del total, ${factsCl} facturas, ticket prom $${factsCl>0?Math.round(v/factsCl).toLocaleString('es-AR'):0})`;
   }).join(' | ');
+  const restoCant = stats.nCl - top10.length;
   const restoPct = stats.total>0 ? (100 - top10sum/stats.total*100).toFixed(1) : '0';
-  getAIInsight('cl-pie', `${FMT}\n\nGráfico: torta de participación de clientes. Total período: $${Math.round(stats.total).toLocaleString('es-AR')}. Total clientes: ${stats.nCl}.\nTop ${top10.length}: ${clStr}.\nResto de clientes (${stats.nCl - top10.length}): ${restoPct}% del total.`);
+  const retoVal = stats.total - top10sum;
+  getAIInsight('cl-pie', `${IDENTIDAD}
+
+GRÁFICO: Torta (donut) de participación de clientes por facturación total — cada porción es un cliente del top 8, el resto se agrupa en "Otros". Muestra la concentración del negocio: cuánto depende Oliver Cooks de pocos clientes clave.
+
+MÉTRICAS CLAVE:
+- Total facturado en el período: $${Math.round(stats.total).toLocaleString('es-AR')}
+- Total clientes únicos: ${stats.nCl}
+- Cliente #1: ${top10[0]?.[0]||'-'} con $${Math.round(top10[0]?.[1]||0).toLocaleString('es-AR')} (${top1pct.toFixed(1)}% del total)
+- Top 3 concentran: ${top3pct.toFixed(1)}% del total facturado
+- Top 10 concentran: ${stats.total>0?(top10sum/stats.total*100).toFixed(1):0}%
+- Resto (${restoCant} clientes): $${Math.round(retoVal).toLocaleString('es-AR')} (${restoPct}%)
+- Ticket promedio general: $${stats.nFacts>0?fmt(stats.prom):0} por factura
+
+TOP 10 CLIENTES (nombre, total, % del total, facturas, ticket promedio): ${clStr}
+
+Analizá: nivel de concentración del negocio (riesgo si pocos clientes concentran mucho), quiénes son los clientes estratégicos, qué tan pulverizada está la cartera, oportunidades de desarrollo de clientes menores.`);
 }
 </script>
 
@@ -3950,12 +4249,36 @@ function computeRFM(data){
   scored.forEach(c=>{c.segmento=cat(c);segs[c.segmento].push(c);});
   return{segments:segs,clients:scored};
 }
-const RFM_CFG={champions:{icon:'🏆',label:'Champions',color:'#7DB83A',sub:'Alto valor, frecuentes y recientes'},leales:{icon:'💎',label:'Leales',color:'#47c9e5',sub:'Alta frecuencia y monto sostenido'},potenciales:{icon:'🌱',label:'Potenciales',color:'#C8A832',sub:'Compras recientes, pueden crecer'},riesgo:{icon:'⚠️',label:'En Riesgo',color:'#e0a052',sub:'Compraban bien pero frenaron'},perdidos:{icon:'❌',label:'Perdidos',color:'#e05252',sub:'Sin actividad y bajo historial'},nuevos:{icon:'✨',label:'Nuevos',color:'#E8C84A',sub:'Primera o segunda compra reciente'},otros:{icon:'📊',label:'Regulares',color:'#888',sub:'Comportamiento promedio'}};
+const RFM_SVG = {
+  champions: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+  leales:    `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>`,
+  potenciales:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`,
+  riesgo:    `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>`,
+  perdidos:  `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`,
+  nuevos:    `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>`,
+  otros:     `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+};
+const RFM_CFG={
+  champions: {label:'Champions', color:'#7DB83A', sub:'Alto valor, frecuentes y recientes'},
+  leales:    {label:'Leales',    color:'#47c9e5', sub:'Alta frecuencia y monto sostenido'},
+  potenciales:{label:'Potenciales',color:'#C8A832',sub:'Compras recientes, pueden crecer'},
+  riesgo:    {label:'En Riesgo', color:'#e0a052', sub:'Compraban bien pero frenaron'},
+  perdidos:  {label:'Perdidos',  color:'#e05252', sub:'Sin actividad y bajo historial'},
+  nuevos:    {label:'Nuevos',    color:'#E8C84A', sub:'Primera o segunda compra reciente'},
+  otros:     {label:'Regulares', color:'#888',    sub:'Comportamiento promedio'},
+};
 function renderRFMCards(rfmResult){
   const el=document.getElementById('rfm-cards');if(!el)return;
   el.innerHTML=Object.entries(rfmResult.segments).filter(([,cs])=>cs.length>0).map(([key,cs])=>{
     const cfg=RFM_CFG[key],tot=cs.reduce((s,c)=>s+c.total,0);
-    return`<div class="rfm-card ${key}" onclick="showRFMDetail('${key}')"><div class="rfm-card-icon">${cfg.icon}</div><div class="rfm-card-name" style="color:${cfg.color}">${cfg.label}</div><div class="rfm-card-count" style="color:${cfg.color}">${cs.length}</div><div class="rfm-card-sub">${cfg.sub}</div><div class="rfm-card-money">$${shortN(tot)} facturado</div></div>`;
+    const svg=RFM_SVG[key]||'';
+    return`<div class="rfm-card ${key}" onclick="showRFMDetail('${key}')">
+      <div class="rfm-card-icon" style="background:${cfg.color}18;border:1px solid ${cfg.color}33;color:${cfg.color}">${svg}</div>
+      <div class="rfm-card-name" style="color:${cfg.color}">${cfg.label}</div>
+      <div class="rfm-card-count" style="color:${cfg.color}">${cs.length}</div>
+      <div class="rfm-card-sub">${cfg.sub}</div>
+      <div class="rfm-card-money">$${shortN(tot)} facturado</div>
+    </div>`;
   }).join('');
   const tot=Object.values(rfmResult.segments).reduce((s,a)=>s+a.length,0);
   document.getElementById('rfm-sub').textContent=`${tot} clientes clasificados — hacé click en un segmento para analizarlo con IA`;

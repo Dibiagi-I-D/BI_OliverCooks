@@ -146,7 +146,7 @@ async def build_answer(rows: list[dict], human_query: str) -> str:
 Tu tarea es interpretar los resultados de una consulta SQL y redactar una respuesta clara, estructurada y formal para el equipo comercial.
 
 REGLAS:
-- Respondé en español, de forma directa y sin saludar.
+- Respondé en español, de forma directa y que seas como un chat al estilo chatgpt/claude, que realiza una conversacion abierta.
 - Usá **negritas** para destacar cifras y datos clave.
 - Si hay múltiples resultados, presentalos como lista con guiones (- item).
 - Formateá los valores monetarios con el símbolo $ y separador de miles.
