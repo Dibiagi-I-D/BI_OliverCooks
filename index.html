@@ -653,7 +653,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   letter-spacing:.2px; line-height:1.4;
 }
 .ai-item-detalle { font-size:11px; color:rgba(232,232,232,.8); line-height:1.6 }
-/* Sugerencias */
+/* Sugerencias (legacy, ya no se usa) */
 .ai-sug-list { display:flex; flex-direction:column; gap:6px }
 .ai-sug-row { display:flex; align-items:baseline; gap:10px }
 .ai-sug-num {
@@ -663,6 +663,18 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   font-size:9px; font-weight:700; color:var(--gold); line-height:1;
 }
 .ai-sug-txt { font-size:11px; color:var(--t1); line-height:1.6 }
+/* Análisis en prosa */
+.ai-prose { padding:12px 16px }
+.ai-prose-p { font-size:12.5px; color:var(--t1); line-height:1.75; margin:0 0 8px; font-weight:400 }
+.ai-prose-p:last-child { margin-bottom:0 }
+.ai-prose strong { font-weight:600; color:var(--white) }
+.ai-prose .ai-prose-list { margin:6px 0 6px 16px; padding:0; list-style:disc }
+.ai-prose .ai-prose-list li { font-size:12px; color:var(--t1); line-height:1.65; margin-bottom:3px }
+.ai-sugerencia {
+  display:block; margin-top:10px; padding:7px 10px;
+  background:rgba(200,168,50,.07); border-left:2px solid var(--gold);
+  border-radius:0 6px 6px 0; font-size:12px; color:var(--t1); line-height:1.6;
+}
 /* Shimmer skeleton while loading */
 .ai-box.loading .ai-box-body {
   padding:14px 16px; gap:8px;
@@ -2840,30 +2852,31 @@ function wrapLabel(str, maxLen=22) {
 ═══════════════════════════════════════════════ */
 const AI_SERVER = 'https://bi-olivercooks.onrender.com';
 
-function aiBoxHTML(parsed) {
-  const { resumen, items, tendencia, sugerencias } = parsed;
-  const itemsHTML = Array.isArray(items) && items.length
-    ? items.map(it => `
-      <div class="ai-item-row">
-        <span class="ai-item-label">${it.label}</span>
-        <span class="ai-item-detalle">${it.detalle}</span>
-      </div>`).join('')
-    : '';
-  const sugHTML = Array.isArray(sugerencias) && sugerencias.length
-    ? sugerencias.map((s,i) => `
-      <div class="ai-sug-row">
-        <span class="ai-sug-num">${i+1}</span>
-        <span class="ai-sug-txt">${s}</span>
-      </div>`).join('')
-    : '';
-  return `
-    <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Analisis IA</span></div>
-    <div class="ai-box-body">
-      ${resumen ? `<div class="ai-section"><span class="ai-section-label">Resumen</span><p class="ai-section-txt">${resumen}</p></div>` : ''}
-      ${itemsHTML ? `<div class="ai-section"><span class="ai-section-label">Detalle por item</span><div class="ai-items-list">${itemsHTML}</div></div>` : ''}
-      ${tendencia ? `<div class="ai-section"><span class="ai-section-label">Tendencia</span><p class="ai-section-txt">${tendencia}</p></div>` : ''}
-      ${sugHTML ? `<div class="ai-section"><span class="ai-section-label gold">Sugerencias</span><div class="ai-sug-list">${sugHTML}</div></div>` : ''}
-    </div>`;
+function aiFormatText(text) {
+  // Convierte **negrita** → <strong>, - lista → <ul><li>, → en sugerencia destacada, saltos de línea → <br>
+  const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let html = safe.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+
+  // Lista con guiones
+  if (/^[-•]\s/m.test(html)) {
+    const lines = html.split('\n');
+    let inList = false;
+    html = lines.map(l => {
+      if (/^[-•]\s/.test(l)) {
+        const item = l.replace(/^[-•]\s/,'');
+        if (!inList) { inList = true; return `<ul class="ai-prose-list"><li>${item}</li>`; }
+        return `<li>${item}</li>`;
+      }
+      if (inList) { inList = false; return `</ul>${l}`; }
+      return l;
+    }).join('\n');
+    if (inList) html += '</ul>';
+  }
+
+  // Sugerencia con → destacada
+  html = html.replace(/(→\s*.+)/g,'<span class="ai-sugerencia">$1</span>');
+  html = html.replace(/\n{2,}/g,'</p><p class="ai-prose-p">').replace(/\n/g,'<br>');
+  return `<p class="ai-prose-p">${html}</p>`;
 }
 
 async function getAIInsight(id, prompt) {
@@ -2877,24 +2890,16 @@ async function getAIInsight(id, prompt) {
     });
     if (!r.ok) throw new Error();
     const j = await r.json();
-    let parsed = {};
-    try {
-      const raw = j.text.trim().replace(/^```json|^```|```$/g,'').trim();
-      parsed = JSON.parse(raw);
-    } catch {
-      parsed = { resumen: j.text, items: [], tendencia: '', sugerencias: [] };
-    }
+    const text = (j.text || '').trim();
     el.classList.remove('loading');
-    el.innerHTML = aiBoxHTML(parsed);
+    el.innerHTML = `
+      <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div>
+      <div class="ai-box-body ai-prose">${aiFormatText(text)}</div>`;
   } catch {
     el.classList.remove('loading');
     el.innerHTML = `
-      <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Analisis IA</span></div>
-      <div class="ai-box-body">
-        <div class="ai-insight-row">
-          <p class="ai-insight-val" style="color:var(--t3)">Inicia el servidor local (<code style="font-size:11px;background:rgba(71,201,229,.08);padding:1px 5px;border-radius:2px;color:var(--cyan)">npm start</code> en /server) para ver los analisis IA.</p>
-        </div>
-      </div>`;
+      <div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div>
+      <div class="ai-box-body"><p class="ai-prose-p" style="color:var(--t3)">No se pudo conectar con el servidor de análisis.</p></div>`;
   }
 }
 
