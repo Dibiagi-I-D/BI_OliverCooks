@@ -351,13 +351,6 @@ FORMATO DE RESPUESTA — texto corrido, redactado como un analista profesional:
       messages:   [{ role: 'user', content: prompt }],
     });
 
-    const msg = await anthropic.messages.create({
-      model:      'claude-haiku-4-5-20251001',
-      max_tokens: 1400,
-      system:     SYSTEM,
-      messages:   [{ role: 'user', content: prompt }],
-    });
-
     const text = msg.content[0]?.text ?? '';
     res.json({ text });
   } catch (err) {
