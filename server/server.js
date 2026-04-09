@@ -402,7 +402,7 @@ Totales pre-calculados de todas las ventas del período, agrupados por cliente, 
 ════════════════════════════════════════════
 FORMATO DE RESPUESTA — SIEMPRE JSON VÁLIDO
 ════════════════════════════════════════════
-Respondé ÚNICAMENTE con este objeto JSON (sin texto fuera, sin markdown):
+CRÍTICO: Respondé ÚNICAMENTE con el objeto JSON crudo. PROHIBIDO usar markdown, bloques de código, backticks o texto fuera del JSON. Tu respuesta debe empezar con { y terminar con }.
 
 {
   "answer": "análisis propio en texto",
@@ -466,14 +466,30 @@ CAMPO: conclusion
 
     let answer = '', metrics = [], chart = null, conclusion = '';
     try {
-      const raw    = msg.content[0].text.trim();
-      const parsed = JSON.parse(raw);
-      answer     = parsed.answer     ?? raw;
+      const raw     = msg.content[0].text.trim();
+      // Eliminar bloques markdown ```json ... ``` que Claude a veces incluye
+      const cleaned = raw
+        .replace(/^```(?:json)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .trim();
+
+      let parsed = {};
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        // Intentar extraer el objeto JSON si hay texto extra alrededor
+        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+      }
+
+      answer     = typeof parsed.answer === 'string' && parsed.answer ? parsed.answer : '';
       metrics    = Array.isArray(parsed.metrics) ? parsed.metrics : [];
-      chart      = parsed.chart      ?? null;
-      conclusion = parsed.conclusion ?? '';
+      chart      = (parsed.chart && parsed.chart.labels && parsed.chart.datasets) ? parsed.chart : null;
+      conclusion = typeof parsed.conclusion === 'string' ? parsed.conclusion : '';
+
+      if (!answer) answer = 'No pude generar un análisis para esa consulta. Intentá reformularla.';
     } catch {
-      answer = msg.content[0].text.trim();
+      answer = 'No se pudo procesar la respuesta. Intentá reformular la pregunta.';
     }
     res.json({ answer, metrics, chart, conclusion });
   } catch (err) {
