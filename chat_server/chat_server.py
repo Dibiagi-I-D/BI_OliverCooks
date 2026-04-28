@@ -132,7 +132,7 @@ REGLAS:
 - Si no podés generar una consulta válida, devolvé: {{"sql_query": null, "error": "motivo"}}
 """
     msg = claude.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-sonnet-4-6",
         max_tokens=600,
         system=system_prompt,
         messages=[{"role": "user", "content": human_query}],
@@ -158,7 +158,7 @@ REGLAS:
     user_msg = f"Pregunta del usuario: {human_query}\n\nResultados SQL:\n{rows_text}"
 
     msg = claude.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-sonnet-4-6",
         max_tokens=800,
         system=system_prompt,
         messages=[{"role": "user", "content": user_msg}],

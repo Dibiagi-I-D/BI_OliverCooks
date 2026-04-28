@@ -269,7 +269,7 @@ app.post('/human-query', async (req, res) => {
 
     // 3. Analizar con Claude usando los datos completos agregados
     const answerMsg = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
+      model:      'claude-sonnet-4-6',
       max_tokens: 1200,
       system: `Sos un analista de ventas senior de Oliver Cooks, empresa productora de aceite de oliva extra virgen premium en La Celina, Mendoza, Argentina. Respondés preguntas del equipo comercial y directivo analizando datos reales de ventas extraídos del sistema de gestión interno (ERP). Tus respuestas son leídas por el equipo para tomar decisiones de negocio.
 
@@ -345,7 +345,7 @@ FORMATO DE RESPUESTA — texto corrido, redactado como un analista profesional:
 - Sin saludos, sin despedidas, sin frases de relleno.`;
 
     const msg = await anthropic.messages.create({
-      model:      'claude-haiku-4-5-20251001',
+      model:      'claude-sonnet-4-6',
       max_tokens: 600,
       system:     SYSTEM,
       messages:   [{ role: 'user', content: prompt }],
@@ -378,7 +378,7 @@ app.post('/chat-query', async (req, res) => {
   if (!question || !context) return res.status(400).json({ error: 'Faltan parámetros' });
   try {
     const msg = await anthropic.messages.create({
-      model:      'claude-haiku-4-5-20251001',
+      model:      'claude-sonnet-4-6',
       max_tokens: 1200,
       system: `Sos el Analista IA de Oliver Cooks, empresa de aceite de oliva extra virgen, Mendoza, Argentina. Actuás como analista senior interno: directo, sin saludos, sin relleno, sin repetir la pregunta.
 
@@ -454,7 +454,7 @@ app.post('/rfm-analysis', async (req, res) => {
   if (!segments) return res.status(400).json({ error: 'Falta segments' });
   try {
     const msg = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
+      model:      'claude-sonnet-4-6',
       max_tokens: 1000,
       system: `Sos analista de ventas senior de Oliver Cooks (aceite de oliva extra virgen, Mendoza, Argentina). Analizás segmentación RFM de clientes y generás estrategias accionables para cada segmento.
 Respondé ÚNICAMENTE con JSON válido sin markdown:
@@ -476,7 +476,7 @@ app.post('/anomaly-detection', async (req, res) => {
   if (!data) return res.status(400).json({ error: 'Falta data' });
   try {
     const msg = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
+      model:      'claude-sonnet-4-6',
       max_tokens: 700,
       system: `Sos analista de ventas de Oliver Cooks. Detectás anomalías en datos de ventas diarias y explicás qué pudo haberlas causado.
 Respondé ÚNICAMENTE con JSON válido sin markdown:
@@ -499,7 +499,7 @@ app.post('/drill-down', async (req, res) => {
   if (!tipo || !valor) return res.status(400).json({ error: 'Faltan parámetros' });
   try {
     const msg = await anthropic.messages.create({
-      model:      'claude-3-haiku-20240307',
+      model:      'claude-sonnet-4-6',
       max_tokens: 900,
       system: `Sos analista senior de Oliver Cooks (aceite de oliva extra virgen, Mendoza, Argentina). Cuando el usuario hace click en un punto de un gráfico, analizás en detalle qué ocurrió en ese momento específico y por qué, basándote en los datos del contexto. Respondé en español, directo y estructurado. Usá **negritas** para cifras y nombres clave. Máximo 8 líneas claras. Sin saludos ni despedidas.`,
       messages: [{ role: 'user', content: `Tipo de análisis: ${tipo}\nValor/período: ${valor}\nContexto: ${JSON.stringify(contexto)}` }],
