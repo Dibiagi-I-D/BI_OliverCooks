@@ -149,6 +149,14 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
   backdrop-filter:blur(8px);
 }
 .fg input::placeholder { color:rgba(255,255,255,.2) }
+.fg input:-webkit-autofill,
+.fg input:-webkit-autofill:hover,
+.fg input:-webkit-autofill:focus {
+  -webkit-box-shadow:0 0 0 1000px rgba(10,15,25,.7) inset;
+  -webkit-text-fill-color:#fff;
+  border-color:rgba(255,255,255,.1);
+  transition:background-color 5000s ease-in-out 0s;
+}
 .fg input:focus {
   border-color:var(--cyan);
   background:rgba(71,201,229,.05);
@@ -1448,7 +1456,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 
    <!-- Formulario -->
     <div class="login-form" style="margin-top:36px">
-      <div clas s="fg">
+      <div class="fg">
         <label>Usuario</label>
         <input id="inp-user" type="text" placeholder="Usuario" autocomplete="username">
       </div>
