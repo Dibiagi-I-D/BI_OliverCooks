@@ -186,10 +186,128 @@ body { font-family:'Inter',sans-serif; background:var(--ink); color:var(--t1); o
 .btn-login:active { transform:none }
 
 /* ═══════════════════════════════════════════════════════════
+   SELECTOR DE MÓDULO
+═══════════════════════════════════════════════════════════ */
+#pg-selector {
+  position:fixed; inset:0; z-index:99; display:none;
+  align-items:center; justify-content:center; background:#050505;
+}
+#pg-selector.visible { display:flex }
+#pg-selector.out { opacity:0; pointer-events:none; transition:opacity .6s }
+#sel-canvas { position:absolute; inset:0; width:100%; height:100%; display:block; transform:scale(1); transition:transform 2.2s cubic-bezier(0.2,0,0.4,1) }
+#sel-veil   {
+  position:absolute; inset:0; z-index:1;
+  background:linear-gradient(to bottom, rgba(5,5,5,.35) 0%, rgba(5,5,5,.72) 100%);
+}
+.sel-content {
+  position:relative; z-index:2; width:100%;
+  display:flex; flex-direction:column; align-items:center;
+  gap:44px; padding:24px; text-align:center;
+}
+.sel-eyebrow {
+  font-size:10px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:12px;
+}
+.sel-main-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,4vw,52px); font-weight:700; color:#fff; line-height:1.1;
+}
+.sel-main-title em { font-style:italic; color:var(--cyan) }
+.sel-cards { display:flex; gap:0; flex-wrap:nowrap; justify-content:space-around; width:100%; padding:0 8% }
+.sel-card {
+  position:relative; overflow:hidden; width:260px; padding:36px 28px;
+  border-radius:16px; background:rgba(8,8,8,.68); backdrop-filter:blur(24px);
+  border:1px solid rgba(71,201,229,.15); cursor:pointer;
+  display:flex; flex-direction:column; gap:16px;
+  transition:border-color .25s, box-shadow .25s, transform .25s, opacity .3s;
+}
+.sel-card::before {
+  content:''; position:absolute; inset:0; border-radius:16px;
+  background:linear-gradient(135deg, rgba(71,201,229,.09) 0%, transparent 60%);
+  opacity:0; transition:opacity .3s;
+}
+.sel-card:hover { border-color:rgba(71,201,229,.45); box-shadow:0 0 40px rgba(71,201,229,.15); transform:translateY(-4px) }
+.sel-card:hover::before { opacity:1 }
+.sel-card.sel-selected {
+  border-color:var(--cyan);
+  box-shadow:0 0 60px rgba(71,201,229,.4), inset 0 0 40px rgba(71,201,229,.05);
+  transform:scale(1.04); pointer-events:none;
+}
+.sel-card.sel-selected::before { opacity:1 }
+.sel-card.sel-dimmed { opacity:.2; transform:scale(.96); pointer-events:none }
+.sel-card.gold-card:hover { border-color:rgba(200,168,50,.45); box-shadow:0 0 40px rgba(200,168,50,.15) }
+.sel-card.gold-card.sel-selected { border-color:var(--gold); box-shadow:0 0 60px rgba(200,168,50,.4), inset 0 0 40px rgba(200,168,50,.05) }
+.sel-icon {
+  width:52px; height:52px; border-radius:12px;
+  background:rgba(71,201,229,.1); border:1px solid rgba(71,201,229,.2);
+  display:flex; align-items:center; justify-content:center;
+}
+.sel-icon.gold { background:rgba(200,168,50,.1); border-color:rgba(200,168,50,.2) }
+.sel-tag {
+  font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--cyan); padding:3px 9px; border-radius:4px;
+  background:rgba(71,201,229,.08); border:1px solid rgba(71,201,229,.12);
+  display:inline-block; width:fit-content;
+}
+.sel-tag.gold { color:var(--gold); background:rgba(200,168,50,.08); border-color:rgba(200,168,50,.12) }
+.sel-label { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#fff; line-height:1.2 }
+.sel-desc  { font-size:13px; color:var(--t2); line-height:1.6 }
+.sel-arrow {
+  display:flex; align-items:center; gap:8px; font-size:11px;
+  color:var(--t3); margin-top:auto;
+  transition:color .25s, gap .25s;
+}
+.sel-card:hover .sel-arrow { color:var(--cyan); gap:12px }
+.sel-card.gold-card:hover .sel-arrow { color:var(--gold) }
+#sel-loader {
+  position:absolute; inset:0; z-index:3;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  background:#050505; transition:opacity .5s;
+}
+#sel-loader.hq-hidden { opacity:0; pointer-events:none }
+#sel-pg-bar-wrap { width:140px; height:2px; background:rgba(71,201,229,.1); border-radius:1px }
+#sel-pg-bar { height:100%; width:0%; background:var(--cyan); border-radius:1px; transition:width .15s }
+
+/* Compact dashboard header (replaces hero) */
+#dash-header {
+  padding:140px 80px 56px;
+  background:linear-gradient(to bottom, rgba(8,8,8,.0) 0%, var(--ink2) 100%);
+  border-bottom:1px solid var(--bdr);
+}
+.dh-inner { max-width:1400px; margin:0 auto; display:flex; flex-direction:column; gap:32px }
+.dh-brand-row { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:20px }
+.dh-eyebrow {
+  font-size:10px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:10px;
+  display:flex; align-items:center; gap:10px;
+}
+.dh-eyebrow::before { content:''; width:20px; height:1px; background:var(--cyan) }
+.dh-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,4vw,56px); font-weight:700; line-height:1.05; color:#fff;
+}
+.dh-title em { font-style:italic; color:var(--cyan) }
+.dh-module-btn {
+  font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+  color:var(--t2); padding:8px 16px; border-radius:6px; cursor:pointer;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  transition:all .2s; white-space:nowrap;
+}
+.dh-module-btn:hover { color:#fff; border-color:rgba(71,201,229,.4); background:rgba(71,201,229,.05) }
+.dh-date-strip {
+  display:flex; align-items:center; gap:12px; font-size:12px; color:var(--t3);
+}
+.dh-date-val { color:var(--t1); font-weight:600 }
+
+/* ═══════════════════════════════════════════════════════════
    DASHBOARD — SINGLE SCROLL PAGE
 ═══════════════════════════════════════════════════════════ */
 #pg-dash { display:none; min-height:100vh }
 #pg-dash.visible { display:block }
+
+/* GRANEL PAGE */
+#pg-granel { display:none; min-height:100vh }
+#pg-granel.visible { display:block }
 
 /* ── NAVBAR ── */
 .navbar {
@@ -1471,7 +1589,53 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 </div>
 
 <!-- ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-     DASHBOARD
+     SELECTOR DE MÓDULO
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ -->
+<div id="pg-selector">
+  <canvas id="sel-canvas"></canvas>
+  <div id="sel-veil"></div>
+  <div id="sel-loader">
+    <div class="hq-ring"></div>
+    <div id="sel-pg-bar-wrap"><div id="sel-pg-bar"></div></div>
+    <p class="hq-txt">Cargando</p>
+  </div>
+  <div class="sel-content">
+    <div>
+      <p class="sel-eyebrow">Oliver Cooks · Panel de Ventas</p>
+      <h2 class="sel-main-title">Seleccioná el módulo<br>de <em>análisis</em></h2>
+    </div>
+    <div class="sel-cards">
+      <div class="sel-card" id="sel-envasado" onclick="selectModule('envasado')">
+        <div class="sel-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3h6M10 3v3L7 10v10a2 2 0 002 2h6a2 2 0 002-2V10l-3-4V3"/>
+            <line x1="7" y1="14" x2="17" y2="14"/>
+          </svg>
+        </div>
+        <span class="sel-tag">Retail · Envasado</span>
+        <div class="sel-label">Aceite<br>Envasado</div>
+        <p class="sel-desc">Ventas de aceite en botella: tendencias, clientes, análisis por litro e inteligencia comercial.</p>
+        <div class="sel-arrow">Ingresar <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="sel-card gold-card" id="sel-granel" onclick="selectModule('granel')">
+        <div class="sel-icon gold">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="6" rx="8" ry="3"/>
+            <path d="M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/>
+            <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/>
+          </svg>
+        </div>
+        <span class="sel-tag gold">Mayorista · Granel</span>
+        <div class="sel-label">Aceite<br>Granel</div>
+        <p class="sel-desc">Facturas y ventas de aceite a granel: volúmenes, clientes mayoristas e importes nacionales.</p>
+        <div class="sel-arrow">Ingresar <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+     DASHBOARD — ENVASADO
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ -->
 <div id="pg-dash">
 
@@ -1484,8 +1648,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     </a>
 
     <div class="nb-links">
-      <a class="nb-link active" href="#sec-hero" data-section="hero">Resumen</a>
-<a class="nb-link" href="#sec-ventas" data-section="ventas">Ventas</a>
+      <a class="nb-link active" href="#dash-header" data-section="ventas">Ventas</a>
       <a class="nb-link" href="#sec-litros" data-section="litros">Por Litro</a>
       <a class="nb-link" href="#sec-productos" data-section="productos">Productos</a>
       <a class="nb-link" href="#sec-clientes" data-section="clientes">Clientes</a>
@@ -1501,6 +1664,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <input type="date" class="nb-date-input" id="dt-end">
         <button class="nb-apply-btn" id="btn-apply" onclick="loadDashboard()">Aplicar</button>
       </div>
+      <button class="dh-module-btn" onclick="volverSelector()" style="margin-left:12px">← Módulos</button>
       <div class="nb-dot"></div>
     </div>
   </nav>
@@ -1526,86 +1690,62 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <span class="pctx-hint">Todos los apartados reflejan exclusivamente este período</span>
   </div>
 
-  <!-- ═══════ HERO ═══════ -->
-  <section id="sec-hero">
-    <div class="hero-sticky">
-
-      <canvas id="hero-canvas"></canvas>
-
-      <!-- Loader -->
-      <div id="hero-loader">
-        <div class="hq-ring"></div>
-        <div class="hq-bar-wrap"><div class="hq-bar" id="hq-bar"></div></div>
-        <p class="hq-txt">Cargando</p>
-      </div>
-
-      <!-- Capa 1: 0% – 25% -->
-      <div class="hero-layer" id="hq-l1">
-        <p class="hero-layer-eyebrow">Mendoza, Argentina</p>
-        <h1 class="hero-layer-title">Oliver<br><em>Cooks</em></h1>
-      </div>
-
-      <!-- Capa 2: 35% – 65% -->
-      <div class="hero-layer" id="hq-l2">
-        <p class="hero-layer-eyebrow">Aceite de oliva extra virgen</p>
-        <h1 class="hero-layer-title">Calidad<br><em>premium</em></h1>
-        <p class="hero-layer-sub">Prensado en frío, sin filtros artificiales. Acidez menor a 0.3%.</p>
-      </div>
-
-      <!-- Capa 3: 72% – 95% — con KPIs abajo -->
-      <div class="hero-layer" id="hq-l3">
-        <p class="hero-layer-eyebrow">Panel de ventas</p>
-        <h1 class="hero-layer-title">Inteligencia<br>de <em>negocio</em></h1>
-        <p class="hero-layer-sub">Tendencias, productos, clientes y análisis IA — todo en un solo lugar.</p>
-      </div>
-
-      <!-- KPIs overlay: aparecen al 60% del scroll -->
-      <div class="hero-kpi-overlay" id="hq-kpis">
-        <div class="date-range-bar" id="date-range-bar" style="margin-bottom:16px">
-          <div class="dr-chip">
-            <span id="dr-start">—</span>
-            <span class="dr-chip-sep">→</span>
-            <span id="dr-end">—</span>
-          </div>
-          <div class="dr-meta"><strong id="dr-records">—</strong> registros · <strong id="dr-days">—</strong> dias de datos</div>
-        </div>
-        <div class="kpi-strip">
-          <div class="kpi-cell" onclick="openKpiModal('total')">
-            <div class="kpi-cell-label">Total Vendido</div>
-            <div class="kpi-cell-value cyan" id="kpi-total">—</div>
-            <div class="kpi-cell-sub" id="kpi-total-s">—<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')" style="margin-left:6px">i</i></div>
-            <div class="kpi-cell-hint">Ver desglose →</div>
-          </div>
-          <div class="kpi-cell" onclick="openKpiModal('facturas')">
-            <div class="kpi-cell-label">Facturas Emitidas</div>
-            <div class="kpi-cell-value" id="kpi-fact">—</div>
-            <div class="kpi-cell-sub" id="kpi-fact-s">—</div>
-            <div class="kpi-cell-hint">Ver desglose →</div>
-          </div>
-          <div class="kpi-cell" onclick="openKpiModal('clientes')">
-            <div class="kpi-cell-label">Clientes Atendidos</div>
-            <div class="kpi-cell-value" id="kpi-cl">—</div>
-            <div class="kpi-cell-sub" id="kpi-cl-s">—</div>
-            <div class="kpi-cell-hint">Ver desglose →</div>
-          </div>
+  <!-- ═══════ HEADER COMPACTO (reemplaza hero scrollytelling) ═══════ -->
+  <div id="dash-header">
+    <div class="dh-inner">
+      <div class="dh-brand-row">
+        <div>
+          <p class="dh-eyebrow">Aceite Envasado · Mendoza, Argentina</p>
+          <h1 class="dh-title">Panel de <em>Envasado</em></h1>
         </div>
       </div>
-
-      <!-- Scroll hint inicial -->
-      <div class="hero-scroll-hint" id="hq-hint">
-        <span></span>
-        Deslizá
+      <!-- Date strip (mantiene IDs que usa updateMeta) -->
+      <div class="dh-date-strip" id="date-range-bar">
+        <span>Período:</span>
+        <span class="dh-date-val" id="dr-start">—</span>
+        <span>→</span>
+        <span class="dh-date-val" id="dr-end">—</span>
+        <span style="margin-left:8px;color:var(--bdr2)">|</span>
+        <strong id="dr-records" style="color:var(--t2)">—</strong>
+        <span>registros</span>
+        <span id="dr-days" style="display:none">—</span>
       </div>
-
+      <!-- KPI Strip (mismos IDs que usaba el hero overlay) -->
+      <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);max-width:1200px">
+        <div class="kpi-cell" onclick="openKpiModal('total')">
+          <div class="kpi-cell-label">Total Vendido (sin IVA)</div>
+          <div class="kpi-cell-value cyan" id="kpi-total">—</div>
+          <div class="kpi-cell-sub" id="kpi-total-s">—<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')" style="margin-left:6px">i</i></div>
+          <div class="kpi-cell-hint">Ver desglose →</div>
+        </div>
+        <div class="kpi-cell" onclick="openKpiModal('facturas')">
+          <div class="kpi-cell-label">Facturas Emitidas</div>
+          <div class="kpi-cell-value" id="kpi-fact">—</div>
+          <div class="kpi-cell-sub" id="kpi-fact-s">—</div>
+          <div class="kpi-cell-hint">Ver desglose →</div>
+        </div>
+        <div class="kpi-cell" onclick="openKpiModal('clientes')">
+          <div class="kpi-cell-label">Clientes Atendidos</div>
+          <div class="kpi-cell-value" id="kpi-cl">—</div>
+          <div class="kpi-cell-sub" id="kpi-cl-s">—</div>
+          <div class="kpi-cell-hint">Ver desglose →</div>
+        </div>
+        <div class="kpi-cell">
+          <div class="kpi-cell-label">Total Volumen</div>
+          <div class="kpi-cell-value" id="kpi-vol">—</div>
+          <div class="kpi-cell-sub" id="kpi-vol-s">—</div>
+          <div class="kpi-cell-hint">Litros envasados</div>
+        </div>
+      </div>
     </div>
-  </section>
+  </div>
 
   <!-- Insights -->
   <div style="max-width:1400px;margin:0 auto;padding:0 80px">
     <div class="insights-row reveal">
       <div class="ins-cell">
         <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div><div class="ins-val" id="ins-prom">—</div><div class="ins-lbl">Ticket promedio<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')">i</i></div></div>
+        <div><div class="ins-val" id="ins-prom">—</div><div class="ins-lbl">Ticket promedio (sin IVA)<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom')">i</i></div></div>
       </div>
       <div class="ins-cell">
         <div class="ins-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
@@ -1623,12 +1763,12 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="section-wrap reveal">
       <div class="sec-eyebrow"><span class="num">01</span> Ventas</div>
       <h2 class="sec-title">Tendencia de Ventas</h2>
-      <p class="sec-sub">Evolucion del total facturado dia a dia. La linea muestra el comportamiento real del negocio en el periodo seleccionado.</p>
+      <p class="sec-sub">Evolucion del total facturado dia a dia. La linea muestra el comportamiento real del negocio en el periodo seleccionado. <strong style="color:var(--t3);font-weight:400">Valores sin IVA.</strong></p>
     </div>
     <div class="chart-grid cg-64 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
       <div class="chart-card">
         <div class="cc-meta">
-          <div><div class="cc-title">Ventas por Dia</div><div class="cc-sub">Total facturado — ultimos 60 dias disponibles</div></div>
+          <div><div class="cc-title">Ventas por Dia</div><div class="cc-sub">Total facturado sin IVA — ultimos 60 dias disponibles</div></div>
           <span class="cc-tag">Tendencia</span>
         </div>
         <div class="cc-canvas tall"><canvas id="ch-linea"></canvas></div>
@@ -1636,7 +1776,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
       </div>
       <div class="chart-card" style="border-left:1px solid var(--bdr)">
         <div class="cc-meta">
-          <div><div class="cc-title">Ventas Mensuales</div><div class="cc-sub">Facturacion agrupada por mes</div></div>
+          <div><div class="cc-title">Ventas Mensuales</div><div class="cc-sub">Facturacion agrupada por mes (sin IVA)</div></div>
           <span class="cc-tag gold">Mensual</span>
         </div>
         <div class="cc-canvas tall"><canvas id="ch-mensual"></canvas></div>
@@ -1668,7 +1808,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="section-wrap reveal">
       <div class="sec-eyebrow"><span class="num">02</span> Por Litro</div>
       <h2 class="sec-title">Relacion por Litro</h2>
-      <p class="sec-sub">Analisis de volumen y precio por litro. Se detecta automaticamente el tamano de envase desde el nombre del producto para calcular cuantos litros se vendieron y a que precio efectivo por litro.</p>
+      <p class="sec-sub">Analisis de volumen y precio por litro. Se detecta automaticamente el tamano de envase desde el nombre del producto para calcular cuantos litros se vendieron y a que precio efectivo por litro. <strong style="color:var(--t3);font-weight:400">Precios sin IVA.</strong></p>
     </div>
 
     <!-- KPI litros strip -->
@@ -1680,7 +1820,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div class="kpi-cell-sub" id="lt-litros-s">Con envase identificado</div>
         </div>
         <div class="kpi-cell">
-          <div class="kpi-cell-label">Ingreso por Litro</div>
+          <div class="kpi-cell-label">Ingreso por Litro (sin IVA)</div>
           <div class="kpi-cell-value" id="lt-precio">—</div>
           <div class="kpi-cell-sub">Promedio ponderado $/L<i class="calc-tip-icon" onclick="showCalcTip(event,'prom-ponderado-litro')">i</i></div>
         </div>
@@ -1690,7 +1830,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div class="kpi-cell-sub" id="lt-top-vol-s">—</div>
         </div>
         <div class="kpi-cell">
-          <div class="kpi-cell-label">Mayor $/Litro</div>
+          <div class="kpi-cell-label">Mayor $/Litro (sin IVA)</div>
           <div class="kpi-cell-value" id="lt-top-precio" style="font-size:14px;line-height:1.3;margin-top:4px">—</div>
           <div class="kpi-cell-sub" id="lt-top-precio-s">Producto premium</div>
         </div>
@@ -1709,7 +1849,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
       </div>
       <div class="chart-card" style="border-left:1px solid var(--bdr)">
         <div class="cc-meta">
-          <div><div class="cc-title">Precio por Litro por Producto</div><div class="cc-sub">$/L efectivo = Total facturado / Litros vendidos</div></div>
+          <div><div class="cc-title">Precio por Litro por Producto</div><div class="cc-sub">$/L efectivo = Total facturado / Litros vendidos (sin IVA)</div></div>
           <span class="cc-tag gold">$/Litro</span>
         </div>
         <div class="cc-canvas" style="height:380px;overflow:visible"><canvas id="ch-lt-precio"></canvas></div>
@@ -1751,12 +1891,11 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <thead><tr>
             <th>#</th>
             <th>Producto</th>
-            <th style="text-align:right">Envase</th>
             <th style="text-align:right">Unidades</th>
             <th style="text-align:right">Total Litros</th>
-            <th style="text-align:right">Precio Unit.</th>
-            <th style="text-align:right">$/Litro</th>
-            <th style="text-align:right">Total Facturado</th>
+            <th style="text-align:right">Precio Unit. (sin IVA)</th>
+            <th style="text-align:right">$/Litro (sin IVA)</th>
+            <th style="text-align:right">Total Facturado (sin IVA)</th>
             <th style="text-align:right">% del Vol.</th>
           </tr></thead>
           <tbody id="lt-body"></tbody>
@@ -1773,7 +1912,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <code style="background:rgba(71,201,229,.08);padding:1px 5px;border-radius:2px;color:var(--cyan);font-size:10px">500ML</code>,
         <code style="background:rgba(71,201,229,.08);padding:1px 5px;border-radius:2px;color:var(--cyan);font-size:10px">1LT</code>,
         <code style="background:rgba(71,201,229,.08);padding:1px 5px;border-radius:2px;color:var(--cyan);font-size:10px">250 ML</code>, etc.
-        El $/litro efectivo = Total Facturado / Litros Vendidos.
+        El $/litro efectivo = Total Facturado (sin IVA) / Litros Vendidos.
         Productos sin tamano identificado se excluyen del calculo de volumen pero aparecen en la tabla con envase "—".
       </p>
     </div>
@@ -1784,12 +1923,12 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="section-wrap reveal">
       <div class="sec-eyebrow"><span class="num">03</span> Productos</div>
       <h2 class="sec-title">Los Mas Vendidos</h2>
-      <p class="sec-sub">Ranking completo de productos ordenados por facturacion total y por unidades vendidas.</p>
+      <p class="sec-sub">Ranking completo de productos ordenados por facturacion total y por unidades vendidas. <strong style="color:var(--t3);font-weight:400">Totales sin IVA.</strong></p>
     </div>
     <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
       <div class="chart-card">
         <div class="cc-meta">
-          <div><div class="cc-title">Top 10 por Facturacion</div><div class="cc-sub">Ordenados por monto total vendido</div></div>
+          <div><div class="cc-title">Top 10 por Facturacion</div><div class="cc-sub">Ordenados por monto total vendido (sin IVA)</div></div>
           <span class="cc-tag">Por $</span>
         </div>
         <div id="rk-prod" class="rank-list" style="max-height:300px;overflow-y:auto"></div>
@@ -1826,12 +1965,12 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="section-wrap reveal">
       <div class="sec-eyebrow"><span class="num">04</span> Clientes</div>
       <h2 class="sec-title">Quienes Compran</h2>
-      <p class="sec-sub">Analisis de la cartera de clientes. Quienes generan mas facturacion y como se distribuye el mercado.</p>
+      <p class="sec-sub">Analisis de la cartera de clientes. Quienes generan mas facturacion y como se distribuye el mercado. <strong style="color:var(--t3);font-weight:400">Montos sin IVA.</strong></p>
     </div>
     <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
       <div class="chart-card">
         <div class="cc-meta">
-          <div><div class="cc-title">Top 10 Clientes</div><div class="cc-sub">Por monto total comprado</div></div>
+          <div><div class="cc-title">Top 10 Clientes</div><div class="cc-sub">Por monto total comprado (sin IVA)</div></div>
           <span class="cc-tag">Ranking</span>
         </div>
         <div id="rk-cl" class="rank-list" style="max-height:300px;overflow-y:auto"></div>
@@ -1854,7 +1993,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <table><thead><tr>
           <th>#</th><th>Cliente</th>
           <th style="text-align:right">Facturas</th><th style="text-align:right">Unidades</th>
-          <th style="text-align:right">Total Comprado</th><th style="text-align:right">Ticket Prom.<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom-cliente')">i</i></th>
+          <th style="text-align:right">Total Comprado (sin IVA)</th><th style="text-align:right">Ticket Prom. (sin IVA)<i class="calc-tip-icon" onclick="showCalcTip(event,'ticket-prom-cliente')">i</i></th>
         </tr></thead>
         <tbody id="c-body"></tbody></table>
       </div>
@@ -1907,7 +2046,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <table><thead><tr>
           <th>Fecha</th><th>N° Factura</th><th>Emp.</th><th>Cliente</th>
           <th>Producto</th><th style="text-align:right">Cant.</th>
-          <th style="text-align:right">Precio Unit.</th><th style="text-align:right">Total Linea</th>
+          <th style="text-align:right">Precio Unit. (sin IVA)</th><th style="text-align:right">Total Linea (sin IVA)</th>
           <th>Deposito</th><th>Sector</th>
         </tr></thead>
         <tbody id="tbl-body"><tr><td colspan="10" style="text-align:center;color:var(--t3);padding:40px">Cargando...</td></tr></tbody>
@@ -1921,69 +2060,6 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <div class="footer-brand">Oliver <em>Cooks</em> — Panel de Ventas</div>
     <div class="footer-copy" id="footer-upd">—</div>
   </footer>
-
-  <!-- ══ DRILL-DOWN MODAL ══ -->
-  <div id="dd-modal">
-    <div class="dd-panel">
-      <div class="dd-header">
-        <div class="dd-title-wrap">
-          <span class="dd-icon">🔍</span>
-          <div>
-            <div class="dd-title" id="dd-modal-title">Analizando...</div>
-            <div class="dd-subtitle" id="dd-modal-subtitle">Análisis profundo con IA</div>
-          </div>
-        </div>
-        <button class="dd-close" onclick="closeDrillDown()">✕</button>
-      </div>
-      <div class="dd-body">
-        <div class="dd-kpis" id="dd-kpis"></div>
-        <div class="dd-loading" id="dd-loading">
-          <div class="dd-spinner-sm"></div>
-          <span>Analizando con IA...</span>
-        </div>
-        <div class="dd-answer" id="dd-answer" style="display:none"></div>
-        <div class="dd-hint" id="dd-hint" style="display:none">Hacé click en cualquier punto de los gráficos de ventas diarias o mensuales para obtener un análisis detallado.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ PRECIO PROM DETAIL MODAL ══ -->
-  <div id="pp-modal">
-    <div class="pp-panel">
-      <div class="pp-header">
-        <div>
-          <div class="pp-title" id="pp-modal-title">Detalle de Precios</div>
-          <div class="pp-subtitle" id="pp-modal-subtitle"></div>
-        </div>
-        <button class="pp-close" onclick="closePrecioModal()">✕</button>
-      </div>
-      <div class="pp-kpis" id="pp-kpis"></div>
-      <div class="pp-body">
-        <table class="pp-table">
-          <thead><tr>
-            <th>Fecha</th><th>Cliente</th><th>Factura</th>
-            <th>Cant.</th><th>Precio Unit.</th><th>Total Línea</th>
-          </tr></thead>
-          <tbody id="pp-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ KPI DETAIL MODAL ══ -->
-  <div id="kpi-modal">
-    <div class="kpi-panel">
-      <div class="kpi-panel-header">
-        <div>
-          <div class="kpi-panel-title" id="kpi-modal-title">—</div>
-          <div class="kpi-panel-sub" id="kpi-modal-sub">—</div>
-        </div>
-        <button class="kpi-panel-close" onclick="closeKpiModal()">✕</button>
-      </div>
-      <div class="kpi-mini-strip" id="kpi-modal-kpis"></div>
-      <div class="kpi-panel-body" id="kpi-modal-body"></div>
-    </div>
-  </div>
 
   <!-- ═══════ DEUDAS DE CLIENTES ═══════ -->
   <section id="sec-deudas" style="padding-bottom:0">
@@ -2032,6 +2108,319 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 
 </div><!-- /pg-dash -->
 
+<!-- ══ MODALES COMPARTIDOS (envasado + granel) ══ -->
+<div id="dd-modal">
+  <div class="dd-panel">
+    <div class="dd-header">
+      <div class="dd-title-wrap">
+        <span class="dd-icon">🔍</span>
+        <div>
+          <div class="dd-title" id="dd-modal-title">Analizando...</div>
+          <div class="dd-subtitle" id="dd-modal-subtitle">Análisis profundo con IA</div>
+        </div>
+      </div>
+      <button class="dd-close" onclick="closeDrillDown()">✕</button>
+    </div>
+    <div class="dd-body">
+      <div class="dd-kpis" id="dd-kpis"></div>
+      <div class="dd-loading" id="dd-loading">
+        <div class="dd-spinner-sm"></div>
+        <span>Analizando con IA...</span>
+      </div>
+      <div class="dd-answer" id="dd-answer" style="display:none"></div>
+      <div class="dd-hint" id="dd-hint" style="display:none">Hacé click en cualquier punto de los gráficos de ventas diarias o mensuales para obtener un análisis detallado.</div>
+    </div>
+  </div>
+</div>
+
+<div id="pp-modal">
+  <div class="pp-panel">
+    <div class="pp-header">
+      <div>
+        <div class="pp-title" id="pp-modal-title">Detalle de Precios</div>
+        <div class="pp-subtitle" id="pp-modal-subtitle"></div>
+      </div>
+      <button class="pp-close" onclick="closePrecioModal()">✕</button>
+    </div>
+    <div class="pp-kpis" id="pp-kpis"></div>
+    <div class="pp-body">
+      <table class="pp-table">
+        <thead><tr>
+          <th>Fecha</th><th>Cliente</th><th>Factura</th>
+          <th>Cant.</th><th>Precio Unit.</th><th>Total Línea</th>
+        </tr></thead>
+        <tbody id="pp-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KPI DETAIL MODAL (compartido envasado + granel) ══ -->
+<div id="kpi-modal">
+  <div class="kpi-panel">
+    <div class="kpi-panel-header">
+      <div>
+        <div class="kpi-panel-title" id="kpi-modal-title">—</div>
+        <div class="kpi-panel-sub" id="kpi-modal-sub">—</div>
+      </div>
+      <button class="kpi-panel-close" onclick="closeKpiModal()">✕</button>
+    </div>
+    <div class="kpi-mini-strip" id="kpi-modal-kpis"></div>
+    <div class="kpi-panel-body" id="kpi-modal-body"></div>
+  </div>
+</div>
+
+<!-- ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+     DASHBOARD — GRANEL
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ -->
+<div id="pg-granel">
+
+  <!-- NAVBAR GRANEL -->
+  <nav class="navbar" id="navbar-gr">
+    <a class="nb-logo" href="#">
+      <img src="https://aceiteolivercooks.com/wp-content/uploads/2024/01/LOGO-OLIVER-BLANCO-e1704900076524.png" onerror="this.style.display='none'" alt="Oliver Cooks">
+      <span class="nb-logo-text">Oliver <em>Cooks</em> <span style="color:var(--gold);font-size:13px;font-style:italic"> · Granel</span></span>
+    </a>
+    <div class="nb-links">
+      <a class="nb-link active" href="#gr-header" data-section-gr="ingresos">Ingresos</a>
+      <a class="nb-link" href="#sec-gr-volumen" data-section-gr="volumen">Volumen</a>
+      <a class="nb-link" href="#sec-gr-clientes" data-section-gr="clientes">Clientes</a>
+      <a class="nb-link" href="#sec-gr-rfm" data-section-gr="rfm">Segmentación</a>
+      <a class="nb-link" href="#sec-gr-detalle" data-section-gr="detalle">Detalle</a>
+    </div>
+    <div class="nb-right">
+      <div class="nb-date-group">
+        <span class="nb-date-label">Desde</span>
+        <input type="date" class="nb-date-input" id="gr-dt-start">
+        <span class="nb-date-sep">→</span>
+        <input type="date" class="nb-date-input" id="gr-dt-end">
+        <button class="nb-apply-btn" onclick="loadGranelDashboard()">Aplicar</button>
+      </div>
+      <button class="dh-module-btn" onclick="volverSelector()" style="margin-left:12px">← Módulos</button>
+      <div class="nb-dot"></div>
+    </div>
+  </nav>
+
+  <!-- HEADER GRANEL -->
+  <div id="gr-header" style="padding:140px 80px 56px;background:linear-gradient(to bottom,rgba(8,8,8,0),var(--ink2));border-bottom:1px solid var(--bdr)">
+    <div style="max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:32px">
+      <div>
+        <p class="dh-eyebrow" style="color:var(--gold)">Aceite a Granel · Mendoza, Argentina</p>
+        <h1 class="dh-title">Panel de <em style="color:var(--gold)">Granel</em></h1>
+      </div>
+      <div class="dh-date-strip" id="gr-date-strip">
+        <span>Período:</span>
+        <span class="dh-date-val" id="gr-dr-start">—</span>
+        <span>→</span>
+        <span class="dh-date-val" id="gr-dr-end">—</span>
+        <span style="margin-left:8px;color:var(--bdr2)">|</span>
+        <strong id="gr-dr-records" style="color:var(--t2)">—</strong>
+        <span>registros</span>
+      </div>
+      <!-- KPI Strip Granel -->
+      <div class="kpi-strip" style="max-width:1200px;grid-template-columns:2fr 1fr 1fr 1fr">
+        <div class="kpi-cell" style="cursor:pointer" onclick="openGranelKpiModal('total')">
+          <div class="kpi-cell-label">Total Importe (sin IVA)</div>
+          <div class="kpi-cell-value" style="color:var(--gold);font-size:clamp(16px,2.2vw,34px)" id="gr-kpi-total">—</div>
+          <div class="kpi-cell-sub" id="gr-kpi-total-s">—</div>
+          <div class="kpi-cell-hint">Click para desglose</div>
+        </div>
+        <div class="kpi-cell" style="cursor:pointer" onclick="openGranelKpiModal('cantidad')">
+          <div class="kpi-cell-label">Total Volumen</div>
+          <div class="kpi-cell-value" id="gr-kpi-cant">—</div>
+          <div class="kpi-cell-sub" id="gr-kpi-cant-s">—</div>
+          <div class="kpi-cell-hint">Click para desglose</div>
+        </div>
+        <div class="kpi-cell" style="cursor:pointer" onclick="openGranelKpiModal('remitos')">
+          <div class="kpi-cell-label">Facturas Emitidas</div>
+          <div class="kpi-cell-value" id="gr-kpi-rem">—</div>
+          <div class="kpi-cell-sub" id="gr-kpi-rem-s">—</div>
+          <div class="kpi-cell-hint">Click para desglose</div>
+        </div>
+        <div class="kpi-cell" style="cursor:pointer" onclick="openGranelKpiModal('clientes')">
+          <div class="kpi-cell-label">Clientes</div>
+          <div class="kpi-cell-value" id="gr-kpi-cl">—</div>
+          <div class="kpi-cell-sub" id="gr-kpi-cl-s">—</div>
+          <div class="kpi-cell-hint">Click para desglose</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERIOD CTX BAR GRANEL -->
+  <div id="gr-period-ctx-bar" style="display:none;position:sticky;top:58px;z-index:800;background:rgba(71,201,229,.07);border-bottom:1px solid rgba(200,168,50,.15);padding:8px 40px;font-size:11px;color:var(--t2);gap:16px;align-items:center">
+    <span style="color:var(--gold)">◆</span>
+    <span id="gr-pctx-range">—</span>
+    <span>·</span>
+    <span id="gr-pctx-records">—</span>
+  </div>
+
+  <!-- SECCIÓN INGRESOS -->
+  <section id="sec-gr-ventas">
+    <div class="section-wrap reveal">
+      <div class="sec-eyebrow"><span class="num">01</span> Ingresos</div>
+      <h2 class="sec-title">Evolución de Ingresos</h2>
+      <p class="sec-sub">Importe nacional facturado día a día y por mes en el período seleccionado. <strong style="color:var(--t3);font-weight:400">Valores sin IVA.</strong></p>
+    </div>
+    <div class="chart-grid cg-64 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
+      <div class="chart-card">
+        <div class="cc-meta">
+          <div><div class="cc-title">Ingresos por Día</div><div class="cc-sub">Importe Nacional sin IVA — últimos 60 días disponibles</div></div>
+          <span class="cc-tag" style="color:var(--gold);background:rgba(200,168,50,.08);border-color:rgba(200,168,50,.2)">Tendencia</span>
+        </div>
+        <div class="cc-canvas tall"><canvas id="ch-gr-linea"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-linea"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+      <div class="chart-card" style="border-left:1px solid var(--bdr)">
+        <div class="cc-meta">
+          <div><div class="cc-title">Ingresos Mensuales</div><div class="cc-sub">Importe agrupado por mes</div></div>
+          <span class="cc-tag gold">Mensual</span>
+        </div>
+        <div class="cc-canvas tall"><canvas id="ch-gr-mensual"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-mensual"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+    </div>
+    <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none;border-top:none">
+      <div class="chart-card">
+        <div class="cc-meta">
+          <div><div class="cc-title">Actividad por Día de la Semana</div><div class="cc-sub">Qué días se despacha más</div></div>
+          <span class="cc-tag">Hábitos</span>
+        </div>
+        <div class="cc-canvas short"><canvas id="ch-gr-semana"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-semana"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+      <div class="chart-card" style="border-left:1px solid var(--bdr)">
+        <div class="cc-meta">
+          <div><div class="cc-title">Media Móvil 7 Días</div><div class="cc-sub">Suavizado de tendencia de ingresos</div></div>
+          <span class="cc-tag">Media móvil</span>
+        </div>
+        <div class="cc-canvas short"><canvas id="ch-gr-movil"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-movil"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN VOLUMEN -->
+  <section id="sec-gr-volumen">
+    <div class="section-wrap reveal">
+      <div class="sec-eyebrow"><span class="num">02</span> Volumen</div>
+      <h2 class="sec-title">Análisis de Volumen</h2>
+      <p class="sec-sub">Cantidad despachada por mes y precio por unidad a lo largo del tiempo. <strong style="color:var(--t3);font-weight:400">Precios sin IVA.</strong></p>
+    </div>
+    <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
+      <div class="chart-card">
+        <div class="cc-meta">
+          <div><div class="cc-title">Cantidad Mensual</div><div class="cc-sub">Unidades despachadas por mes</div></div>
+          <span class="cc-tag gold">Volumen</span>
+        </div>
+        <div class="cc-canvas tall"><canvas id="ch-gr-volumen"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-volumen"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+      <div class="chart-card" style="border-left:1px solid var(--bdr)">
+        <div class="cc-meta">
+          <div><div class="cc-title">Precio por Unidad (sin IVA)</div><div class="cc-sub">Importe ÷ Cantidad — evolución mensual</div></div>
+          <span class="cc-tag">$/Unidad</span>
+        </div>
+        <div class="cc-canvas tall"><canvas id="ch-gr-precio-unit"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-precio-unit"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN CLIENTES -->
+  <section id="sec-gr-clientes">
+    <div class="section-wrap reveal">
+      <div class="sec-eyebrow"><span class="num">03</span> Clientes</div>
+      <h2 class="sec-title">Análisis de Clientes</h2>
+      <p class="sec-sub">Ranking de clientes por importe y participación en el total despachado. <strong style="color:var(--t3);font-weight:400">Importes sin IVA.</strong></p>
+    </div>
+    <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
+      <div class="chart-card">
+        <div class="cc-meta">
+          <div><div class="cc-title">Top Clientes por Importe</div><div class="cc-sub">Ranking por importe nacional (sin IVA)</div></div>
+          <span class="cc-tag gold">Ranking</span>
+        </div>
+        <div id="gr-rk-cl" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+        <div class="ai-box loading" id="ai-gr-clientes"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+      <div class="chart-card" style="border-left:1px solid var(--bdr)">
+        <div class="cc-meta">
+          <div><div class="cc-title">Participación de Clientes</div><div class="cc-sub">Distribución del importe total</div></div>
+          <span class="cc-tag">Participación</span>
+        </div>
+        <div class="cc-canvas tall"><canvas id="ch-gr-cl-pie"></canvas></div>
+        <div class="ai-box loading" id="ai-gr-pie"><div class="ai-box-header"><span class="ai-box-icon">◆</span><span class="ai-label">Análisis IA</span></div><div class="ai-box-body"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN RFM GRANEL -->
+  <section id="sec-gr-rfm">
+    <div id="gr-rfm-section" style="max-width:1400px;margin:0 auto;padding:32px 40px;border-bottom:1px solid var(--bdr)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px">Inteligencia de Clientes</div>
+          <div style="font-size:20px;font-weight:700;color:var(--t1)">Segmentación RFM — Granel</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:4px" id="gr-rfm-sub">Clasificación por Recencia · Frecuencia · Monto — hacé click en un segmento para analizarlo</div>
+        </div>
+        <button class="export-btn" onclick="runGranelRFMAnalysis()" id="gr-rfm-ai-btn" style="margin-top:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Analizar con IA
+        </button>
+      </div>
+      <div class="rfm-grid" id="gr-rfm-cards"></div>
+      <div id="gr-rfm-ai-result" style="display:none;margin-top:20px"></div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN DETALLE -->
+  <section id="sec-gr-detalle">
+    <div class="section-wrap reveal">
+      <div class="sec-eyebrow"><span class="num">04</span> Detalle</div>
+      <h2 class="sec-title">Detalle de Facturas</h2>
+      <p class="sec-sub">Listado completo de comprobantes de granel en el período seleccionado.</p>
+    </div>
+    <div class="table-shell reveal" style="max-width:1400px;margin:0 auto;border-left:none;border-right:none;border-bottom:none">
+      <div class="table-topbar">
+        <div>
+          <div class="table-title">Registro de Facturas Granel</div>
+          <div class="table-sub" id="gr-tbl-count">—</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <input class="search-input" id="gr-filter-input" placeholder="Buscar cliente, nro. comprobante..." oninput="filterGranelTable(this.value)">
+          <button class="export-btn" onclick="exportGranelExcel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Excel
+          </button>
+        </div>
+      </div>
+      <div class="tw">
+        <table class="data-table" id="gr-tbl">
+          <thead><tr>
+            <th>Fecha</th>
+            <th>Nro. Comprobante</th>
+            <th>Tipo</th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Detalle</th>
+            <th>U.Med</th>
+            <th style="text-align:right">Cantidad</th>
+            <th style="text-align:right">Importe ARS (sin IVA)</th>
+          </tr></thead>
+          <tbody id="gr-tbl-body"></tbody>
+        </table>
+      </div>
+      <div class="pagination"><span class="pg-info" id="gr-pg-info">—</span><div class="pg-btns" id="gr-pg-btns"></div></div>
+    </div>
+  </section>
+
+  <!-- FOOTER GRANEL -->
+  <footer style="text-align:center;padding:32px;color:var(--t3);font-size:11px;border-top:1px solid var(--bdr)">
+    Oliver Cooks · Aceite Granel · <span id="gr-footer-upd">—</span>
+  </footer>
+
+</div><!-- /pg-granel -->
+
 <script>
 /* ═══════════════════════════════════════════════
    CONFIG
@@ -2039,6 +2428,13 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 const API_URL = 'https://apirest-dibiagi.onrender.com/oliver-cooks/visualizacion-ventas';
 const API_KEY = 'db_dibia_MkI5YVBYZzRRbmx0WTJKM09UVTFNRmhaTmxjdw==';
 const USERS   = { admin: 'admin', adriana: 'adriana', paulina: 'paulina', carmen: 'carmen' };
+let currentModule = 'envasado';
+
+// Auto-detecta si estamos en local o producción para llamar al servidor correcto
+const _LOCAL = ['localhost','127.0.0.1',''].includes(window.location.hostname);
+const GRANEL_BASE = _LOCAL ? 'http://localhost:3001' : 'https://bi-olivercooks.onrender.com';
+const GRANEL_EXT  = 'https://apirest-dibiagi.onrender.com/oliver-cooks/comprobantes-ventas';
+const GRANEL_URL  = GRANEL_EXT;
 const PAL     = ['#47c9e5','#C8A832','#2BAEC8','#E8C84A','#1a8ca3','#8A9268','#7DB83A','#e05252','#9A7D20','#4A7C55'];
 
 
@@ -2061,19 +2457,68 @@ function doLogin(){
   document.getElementById('pg-login').classList.add('out');
   setTimeout(()=>{
     document.getElementById('pg-login').style.display='none';
-    document.getElementById('pg-dash').classList.add('visible');
-    document.getElementById('chat-fab').style.display='flex';
-    loadDashboard();
+    showSelector();
   },560);
 }
-function doLogout(){
-  sessionStorage.removeItem('oc_u');
-  document.getElementById('pg-dash').classList.remove('visible');
-  document.getElementById('pg-dash').style.display='none';
+
+function showSelector(){
+  const sel=document.getElementById('pg-selector');
+  sel.classList.remove('out');
+  sel.style.display='flex';
+  // Doble rAF: primer frame aplica display:flex, segundo ya tiene dimensiones reales del canvas
+  requestAnimationFrame(()=>{
+    sel.classList.add('visible');
+    requestAnimationFrame(()=>{
+      if(window.selDrawFirst) window.selDrawFirst();
+    });
+  });
+  // Resetear estado de tarjetas
+  document.getElementById('sel-envasado').classList.remove('sel-selected','sel-dimmed');
+  document.getElementById('sel-granel').classList.remove('sel-selected','sel-dimmed');
+}
+
+function volverSelector(){
+  const pages = ['pg-dash','pg-granel'];
+  // Fade-out del dashboard activo antes de mostrar el selector
+  pages.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && el.style.display !== 'none'){
+      el.style.transition='opacity 380ms ease';
+      el.style.opacity='0';
+    }
+  });
   document.getElementById('chat-fab').style.display='none';
   document.getElementById('chat-panel').classList.remove('open');
   document.getElementById('chat-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
+  if(typeof chatPeriod !== 'undefined') chatPeriod = null;
+  const msgs = document.getElementById('chat-messages');
+  if(msgs) msgs.innerHTML='';
+  setTimeout(()=>{
+    pages.forEach(id=>{
+      const el=document.getElementById(id);
+      el.classList.remove('visible');
+      el.style.display='none';
+      el.style.opacity='';
+      el.style.transition='';
+    });
+    showSelector();
+  },400);
+}
+
+function doLogout(){
+  sessionStorage.removeItem('oc_u');
+  ['pg-dash','pg-granel'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('visible');
+    el.style.display='none';
+  });
+  document.getElementById('pg-selector').classList.remove('visible','out');
+  document.getElementById('pg-selector').style.display='none';
+  document.getElementById('chat-fab').style.display='none';
+  document.getElementById('chat-panel').classList.remove('open');
+  document.getElementById('chat-overlay').classList.remove('open');
+  document.body.style.overflow='';
   const login=document.getElementById('pg-login');
   login.style.display='';
   login.classList.remove('out');
@@ -2113,7 +2558,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function updateProgress(){
   const el=document.getElementById('progress-bar');
-  if(!document.getElementById('pg-dash').classList.contains('visible')) return;
+  const dashVisible=document.getElementById('pg-dash').classList.contains('visible');
+  const granelVisible=document.getElementById('pg-granel').classList.contains('visible');
+  if(!dashVisible&&!granelVisible) return;
   const h=document.documentElement.scrollHeight-innerHeight;
   el.style.width=(h>0?(scrollY/h*100):0)+'%';
 }
@@ -2122,8 +2569,8 @@ function onScroll(){
   const nb=document.getElementById('navbar');
   if(scrollY>20) nb.classList.add('scrolled'); else nb.classList.remove('scrolled');
   // Scroll-spy
-  const sections=['sec-hero','sec-ventas','sec-litros','sec-productos','sec-clientes','sec-deudas','sec-detalle'];
-  let active='hero';
+  const sections=['sec-ventas','sec-litros','sec-productos','sec-clientes','sec-deudas','sec-detalle'];
+  let active='ventas';
   sections.forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.getBoundingClientRect().top<=80) active=id.replace('sec-','');
@@ -2273,7 +2720,7 @@ function renderKPIs(s){
   animC('kpi-total',s.total,true);
   animC('kpi-fact',s.nFacts,false);
   animC('kpi-cl',s.nCl,false);
-  document.getElementById('kpi-total-s').textContent='Prom. $'+fmt(s.prom)+' por factura';
+  document.getElementById('kpi-total-s').textContent='Prom. $'+fmt(s.prom)+' por factura · sin IVA';
   document.getElementById('kpi-fact-s').textContent=s.nFacts+' comprobantes emitidos';
   document.getElementById('kpi-cl-s').textContent=s.nCl+' clientes unicos';
 }
@@ -2615,6 +3062,27 @@ function extractEnvase(nombreProducto) {
   return val;
 }
 
+/**
+ * Retorna info de la caja según el tamaño de botella detectado.
+ * La cantidad vendida en el sistema son CAJAS, no botellas individuales.
+ * Configuración Oliver Cooks:
+ *   250ml → 12 botellas/caja = 3 L/caja
+ *   500ml → 6 botellas/caja  = 3 L/caja
+ *   1 L   → 6 botellas/caja  = 6 L/caja
+ *   3 L   → 4 bidones/caja   = 12 L/caja
+ *   5 L   → 2 bidones/caja   = 10 L/caja
+ */
+function cajaConfig(envaseL) {
+  if (envaseL === null) return null;
+  const ml = Math.round(envaseL * 1000);
+  if (ml === 250)  return { lpc: 3,  unidades: 12, desc: '12 bot. × 250ml' };
+  if (ml === 500)  return { lpc: 3,  unidades: 6,  desc: '6 bot. × 500ml'  };
+  if (ml === 1000) return { lpc: 6,  unidades: 6,  desc: '6 bot. × 1L'     };
+  if (ml === 3000) return { lpc: 12, unidades: 4,  desc: '4 bid. × 3L'     };
+  if (ml === 5000) return { lpc: 10, unidades: 2,  desc: '2 bid. × 5L'     };
+  return null;
+}
+
 // Etiqueta legible del envase
 function labelEnvase(litros) {
   if (litros === null) return '—';
@@ -2638,11 +3106,12 @@ function renderLitrosSection(data) {
     const total = parseFloat(r.TotalLinea) || 0;
     const precio= parseFloat(r.Precio) || 0;
     const env   = extractEnvase(pr);
+    const caja  = cajaConfig(env);
     const litros= env !== null ? cant * env : null;
     const fecha = r.FechaMovimiento ? r.FechaMovimiento.slice(0,7) : null;
 
     if (!map.has(pr)) map.set(pr, {
-      nombre:pr, codigo:cod, envase:env,
+      nombre:pr, codigo:cod, envase:env, caja,
       unidades:0, litros:0, totalFacturado:0,
       precios:[], fechas:{}
     });
@@ -2666,6 +3135,14 @@ function renderLitrosSection(data) {
   // KPIs
   animC('lt-litros', totalLitrosGlobal, false);
   document.getElementById('lt-litros').textContent = totalLitrosGlobal.toLocaleString('es-AR',{maximumFractionDigits:1}) + ' L';
+  // KPI volumen en strip del header
+  const _volEl = document.getElementById('kpi-vol');
+  const _volSEl = document.getElementById('kpi-vol-s');
+  if (_volEl) _volEl.textContent = totalLitrosGlobal.toLocaleString('es-AR',{maximumFractionDigits:0}) + ' L';
+  if (_volSEl) {
+    const _tn = (totalLitrosGlobal / 1091).toFixed(2).replace('.',',');
+    _volSEl.textContent = '≈ ' + _tn + ' toneladas';
+  }
   const pplProm = totalLitrosGlobal > 0 ? totalFacturadoId / totalLitrosGlobal : 0;
   document.getElementById('lt-precio').textContent = '$' + fmt(pplProm) + '/L';
   document.getElementById('lt-litros-s').textContent = rowsId.length + ' productos con envase detectado';
@@ -2912,7 +3389,11 @@ function renderLitrosTable(rows, page, totalLitros) {
     return `<tr>
       <td style="color:var(--t3)">${from+i+1}</td>
       <td class="td-s">${r.nombre}</td>
-      <td style="text-align:right;color:var(--t2)">${labelEnvase(r.envase)}</td>
+      <td style="text-align:right">${r.unidades.toLocaleString('es-AR',{maximumFractionDigits:1})}</td>
+      <td style="text-align:right;color:${r.litros>0?'var(--cyan)':'var(--t3)'};font-weight:${r.litros>0?700:400};line-height:1.4">
+        ${r.litros>0 ? r.litros.toLocaleString('es-AR',{maximumFractionDigits:2})+' L' : '—'}
+        ${r.caja && r.unidades>0 ? `<span style="display:block;font-size:9px;color:var(--t3);margin-top:2px">≈ ${Math.round(r.unidades/r.caja.unidades).toLocaleString('es-AR')} cajas</span>` : ''}
+      </td>
       <td style="text-align:right">${r.unidades.toLocaleString('es-AR',{maximumFractionDigits:1})}</td>
       <td style="text-align:right;color:${r.litros>0?'var(--cyan)':'var(--t3)'};font-weight:${r.litros>0?700:400}">
         ${r.litros>0?r.litros.toLocaleString('es-AR',{maximumFractionDigits:2})+' L':'—'}
@@ -3308,46 +3789,36 @@ Analizá: nivel de concentración del negocio (riesgo si pocos clientes concentr
 </script>
 
 <!-- ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-     HERO SCROLLYTELLING — JS
+     SELECTOR — CANVAS ANIMATION JS
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ -->
 <script>
 (function () {
   const TOTAL  = 40;
   const FOLDER = 'assets/mejoradeimagen/ezgif-frame-';
-  const LAYERS = [
-    ['hq-l1', 0.00, 0.25],
-    ['hq-l2', 0.35, 0.65],
-    ['hq-l3', 0.72, 0.95],
-  ];
 
-  const section = document.getElementById('sec-hero');
-  const canvas  = document.getElementById('hero-canvas');
-  const loader  = document.getElementById('hero-loader');
-  const bar     = document.getElementById('hq-bar');
-  const kpis    = document.getElementById('hq-kpis');
-  const hint    = document.getElementById('hq-hint');
-  const ctx     = canvas.getContext('2d', { alpha: false });
+  const canvas = document.getElementById('sel-canvas');
+  const loader = document.getElementById('sel-loader');
+  const pgBar  = document.getElementById('sel-pg-bar');
+  const ctx    = canvas.getContext('2d', { alpha: false });
 
-  const imgs    = new Array(TOTAL);
-  let loaded    = 0;
-  let ready     = false;
-  let curFrame  = 0;   // float — lerp continuo
-  let tgtFrame  = 0;
-  let lastDrawn = -1;
-  let lastTime  = 0;
+  const imgs   = new Array(TOTAL);
+  let loaded   = 0;
+  let ready    = false;
+  let curFrame = 0;       // float continuo
+  let lastDrawn= -1;
+  let lastTime = 0;
+  let fastAnim = false;   // true durante animación rápida al elegir tarjeta
+  let fastCb   = null;
 
-  /* ── Preload con new Image() ── */
+  // Preload
   for (let i = 0; i < TOTAL; i++) {
     const img = new Image();
     const n   = String(i + 1).padStart(3, '0');
     img.onload = () => {
-      bar.style.width = (++loaded / TOTAL * 100) + '%';
+      pgBar.style.width = (++loaded / TOTAL * 100) + '%';
       if (loaded === TOTAL) onReady();
     };
-    img.onerror = () => {
-      ++loaded;
-      if (loaded === TOTAL) onReady();
-    };
+    img.onerror = () => { ++loaded; if (loaded === TOTAL) onReady(); };
     img.src = `${FOLDER}${n}.webp`;
     imgs[i] = img;
   }
@@ -3356,18 +3827,13 @@ Analizá: nivel de concentración del negocio (riesgo si pocos clientes concentr
     ready = true;
     loader.classList.add('hq-hidden');
     setupCanvas();
-    onHeroScroll();
-    lastDrawn = -1;
-    draw(Math.max(0, Math.min(TOTAL - 1, Math.round(tgtFrame))));
-    hint.classList.add('hq-on');
+    draw(0);
   }
 
-  /* ── Canvas: pixel físico exacto, sin acumulación de escala ── */
   function setupCanvas() {
     const dpr = window.devicePixelRatio || 1;
     canvas.width  = Math.round(canvas.clientWidth  * dpr);
     canvas.height = Math.round(canvas.clientHeight * dpr);
-    // setTransform resetea siempre — evita el bug de escala acumulada
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -3388,63 +3854,973 @@ Analizá: nivel de concentración del negocio (riesgo si pocos clientes concentr
     lastDrawn = idx;
   }
 
-  /* ── rAF con lerp basado en tiempo (independiente de fps) ── */
+  // rAF — estático hasta playSelAnimation, luego recorre rápido todos los frames
   function loop(ts) {
     requestAnimationFrame(loop);
-    if (!ready) return;
+    if (!ready || !fastAnim) return;
+    const dt = lastTime ? Math.min(ts - lastTime, 80) : 16;
+    lastTime = ts;
 
-    const dt  = lastTime ? Math.min(ts - lastTime, 50) : 16.67;
-    lastTime  = ts;
-
-    // Lerp temporal: misma velocidad a 30, 60 o 144 fps
-    const alpha = 1 - Math.pow(0.05, dt / 1000);
-    curFrame   += (tgtFrame - curFrame) * alpha;
-
+    curFrame += dt / 50;  // ~20fps a través de 40 frames ≈ 2s total
+    if (curFrame >= TOTAL) {
+      curFrame = TOTAL - 1;
+      fastAnim = false;
+      draw(Math.round(curFrame));
+      if (fastCb) { fastCb(); fastCb = null; }
+      return;
+    }
     const idx = Math.round(curFrame);
     if (idx !== lastDrawn) draw(Math.max(0, Math.min(TOTAL - 1, idx)));
   }
   requestAnimationFrame(loop);
 
-  /* ── Scroll ── */
-  function onHeroScroll() {
-    if (!section) return;
-    const rect = section.getBoundingClientRect();
-    const p    = Math.max(0, Math.min(1, -rect.top / (section.offsetHeight - window.innerHeight)));
-    tgtFrame   = p * (TOTAL - 1);
-
-    LAYERS.forEach(([id, s, e]) => {
-      const el = document.getElementById(id);
-      if (el) el.classList.toggle('hq-on', p >= s && p <= e);
-    });
-    kpis.classList.toggle('hq-on', p >= 0.60);
-    hint.classList.toggle('hq-on', ready && p < 0.05);
-  }
-
-  window.addEventListener('scroll', onHeroScroll, { passive: true });
-
   window.addEventListener('resize', () => {
-    setupCanvas();
-    if (ready) draw(Math.round(curFrame));
+    if (document.getElementById('pg-selector').classList.contains('visible')) {
+      setupCanvas();
+      if (ready) draw(Math.round(curFrame));
+    }
   });
 
-  // Arrancar cuando el dashboard sea visible
-  const dash = document.getElementById('pg-dash');
-  if (dash) {
-    new MutationObserver((_, obs) => {
-      if (dash.classList.contains('visible')) {
-        setupCanvas();
-        // Forzar frame inicial correcto según scroll actual
-        onHeroScroll();
-        // Si las imágenes ya estaban listas, dibujar frame 0 de inmediato
-        if (ready) {
-          lastDrawn = -1;
-          draw(Math.max(0, Math.min(TOTAL - 1, Math.round(curFrame))));
-        }
-        obs.disconnect();
-      }
-    }).observe(dash, { attributes: true, attributeFilter: ['class'] });
-  }
+  // Exponer funciones para uso externo
+  window.selCanvasReady  = true;
+  window.selSetupCanvas  = setupCanvas;
+  // selDrawFirst(): muestra frame 0 estático (llamar después de que el canvas tenga dimensiones)
+  window.selDrawFirst = function () {
+    setupCanvas();
+    if (ready) { lastDrawn = -1; draw(0); }
+  };
+  // playSelAnimation(cb): ejecuta pasada rápida (frame 0→39) y llama cb al terminar
+  window.playSelAnimation = function (cb) {
+    if (!ready) { cb && setTimeout(cb, 400); return; }
+    curFrame  = 0;
+    lastDrawn = -1;
+    lastTime  = 0;   // resetear dt para que no haya salto en el primer frame
+    fastAnim  = true;
+    fastCb    = cb;
+  };
 })();
+</script>
+
+<!-- ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+     SELECTOR — selectModule + GRANEL JS
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ -->
+<script>
+/* ══════════════════════════════════════════════════════
+   selectModule — maneja selección de tarjeta y transición
+══════════════════════════════════════════════════════ */
+function selectModule(type) {
+  currentModule = type;
+  const cardEnv = document.getElementById('sel-envasado');
+  const cardGr  = document.getElementById('sel-granel');
+  const chosen  = type === 'envasado' ? cardEnv : cardGr;
+  const other   = type === 'envasado' ? cardGr  : cardEnv;
+  const content = document.querySelector('.sel-content');
+  const veil    = document.getElementById('sel-veil');
+  const isGold  = (type === 'granel');
+
+  // Bloquear clics adicionales
+  cardEnv.style.pointerEvents = 'none';
+  cardGr.style.pointerEvents  = 'none';
+
+  // ── PASO 1 (t=0): Zoom leve inicial + atenuar la otra tarjeta ──
+  chosen.classList.add('sel-selected');
+  other.classList.add('sel-dimmed');
+
+  // ── PASO 2 (t=280ms): Zoom intenso sobre la tarjeta elegida ──
+  setTimeout(() => {
+    chosen.style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1), box-shadow 0.55s, border-color 0.3s';
+    chosen.style.transform  = 'scale(1.13)';
+    chosen.style.boxShadow  = isGold
+      ? '0 0 120px rgba(200,168,50,.65), 0 0 240px rgba(200,168,50,.25), inset 0 0 80px rgba(200,168,50,.1)'
+      : '0 0 120px rgba(71,201,229,.65), 0 0 240px rgba(71,201,229,.25), inset 0 0 80px rgba(71,201,229,.1)';
+    veil.style.transition = 'background 0.55s';
+    veil.style.background = 'rgba(5,5,5,.65)';
+  }, 280);
+
+  // ── PASO 3 (t=720ms): Fundido de salida de todo el contenido ──
+  setTimeout(() => {
+    content.style.transition = 'opacity 0.5s ease';
+    content.style.opacity    = '0';
+  }, 720);
+
+  // ── PASO 4 (t=1200ms): Arrancar el scroll rápido de imágenes ──
+  setTimeout(() => {
+    // Sin filtro: apagar el veil completamente
+    veil.style.transition = 'opacity 0.5s ease';
+    veil.style.opacity    = '0';
+    // Zoom lento en el canvas
+    const cvs = document.getElementById('sel-canvas');
+    cvs.style.transform = 'scale(1.09)';
+    if (window.selSetupCanvas) window.selSetupCanvas();
+    window.playSelAnimation(() => {
+      // ── PASO 5: Transición al dashboard ──
+      const sel = document.getElementById('pg-selector');
+      sel.classList.add('out');
+      setTimeout(() => {
+        sel.classList.remove('visible', 'out');
+        sel.style.display = 'none';
+        // Resetear estado visual para próxima apertura
+        content.style.opacity    = '';
+        content.style.transition = '';
+        veil.style.background    = '';
+        veil.style.transition    = '';
+        veil.style.opacity       = '';
+        chosen.style.transition  = '';
+        chosen.style.transform   = '';
+        chosen.style.boxShadow   = '';
+        cardEnv.style.pointerEvents = '';
+        cardGr.style.pointerEvents  = '';
+        const cvs2 = document.getElementById('sel-canvas');
+        cvs2.style.transform = '';
+
+        document.getElementById('chat-fab').style.display = 'flex';
+
+        if (type === 'envasado') {
+          const dash = document.getElementById('pg-dash');
+          dash.style.display = 'block';
+          dash.classList.add('visible');
+          window.scrollTo(0, 0);
+          loadDashboard();
+        } else {
+          const gr = document.getElementById('pg-granel');
+          gr.style.display = 'block';
+          gr.classList.add('visible');
+          window.scrollTo(0, 0);
+          loadGranelDashboard();
+        }
+      }, 650);
+    });
+  }, 1200);
+}
+
+/* ══════════════════════════════════════════════════════
+   GRANEL — datos y renderizado
+══════════════════════════════════════════════════════ */
+let granelData = [];
+let granelFiltered = [];
+let granelCharts = {};
+const GR_PS = 50;
+let grPage = 1;
+
+async function fetchGranelData(s, e) {
+  const base = GRANEL_URL + '?limit=1000' + (s ? `&startDate=${s}` : '') + (e ? `&endDate=${e}` : '');
+  let all = [], page = 1;
+  while (true) {
+    const r = await fetch(base + `&page=${page}`, { headers: { 'Authorization': `Bearer ${API_KEY}` } });
+    if (!r.ok) {
+      let errMsg = `HTTP ${r.status}`;
+      try { const j = await r.json(); errMsg = j.message || j.error || errMsg; } catch {}
+      throw new Error(errMsg);
+    }
+    const j = await r.json();
+    const rows = Array.isArray(j.data) ? j.data : [];
+    all = all.concat(rows);
+    if (rows.length < 1000) break;
+    page++;
+  }
+  return all;
+}
+
+function processGranelData(data) {
+  const remitos = new Set();
+  const clientes = {};
+  const vDia = {};
+  const diasSem = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  const meses = {};
+  let totalImporte = 0, totalCantidad = 0;
+
+  data.forEach(r => {
+    const imp  = Number(r.ImporteNacional) || 0;
+    const cant = Number(r.Cantidad) || 0;
+    const cl   = (r.Cliente || '').trim() || '(sin nombre)';
+    const fecha= r.Fecha ? new Date(r.Fecha) : null;
+
+    totalImporte  += imp;
+    totalCantidad += cant;
+    if (r.NroComprobante) remitos.add(r.NroComprobante);
+
+    if (!clientes[cl]) clientes[cl] = { totalARS: 0, cantidad: 0, nComprobantes: new Set(), ultimaFecha: null };
+    clientes[cl].totalARS  += imp;
+    clientes[cl].cantidad  += cant;
+    if (r.NroComprobante) clientes[cl].nComprobantes.add(r.NroComprobante);
+    if (fecha && !isNaN(fecha)) {
+      if (!clientes[cl].ultimaFecha || fecha > clientes[cl].ultimaFecha) clientes[cl].ultimaFecha = fecha;
+    }
+
+    if (fecha && !isNaN(fecha)) {
+      const dayKey = fecha.toISOString().split('T')[0];
+      const dow    = fecha.getDay();
+      const mesKey = dayKey.substring(0, 7);
+      if (!vDia[dayKey]) vDia[dayKey] = { imp: 0, cant: 0 };
+      vDia[dayKey].imp  += imp;
+      vDia[dayKey].cant += cant;
+      diasSem[dow] = (diasSem[dow] || 0) + imp;
+      if (!meses[mesKey]) meses[mesKey] = { imp: 0, cant: 0 };
+      meses[mesKey].imp  += imp;
+      meses[mesKey].cant += cant;
+    }
+  });
+
+  // Últimos 60 días disponibles
+  const diasOrd = Object.keys(vDia).sort().slice(-60)
+    .map(d => ({ fecha: d, imp: vDia[d].imp, cant: vDia[d].cant }));
+
+  // Media móvil 7 días sobre importe
+  const movil = diasOrd.map((_, i) => {
+    const slice = diasOrd.slice(Math.max(0, i - 6), i + 1);
+    return slice.reduce((a, b) => a + b.imp, 0) / slice.length;
+  });
+
+  const hoy = new Date();
+  const topCl = Object.entries(clientes)
+    .sort((a, b) => b[1].totalARS - a[1].totalARS)
+    .slice(0, 10)
+    .map(([nombre, v]) => ({
+      nombre,
+      totalARS: v.totalARS,
+      cantidad: v.cantidad,
+      frecuencia: v.nComprobantes.size,
+      diasDesdeUltima: v.ultimaFecha ? Math.round((hoy - v.ultimaFecha) / 86400000) : 999,
+    }));
+
+  // RFM completo por cliente
+  const rfmClientes = Object.entries(clientes).map(([nombre, v]) => ({
+    nombre,
+    totalARS: v.totalARS,
+    cantidad: v.cantidad,
+    frecuencia: v.nComprobantes.size,
+    diasDesdeUltima: v.ultimaFecha ? Math.round((hoy - v.ultimaFecha) / 86400000) : 999,
+  }));
+
+  const mesesArr = Object.keys(meses).sort()
+    .map(m => ({ mes: m, imp: meses[m].imp, cant: meses[m].cant }));
+
+  // Precio por unidad mensual
+  const precioUnit = mesesArr.map(m => ({
+    mes: m.mes,
+    precio: m.cant > 0 ? m.imp / m.cant : 0,
+  }));
+
+  return {
+    totalImporte, totalCantidad,
+    nRemitos: remitos.size, nClientes: Object.keys(clientes).length,
+    diasOrd, movil, diasSem, meses: mesesArr, precioUnit, topCl, rfmClientes,
+  };
+}
+
+function renderGranelKPIs(s, data, from, to) {
+  animC('gr-kpi-total', s.totalImporte, true);
+  animC('gr-kpi-cant',  s.totalCantidad, false);
+  animC('gr-kpi-rem',   s.nRemitos, false);
+  animC('gr-kpi-cl',    s.nClientes, false);
+  document.getElementById('gr-kpi-total-s').textContent = s.nRemitos + ' facturas emitidas';
+  const _litros = Math.round(s.totalCantidad * 1091);
+  document.getElementById('gr-kpi-cant-s').textContent  = s.totalCantidad.toFixed(2).replace('.',',') + ' tn · ≈ ' + _litros.toLocaleString('es-AR') + ' litros';
+  document.getElementById('gr-kpi-rem-s').textContent   = 'comprobantes únicos';
+  document.getElementById('gr-kpi-cl-s').textContent    = 'clientes atendidos';
+  // date strip
+  if (from) document.getElementById('gr-dr-start').textContent = fmtD(from);
+  if (to)   document.getElementById('gr-dr-end').textContent   = fmtD(to);
+  document.getElementById('gr-dr-records').textContent = data.length.toLocaleString('es-AR');
+  // period ctx
+  const bar = document.getElementById('gr-period-ctx-bar');
+  bar.style.display = 'flex';
+  bar.style.alignItems = 'center';
+  bar.style.gap = '16px';
+  document.getElementById('gr-pctx-range').textContent   = `${from ? fmtD(from) : '—'}  →  ${to ? fmtD(to) : '—'}`;
+  document.getElementById('gr-pctx-records').textContent = `${data.length.toLocaleString('es-AR')} registros`;
+}
+
+function renderGranelCharts(s) {
+  const gold  = '#C8A832';
+  const gold2 = '#E8C84A';
+  const cyan  = '#47c9e5';
+
+  // Helper para destruir chart previa
+  const mk = (id, cfg) => {
+    if (granelCharts[id]) { granelCharts[id].destroy(); delete granelCharts[id]; }
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    granelCharts[id] = new Chart(canvas.getContext('2d'), cfg);
+  };
+
+  const base = {
+    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+    scales: {
+      x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.04)' } },
+      y: { ticks: { color: '#aaa', font: { size: 10 }, callback: v => '$' + shortN(v) }, grid: { color: 'rgba(255,255,255,.06)' } },
+    },
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 600 },
+  };
+
+  const labels60 = s.diasOrd.map(d => fmtD(d.fecha));
+  const imps60   = s.diasOrd.map(d => d.imp);
+
+  // Línea diaria
+  mk('ch-gr-linea', {
+    type: 'line',
+    data: {
+      labels: labels60,
+      datasets: [{
+        data: imps60, borderColor: gold, borderWidth: 2,
+        fill: true, backgroundColor: 'rgba(200,168,50,.08)',
+        tension: 0.35, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: gold,
+      }],
+    },
+    options: { ...base },
+  });
+
+  // Mensual importe
+  const mLabels = s.meses.map(m => m.mes.replace('-', '/'));
+  mk('ch-gr-mensual', {
+    type: 'bar',
+    data: {
+      labels: mLabels,
+      datasets: [{ data: s.meses.map(m => m.imp), backgroundColor: 'rgba(200,168,50,.7)', borderColor: gold, borderWidth: 1, borderRadius: 4 }],
+    },
+    options: { ...base },
+  });
+
+  // Día de semana
+  const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  mk('ch-gr-semana', {
+    type: 'bar',
+    data: {
+      labels: DIAS,
+      datasets: [{ data: DIAS.map((_, i) => s.diasSem[i] || 0), backgroundColor: DIAS.map((_, i) => `rgba(200,168,50,${0.4 + i * 0.08})`), borderRadius: 4 }],
+    },
+    options: { ...base },
+  });
+
+  // Media móvil
+  mk('ch-gr-movil', {
+    type: 'line',
+    data: {
+      labels: labels60,
+      datasets: [
+        { data: imps60, borderColor: 'rgba(200,168,50,.3)', borderWidth: 1, tension: 0.3, pointRadius: 0, fill: false, label: 'Real' },
+        { data: s.movil, borderColor: gold2, borderWidth: 2.5, tension: 0.4, pointRadius: 0, fill: false, label: 'Móvil 7d' },
+      ],
+    },
+    options: { ...base, plugins: { ...base.plugins, legend: { display: true, labels: { color: '#aaa', font: { size: 11 } } } } },
+  });
+
+  // Volumen mensual
+  mk('ch-gr-volumen', {
+    type: 'bar',
+    data: {
+      labels: mLabels,
+      datasets: [{ data: s.meses.map(m => m.cant), backgroundColor: 'rgba(71,201,229,.6)', borderColor: cyan, borderWidth: 1, borderRadius: 4 }],
+    },
+    options: {
+      ...base,
+      scales: {
+        x: base.scales.x,
+        y: { ...base.scales.y, ticks: { ...base.scales.y.ticks, callback: v => shortN(v) } },
+      },
+    },
+  });
+
+  // Precio por unidad mensual
+  mk('ch-gr-precio-unit', {
+    type: 'line',
+    data: {
+      labels: s.precioUnit.map(p => p.mes.replace('-', '/')),
+      datasets: [{
+        data: s.precioUnit.map(p => p.precio),
+        borderColor: gold, borderWidth: 2, tension: 0.4, fill: false,
+        pointRadius: 4, pointBackgroundColor: gold,
+      }],
+    },
+    options: {
+      ...base,
+      scales: {
+        x: base.scales.x,
+        y: { ...base.scales.y, ticks: { ...base.scales.y.ticks, callback: v => '$' + shortN(v) } },
+      },
+    },
+  });
+
+  // Pie clientes
+  const top8  = s.topCl.slice(0, 8);
+  const resto = s.totalImporte - top8.reduce((a, c) => a + c.totalARS, 0);
+  const pieLabels = [...top8.map(c => c.nombre.length > 20 ? c.nombre.substring(0, 20) + '…' : c.nombre), 'Otros'];
+  const pieData   = [...top8.map(c => c.totalARS), resto > 0 ? resto : 0];
+  const pieColors = [...PAL.slice(0, 8), '#444'];
+  mk('ch-gr-cl-pie', {
+    type: 'doughnut',
+    data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderColor: '#111', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#ccc', font: { size: 10 }, boxWidth: 10, padding: 10 } } },
+      cutout: '62%',
+    },
+  });
+}
+
+function renderGranelRanking(s) {
+  const cont = document.getElementById('gr-rk-cl');
+  if (!cont) return;
+  const maxV = s.topCl[0]?.totalARS || 1;
+  cont.innerHTML = s.topCl.map((c, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(71,201,229,.05)">
+      <span style="font-size:11px;color:var(--t3);width:20px;text-align:right">${i+1}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nombre}</div>
+        <div style="height:4px;background:rgba(200,168,50,.15);border-radius:2px;margin-top:4px">
+          <div style="height:100%;width:${(c.totalARS/maxV*100).toFixed(1)}%;background:var(--gold);border-radius:2px;transition:width .6s"></div>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">$${shortN(c.totalARS)}</div>
+        <div style="font-size:10px;color:var(--t3)">${c.cantidad.toLocaleString('es-AR')} tn.</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderGranelDetalle(data, page) {
+  grPage = page;
+  const totalPages = Math.max(1, Math.ceil(data.length / GR_PS));
+  const slice = data.slice((page - 1) * GR_PS, page * GR_PS);
+  const tbody = document.getElementById('gr-tbl-body');
+  if (!tbody) return;
+  tbody.innerHTML = slice.map(r => `
+    <tr>
+      <td>${r.Fecha ? fmtD(new Date(r.Fecha).toISOString().split('T')[0]) : '—'}</td>
+      <td>${r.NroComprobante || '—'}</td>
+      <td>${r.TipoComprobante || '—'}</td>
+      <td style="font-weight:600">${r.Cliente || '—'}</td>
+      <td>${r.Producto || '—'}</td>
+      <td style="font-size:11px;color:var(--t2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.DetalleProducto||'').replace(/"/g,'&quot;')}">${r.DetalleProducto || '—'}</td>
+      <td style="text-align:center">${r.UnidadMedida || '—'}</td>
+      <td style="text-align:right">${Number(r.Cantidad||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="text-align:right;font-weight:700;color:var(--gold)">$${fmt(Number(r.ImporteNacional)||0)}</td>
+    </tr>`).join('');
+
+  document.getElementById('gr-tbl-count').textContent = data.length.toLocaleString('es-AR') + ' registros';
+  renderPag('gr-pg-info', 'gr-pg-btns', page, totalPages, p => renderGranelDetalle(granelFiltered, p));
+}
+
+function filterGranelTable(q) {
+  const lower = q.toLowerCase();
+  granelFiltered = lower
+    ? granelData.filter(r =>
+        (r.Cliente || '').toLowerCase().includes(lower) ||
+        String(r.NroComprobante || '').includes(lower) ||
+        (r.Producto || '').toLowerCase().includes(lower))
+    : [...granelData];
+  renderGranelDetalle(granelFiltered, 1);
+}
+
+function exportGranelExcel() {
+  if (!granelData.length) return;
+  const rows = granelData.map(r => ({
+    Fecha: r.Fecha ? new Date(r.Fecha).toISOString().split('T')[0] : '',
+    NroComprobante: r.NroComprobante,
+    TipoComprobante: r.TipoComprobante,
+    Cliente: r.Cliente,
+    Producto: r.Producto,
+    Detalle: r.DetalleProducto,
+    UnidadMedida: r.UnidadMedida,
+    Cantidad: r.Cantidad,
+    ImporteNacional: r.ImporteNacional,
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Granel');
+  XLSX.writeFile(wb, `granel-${document.getElementById('gr-dt-start').value}-${document.getElementById('gr-dt-end').value}.xlsx`);
+}
+
+async function renderGranelAIInsights(s) {
+  const fmtNum = n => '$' + Math.round(n).toLocaleString('es-AR');
+
+  const insights = [
+    {
+      id: 'gr-linea',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Analizá el gráfico de ingresos diarios de aceite a granel.
+DATOS: ${s.diasOrd.slice(-30).map(d=>`${fmtD(d.fecha)}: ${fmtNum(d.imp)}`).join(', ')}
+Total período: ${fmtNum(s.totalImporte)} | Promedio diario: ${fmtNum(s.totalImporte/Math.max(s.diasOrd.length,1))}
+Identificá tendencias, picos, caídas. Máx 150 palabras. Español rioplatense. Sin saludos.`,
+    },
+    {
+      id: 'gr-mensual',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Ingresos mensuales:
+${s.meses.map(m=>`${m.mes}: ${fmtNum(m.imp)}`).join(', ')}
+Analizá evolución, meses récord, estacionalidad. Máx 120 palabras.`,
+    },
+    {
+      id: 'gr-semana',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Actividad por día de semana (importe):
+Lun:${fmtNum(s.diasSem[1]||0)} Mar:${fmtNum(s.diasSem[2]||0)} Mié:${fmtNum(s.diasSem[3]||0)} Jue:${fmtNum(s.diasSem[4]||0)} Vie:${fmtNum(s.diasSem[5]||0)} Sáb:${fmtNum(s.diasSem[6]||0)} Dom:${fmtNum(s.diasSem[0]||0)}
+Analizá patrón de despacho semanal. Máx 100 palabras.`,
+    },
+    {
+      id: 'gr-movil',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Media móvil 7 días de ingresos:
+Últimos 10 valores: ${s.movil.slice(-10).map(v=>fmtNum(v)).join(', ')}
+¿La tendencia es creciente, estable o decreciente? Implicaciones. Máx 120 palabras.`,
+    },
+    {
+      id: 'gr-volumen',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Volumen mensual (unidades):
+${s.meses.map(m=>`${m.mes}: ${m.cant.toLocaleString('es-AR')} u.`).join(', ')}
+Analizá tendencia de volumen. ¿Crece o decrece? Máx 120 palabras.`,
+    },
+    {
+      id: 'gr-precio-unit',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Precio por unidad mensual:
+${s.precioUnit.map(p=>`${p.mes}: ${fmtNum(p.precio)}/u`).join(', ')}
+Analizá evolución de precios, si hay ajustes, tendencia. Máx 120 palabras.`,
+    },
+    {
+      id: 'gr-clientes',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Top clientes:
+${s.topCl.slice(0,8).map(c=>`${c.nombre}: ${fmtNum(c.totalARS)} (${c.cantidad} u.)`).join(', ')}
+Total: ${s.nClientes} clientes. Analizá concentración, dependencia, oportunidades. Máx 130 palabras.`,
+    },
+    {
+      id: 'gr-pie',
+      prompt: `Analista IA Oliver Cooks — Aceite Granel. Participación top 5 clientes:
+${s.topCl.slice(0,5).map(c=>`${c.nombre}: ${(c.totalARS/s.totalImporte*100).toFixed(1)}%`).join(', ')}
+¿Hay concentración riesgosa? Recomendación. Máx 100 palabras.`,
+    },
+  ];
+
+  for (const { id, prompt } of insights) {
+    getAIInsight(id, prompt);
+  }
+}
+
+async function loadGranelDashboard() {
+  showLoad(true);
+  // Limpiar errores previos
+  const prevErr = document.getElementById('gr-error-box');
+  if (prevErr) prevErr.remove();
+
+  const s = document.getElementById('gr-dt-start').value;
+  const e = document.getElementById('gr-dt-end').value;
+  console.log('[Granel] Cargando datos desde:', GRANEL_URL);
+  try {
+    const rawData = await fetchGranelData(s, e);
+    // La API externa ignora los filtros de fecha — filtramos del lado del cliente
+    granelData = rawData.filter(r => {
+      if (!r.Fecha) return true;
+      const d = r.Fecha.split('T')[0];
+      if (s && d < s) return false;
+      if (e && d > e) return false;
+      return true;
+    });
+    console.log('[Granel] Registros recibidos:', rawData.length, '→ filtrados:', granelData.length);
+    granelFiltered = [...granelData];
+    const stats = processGranelData(granelData);
+    window._granelStats = stats;
+    renderGranelKPIs(stats, granelData, s, e);
+    renderGranelCharts(stats);
+    renderGranelRanking(stats);
+    renderGranelRFM(stats);
+    renderGranelDetalle(granelFiltered, 1);
+    renderGranelAIInsights(stats);
+    addGranelChartClickListeners(stats);
+    document.getElementById('gr-footer-upd').textContent =
+      'Última actualización: ' + new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+    showLoad(false);
+    initReveal();
+
+    if (granelData.length === 0) {
+      showGranelError('El servidor respondió correctamente pero no hay registros para el período seleccionado. Probá ampliar el rango de fechas.', false);
+    }
+  } catch (err) {
+    showLoad(false);
+    console.error('[Granel] Error:', err);
+    const msg = `Error al cargar datos: <strong>${err.message}</strong><br>URL consultada: ${GRANEL_URL}`;
+    showGranelError(msg, true);
+  }
+}
+
+function showGranelError(msg, isError) {
+  const hdr = document.getElementById('gr-header');
+  if (!hdr) return;
+  const div = document.createElement('div');
+  div.id = 'gr-error-box';
+  div.style.cssText = `
+    background:${isError ? 'rgba(224,82,82,.1)' : 'rgba(200,168,50,.1)'};
+    border:1px solid ${isError ? 'rgba(224,82,82,.35)' : 'rgba(200,168,50,.35)'};
+    border-radius:8px; padding:16px 24px;
+    color:${isError ? '#e05252' : '#C8A832'};
+    font-size:13px; line-height:1.6; margin:24px 80px 0;
+    max-width:1400px;
+  `;
+  div.innerHTML = `<strong>${isError ? '⚠ Error' : 'ℹ Sin datos'}</strong> — ${msg}`;
+  hdr.after(div);
+}
+
+/* ══ RFM GRANEL ══ */
+function calcGranelRFMSegmento(diasDesdeUltima, frecuencia, totalARS, maxARS) {
+  const r = diasDesdeUltima < 30 ? 3 : diasDesdeUltima < 90 ? 2 : 1;
+  const f = frecuencia >= 5 ? 3 : frecuencia >= 2 ? 2 : 1;
+  const m = totalARS >= maxARS * 0.3 ? 3 : totalARS >= maxARS * 0.1 ? 2 : 1;
+  const score = r + f + m;
+  if (r === 3 && f >= 2 && m === 3) return 'Campeón';
+  if (score >= 8) return 'Leal';
+  if (r >= 2 && m >= 2) return 'Potencial';
+  if (r === 1 && f >= 2) return 'En riesgo';
+  if (r === 1 && f === 1) return 'Perdido';
+  if (f === 1 && r === 3) return 'Nuevo';
+  return 'Otros';
+}
+
+function renderGranelRFM(s) {
+  const cont = document.getElementById('gr-rfm-cards');
+  if (!cont || !s.rfmClientes) return;
+  const maxARS = Math.max(...s.rfmClientes.map(c => c.totalARS), 1);
+  const segs = { 'Campeón': [], 'Leal': [], 'Potencial': [], 'En riesgo': [], 'Perdido': [], 'Nuevo': [], 'Otros': [] };
+  s.rfmClientes.forEach(c => {
+    const seg = calcGranelRFMSegmento(c.diasDesdeUltima, c.frecuencia, c.totalARS, maxARS);
+    segs[seg].push(c);
+  });
+  const CFG = {
+    'Campeón':   { icon: '🏆', cls: 'champions', color: '#7DB83A' },
+    'Leal':      { icon: '💎', cls: 'leales',     color: '#47c9e5' },
+    'Potencial': { icon: '⭐', cls: 'potenciales', color: '#C8A832' },
+    'En riesgo': { icon: '⚠️', cls: 'riesgo',     color: '#e0a052' },
+    'Perdido':   { icon: '😴', cls: 'perdidos',   color: '#e05252' },
+    'Nuevo':     { icon: '🌱', cls: 'nuevos',     color: '#E8C84A' },
+    'Otros':     { icon: '👤', cls: 'otros',      color: '#888'    },
+  };
+  cont.innerHTML = Object.entries(segs).map(([seg, clientes]) => {
+    const cfg = CFG[seg];
+    const total = clientes.reduce((a, c) => a + c.totalARS, 0);
+    const top3  = clientes.slice(0,3).map(c => c.nombre.split(' ')[0]).join(', ');
+    return `<div class="rfm-card ${cfg.cls}" style="cursor:pointer" onclick="openGranelRFMDetail('${seg}')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div class="rfm-card-icon" style="background:${cfg.color}22;font-size:16px;display:flex;align-items:center;justify-content:center">${cfg.icon}</div>
+        <div class="rfm-card-name">${seg}</div>
+      </div>
+      <div class="rfm-card-count">${clientes.length}</div>
+      <div class="rfm-card-sub">clientes${top3 ? ' · ' + top3 : ''}</div>
+      <div class="rfm-card-money">$${shortN(total)}</div>
+    </div>`;
+  }).join('');
+}
+
+function openGranelRFMDetail(seg) {
+  const stats = window._granelStats;
+  if (!stats) return;
+  const maxARS = Math.max(...stats.rfmClientes.map(c => c.totalARS), 1);
+  const clientes = stats.rfmClientes.filter(c => calcGranelRFMSegmento(c.diasDesdeUltima, c.frecuencia, c.totalARS, maxARS) === seg);
+  if (!clientes.length) return;
+  const total    = clientes.reduce((a, c) => a + c.totalARS, 0);
+  const diasProm = Math.round(clientes.reduce((a,c)=>a+c.diasDesdeUltima,0)/clientes.length);
+  const topCl    = clientes.slice(0,6).map(c =>
+    `${c.nombre}: $${shortN(c.totalARS)}, ${c.frecuencia} rem., ${c.diasDesdeUltima}d`
+  ).join(' | ');
+  openDrillDown('segmento_rfm', seg + ' — ' + clientes.length + ' clientes', {
+    segmento: seg,
+    clientes: clientes.length,
+    total_facturado: Math.round(total),
+    top_clientes: topCl,
+    dias_promedio_sin_comprar: diasProm,
+    modulo: 'Aceite Granel',
+  });
+}
+
+async function runGranelRFMAnalysis() {
+  const stats = window._granelStats;
+  if (!stats || !stats.rfmClientes) return;
+  const btn = document.getElementById('gr-rfm-ai-btn');
+  const res = document.getElementById('gr-rfm-ai-result');
+  btn.disabled = true; btn.textContent = 'Analizando…';
+  res.style.display = 'block';
+  res.innerHTML = `<div class="ai-skeleton" style="height:14px;width:80%;margin-bottom:8px"></div><div class="ai-skeleton" style="height:14px;width:60%"></div>`;
+
+  const maxARS = Math.max(...stats.rfmClientes.map(c => c.totalARS), 1);
+  const segs = {};
+  stats.rfmClientes.forEach(c => {
+    const seg = calcGranelRFMSegmento(c.diasDesdeUltima, c.frecuencia, c.totalARS, maxARS);
+    if (!segs[seg]) segs[seg] = { cantidad: 0, total: 0, clientes: [] };
+    segs[seg].cantidad++;
+    segs[seg].total += c.totalARS;
+    segs[seg].clientes.push(c.nombre);
+  });
+
+  const segments = Object.entries(segs).map(([segmento, v]) => ({
+    segmento, cantidad: v.cantidad,
+    total_facturado: Math.round(v.total),
+    top3: v.clientes.slice(0,3).join(', '),
+    dias_prom: 0,
+  }));
+
+  try {
+    const r = await fetch(`${GRANEL_BASE}/rfm-analysis`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ segments }),
+    });
+    const j = await r.json();
+    let parsed;
+    try { parsed = JSON.parse(j.text); } catch { parsed = { resumen: j.text }; }
+    let html = '';
+    if (parsed.alerta) html += `<div style="background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);border-radius:8px;padding:12px 16px;margin-bottom:12px;color:#e05252;font-size:13px">⚠ ${parsed.alerta}</div>`;
+    if (parsed.resumen) html += `<p style="font-size:13px;color:var(--t1);line-height:1.6;margin-bottom:12px">${parsed.resumen}</p>`;
+    if (parsed.acciones?.length) {
+      html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px">Plan de acción</div>`;
+      html += parsed.acciones.map((a,i) => `<div style="display:flex;gap:10px;margin-bottom:8px;font-size:13px"><span style="color:var(--gold);font-weight:700;flex-shrink:0">${i+1}.</span><div><strong>${a.segmento}</strong> (${a.clientes} cl.) — ${a.accion}</div></div>`).join('');
+    }
+    if (parsed.oportunidad) html += `<div style="margin-top:12px;padding:12px 16px;background:rgba(200,168,50,.08);border-left:3px solid var(--gold);font-size:13px;color:var(--t1)">💡 ${parsed.oportunidad}</div>`;
+    res.innerHTML = html || `<p style="font-size:13px;color:var(--t2)">${j.text}</p>`;
+  } catch (e) {
+    res.innerHTML = `<p style="color:var(--red)">Error: ${e.message}</p>`;
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Analizar con IA`;
+}
+
+/* ══ ANOMALY DETECTION GRANEL ══ */
+let granelAnomalyData = null;
+
+function runGranelAnomalyDetection(s) {
+  if (!s.diasOrd || s.diasOrd.length < 7) return;
+  const vals = s.diasOrd.map(d => d.imp);
+  const mean = vals.reduce((a,b)=>a+b,0) / vals.length;
+  const std  = Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/vals.length);
+  if (std === 0) return;
+  const anomalias = s.diasOrd
+    .map((d,i) => ({ ...d, z: (d.imp - mean) / std }))
+    .filter(d => Math.abs(d.z) >= 1.9)
+    .map(d => ({
+      fecha: fmtD(d.fecha),
+      valor: '$' + Math.round(d.imp).toLocaleString('es-AR'),
+      tipo: d.z > 0 ? 'pico' : 'caída',
+      desvios: d.z.toFixed(1),
+    }));
+  if (!anomalias.length) return;
+  granelAnomalyData = { anomalias, mean, std, s };
+  const bar = document.getElementById('gr-anomaly-bar');
+  document.getElementById('gr-anomaly-bar-text').textContent =
+    `Se detectaron ${anomalias.length} comportamiento${anomalias.length>1?'s':''} inusual${anomalias.length>1?'es':''} en el período`;
+  document.getElementById('gr-anomaly-count-badge').textContent = anomalias.length;
+  bar.style.display = 'flex';
+}
+
+function openGranelAnomalyModal() {
+  if (!granelAnomalyData) return;
+  const { anomalias, mean, std, s } = granelAnomalyData;
+  const from = document.getElementById('gr-dt-start').value;
+  const to   = document.getElementById('gr-dt-end').value;
+  openDrillDown('anomalias_ventas', `${anomalias.length} anomalías detectadas`, {
+    dias_anomalos: anomalias,
+    promedio_diario: '$' + Math.round(mean).toLocaleString('es-AR'),
+    desvio_estandar: '$' + Math.round(std).toLocaleString('es-AR'),
+    periodo: `${from} a ${to}`,
+    modulo: 'Aceite Granel',
+  });
+}
+
+/* ══ DRILL-DOWN GRANEL ══ */
+function addGranelChartClickListeners(s) {
+  const chLinea   = granelCharts['ch-gr-linea'];
+  const chMensual = granelCharts['ch-gr-mensual'];
+
+  const elLinea = document.getElementById('ch-gr-linea');
+  if (chLinea && elLinea) {
+    elLinea.style.cursor = 'pointer';
+    elLinea.onclick = function(e) {
+      const pts = chLinea.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
+      if (!pts.length) return;
+      const idx = pts[0].index;
+      const dia = s.diasOrd[idx];
+      if (!dia) return;
+      const dayData = granelData.filter(r => r.Fecha && r.Fecha.startsWith(dia.fecha));
+      const topCl   = [...new Map(dayData.map(r => [(r.Cliente||'').trim(), (Number(r.ImporteNacional)||0)])).entries()]
+        .sort((a,b) => b[1]-a[1]).slice(0,4).map(([n,v]) => n + ': $' + Math.round(v).toLocaleString('es-AR')).join(' | ');
+      const promDia = s.totalImporte / Math.max(s.diasOrd.length, 1);
+      openDrillDown('dia_venta', 'Despacho del ' + fmtD(dia.fecha), {
+        fecha: fmtD(dia.fecha),
+        valor_total: Math.round(dia.imp),
+        cantidad: dia.cant.toFixed(2) + ' u.',
+        clientes: new Set(dayData.map(r=>(r.Cliente||'').trim())).size,
+        top_clientes: topCl || '—',
+        media_movil: '$' + Math.round(s.movil[idx] || 0).toLocaleString('es-AR'),
+        vs_promedio: dia.imp > promDia ? 'por encima del promedio' : 'por debajo del promedio',
+        modulo: 'Aceite Granel',
+      });
+    };
+  }
+
+  const elMensual = document.getElementById('ch-gr-mensual');
+  if (chMensual && elMensual) {
+    elMensual.style.cursor = 'pointer';
+    elMensual.onclick = function(e) {
+      const pts = chMensual.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
+      if (!pts.length) return;
+      const idx = pts[0].index;
+      const mes = s.meses[idx];
+      if (!mes) return;
+      const mesData = granelData.filter(r => r.Fecha && r.Fecha.startsWith(mes.mes));
+      const topCl   = [...new Map(mesData.map(r => [(r.Cliente||'').trim(), (Number(r.ImporteNacional)||0)])).entries()]
+        .sort((a,b) => b[1]-a[1]).slice(0,4).map(([n,v]) => n + ': $' + Math.round(v).toLocaleString('es-AR')).join(' | ');
+      openDrillDown('mes_venta', 'Mes ' + mes.mes, {
+        mes: mes.mes,
+        valor_total: Math.round(mes.imp),
+        cantidad: mes.cant.toFixed(2) + ' u.',
+        clientes: new Set(mesData.map(r=>(r.Cliente||'').trim())).size,
+        facturas: new Set(mesData.map(r=>String(r.NroComprobante||''))).size,
+        top_clientes: topCl || '—',
+        precio_promedio: mes.cant > 0 ? '$' + Math.round(mes.imp/mes.cant).toLocaleString('es-AR') + '/u' : '—',
+        modulo: 'Aceite Granel',
+      });
+    };
+  }
+}
+
+function openGranelKpiModal(type) {
+  const s = window._granelStats;
+  if (!s || !granelData.length) return;
+  const fmtG = n => '$' + Math.round(n).toLocaleString('es-AR');
+  const gold = 'var(--gold)';
+  let title, sub, kpisHtml, bodyHtml;
+
+  if (type === 'total') {
+    title = 'Total Importe Granel';
+    sub   = 'Desglose del total facturado en el período';
+    const bestMes = s.meses.length ? [...s.meses].sort((a,b) => b.imp - a.imp)[0] : null;
+    const promMes = s.meses.length ? s.totalImporte / s.meses.length : 0;
+    kpisHtml = `
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${fmtG(s.totalImporte)}</div><div class="kpi-mini-lbl">Total período</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${fmtG(promMes)}</div><div class="kpi-mini-lbl">Promedio mensual</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${bestMes ? fmtMes(bestMes.mes) : '—'}</div><div class="kpi-mini-lbl">Mejor mes</div></div>`;
+    const maxMes = bestMes ? bestMes.imp : 1;
+    const rowsMes = [...s.meses].reverse().map(m => `
+      <tr>
+        <td>${fmtMes(m.mes)}</td>
+        <td class="r">${fmtG(m.imp)}</td>
+        <td class="r">${((m.imp/s.totalImporte)*100).toFixed(1)}%</td>
+        <td style="padding:7px 8px;width:120px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((m.imp/maxMes)*100).toFixed(1)}%;background:var(--gold)"></div></div>
+        </td>
+      </tr>`).join('');
+    const maxCl = s.topCl[0]?.totalARS || 1;
+    const rowsCl = s.topCl.map((c,i) => `
+      <tr>
+        <td><span style="color:var(--t3);font-size:10px">${i+1}.</span> ${c.nombre}</td>
+        <td class="r">${fmtG(c.totalARS)}</td>
+        <td class="r">${((c.totalARS/s.totalImporte)*100).toFixed(1)}%</td>
+        <td style="padding:7px 8px;width:100px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((c.totalARS/maxCl)*100).toFixed(1)}%;background:var(--gold)"></div></div>
+        </td>
+      </tr>`).join('');
+    bodyHtml = `
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Importe por mes</p>
+      <table class="kpi-detail-table"><thead><tr><th>Mes</th><th class="r">Importe ARS</th><th class="r">% total</th><th></th></tr></thead><tbody>${rowsMes}</tbody></table>
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 4px">Top clientes por facturación</p>
+      <table class="kpi-detail-table"><thead><tr><th>Cliente</th><th class="r">Total ARS</th><th class="r">% total</th><th></th></tr></thead><tbody>${rowsCl}</tbody></table>`;
+
+  } else if (type === 'cantidad') {
+    title = 'Volumen Despachado';
+    sub   = 'Desglose de toneladas por mes y precio promedio';
+    const bestMes = s.meses.length ? [...s.meses].sort((a,b) => b.cant - a.cant)[0] : null;
+    const promPrecio = s.totalCantidad > 0 ? s.totalImporte / s.totalCantidad : 0;
+    const totalLitros = Math.round(s.totalCantidad * 1091);
+    kpisHtml = `
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${s.totalCantidad.toFixed(2).replace('.',',')} tn</div><div class="kpi-mini-lbl">Total toneladas</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${totalLitros.toLocaleString('es-AR')} L</div><div class="kpi-mini-lbl">≈ Litros equivalentes</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${fmtG(promPrecio)}/tn</div><div class="kpi-mini-lbl">Precio prom. global</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${bestMes ? fmtMes(bestMes.mes) : '—'}</div><div class="kpi-mini-lbl">Mes de mayor volumen</div></div>`;
+    const maxCant = bestMes ? bestMes.cant : 1;
+    const rowsCant = [...s.meses].reverse().map(m => `
+      <tr>
+        <td>${fmtMes(m.mes)}</td>
+        <td class="r">${m.cant.toFixed(2).replace('.',',')} tn</td>
+        <td class="r">${Math.round(m.cant * 1091).toLocaleString('es-AR')} L</td>
+        <td class="r">${fmtG(m.cant > 0 ? m.imp/m.cant : 0)}/tn</td>
+        <td class="r">${fmtG(m.imp)}</td>
+        <td style="padding:7px 8px;width:100px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((m.cant/maxCant)*100).toFixed(1)}%;background:var(--cyan)"></div></div>
+        </td>
+      </tr>`).join('');
+    bodyHtml = `
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Volumen y precio por mes · 1 tn ≈ 1.091 litros</p>
+      <table class="kpi-detail-table"><thead><tr><th>Mes</th><th class="r">Toneladas</th><th class="r">Litros equiv.</th><th class="r">Precio/tn</th><th class="r">Importe ARS</th><th></th></tr></thead><tbody>${rowsCant}</tbody></table>`;
+
+  } else if (type === 'remitos') {
+    title = 'Facturas Emitidas';
+    sub   = 'Desglose de comprobantes por mes';
+    const mRemMap = {}, mImpMap = {};
+    granelData.forEach(r => {
+      if (!r.Fecha) return;
+      const ym = r.Fecha.slice(0,7);
+      if (!mRemMap[ym]) mRemMap[ym] = new Set();
+      if (r.NroComprobante) mRemMap[ym].add(r.NroComprobante);
+      mImpMap[ym] = (mImpMap[ym] || 0) + (Number(r.ImporteNacional) || 0);
+    });
+    const mRemArr = Object.keys(mRemMap).sort().map(ym => ({ ym, count: mRemMap[ym].size, imp: mImpMap[ym]||0 }));
+    const bestRem = mRemArr.length ? [...mRemArr].sort((a,b)=>b.count-a.count)[0] : null;
+    const maxRem  = bestRem ? bestRem.count : 1;
+    const promRem = s.nRemitos > 0 ? s.totalImporte / s.nRemitos : 0;
+    kpisHtml = `
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${s.nRemitos.toLocaleString('es-AR')}</div><div class="kpi-mini-lbl">Total facturas</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${fmtG(promRem)}</div><div class="kpi-mini-lbl">Importe prom./factura</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${bestRem ? fmtMes(bestRem.ym) : '—'}</div><div class="kpi-mini-lbl">Mes más activo</div></div>`;
+    const rowsRem = [...mRemArr].reverse().map(({ym, count, imp}) => `
+      <tr>
+        <td>${fmtMes(ym)}</td>
+        <td class="r">${count.toLocaleString('es-AR')}</td>
+        <td class="r">${fmtG(imp)}</td>
+        <td class="r">${count ? fmtG(imp/count) : '—'}</td>
+        <td style="padding:7px 8px;width:100px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((count/maxRem)*100).toFixed(1)}%;background:var(--gold)"></div></div>
+        </td>
+      </tr>`).join('');
+    bodyHtml = `
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Facturas por mes</p>
+      <table class="kpi-detail-table"><thead><tr><th>Mes</th><th class="r"># Facturas</th><th class="r">Total ARS</th><th class="r">Prom./factura</th><th></th></tr></thead><tbody>${rowsRem}</tbody></table>`;
+
+  } else if (type === 'clientes') {
+    title = 'Clientes Atendidos';
+    sub   = 'Ranking de clientes granel por facturación';
+    const clTotals = {};
+    granelData.forEach(r => {
+      const cl = (r.Cliente||'Sin nombre').trim();
+      clTotals[cl] = (clTotals[cl]||0) + (Number(r.ImporteNacional)||0);
+    });
+    const clArr = Object.entries(clTotals).sort((a,b)=>b[1]-a[1]);
+    const top1Pct = clArr[0] ? ((clArr[0][1]/s.totalImporte)*100).toFixed(1)+'%' : '—';
+    const top5Total = clArr.slice(0,5).reduce((a,[,v])=>a+v, 0);
+    const top5Pct = s.totalImporte ? ((top5Total/s.totalImporte)*100).toFixed(1)+'%' : '—';
+    kpisHtml = `
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${s.nClientes.toLocaleString('es-AR')}</div><div class="kpi-mini-lbl">Clientes únicos</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${clArr[0] ? clArr[0][0].split(' ')[0] : '—'}</div><div class="kpi-mini-lbl">Cliente #1 (${top1Pct})</div></div>
+      <div class="kpi-mini-card"><div class="kpi-mini-val" style="color:${gold}">${top5Pct}</div><div class="kpi-mini-lbl">Concentración top 5</div></div>`;
+    const maxCl = clArr[0] ? clArr[0][1] : 1;
+    const rowsCl = clArr.map(([n,v],i) => `
+      <tr>
+        <td><span style="color:var(--t3);font-size:10px">${i+1}.</span> ${n}</td>
+        <td class="r">${fmtG(v)}</td>
+        <td class="r">${((v/s.totalImporte)*100).toFixed(1)}%</td>
+        <td style="padding:7px 8px;width:100px">
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:${((v/maxCl)*100).toFixed(1)}%;background:var(--gold)"></div></div>
+        </td>
+      </tr>`).join('');
+    bodyHtml = `
+      <p style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">Todos los clientes por facturación</p>
+      <table class="kpi-detail-table"><thead><tr><th>Cliente</th><th class="r">Total ARS</th><th class="r">% total</th><th></th></tr></thead><tbody>${rowsCl}</tbody></table>`;
+  }
+
+  document.getElementById('kpi-modal-title').textContent = title;
+  document.getElementById('kpi-modal-sub').textContent   = sub;
+  document.getElementById('kpi-modal-kpis').innerHTML    = kpisHtml;
+  document.getElementById('kpi-modal-body').innerHTML    = bodyHtml;
+  document.getElementById('kpi-modal').classList.add('open');
+}
+
+// Inicializar fechas del picker granel al cargar
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date(), d90 = new Date(today);
+  d90.setDate(d90.getDate() - 90);
+  const grS = document.getElementById('gr-dt-start');
+  const grE = document.getElementById('gr-dt-end');
+  if (grS) grS.value = d90.toISOString().split('T')[0];
+  if (grE) grE.value = today.toISOString().split('T')[0];
+});
 </script>
 
 <!-- ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
@@ -3593,6 +4969,39 @@ document.getElementById('chat-fab').addEventListener('click', () => {
 
 /* ── Inicializar: usar período del dashboard directamente ── */
 function chatInit() {
+  const isGranel = currentModule === 'granel';
+
+  if (isGranel) {
+    const grFrom  = document.getElementById('gr-dt-start')?.value;
+    const grTo    = document.getElementById('gr-dt-end')?.value;
+    const hasData = typeof granelData !== 'undefined' && Array.isArray(granelData) && granelData.length > 0;
+    if (hasData && grFrom && grTo) {
+      chatPeriod = { from: grFrom, to: grTo, label: `${chatFmtDate(grFrom)} — ${chatFmtDate(grTo)}` };
+      document.getElementById('chat-period-label').textContent = chatPeriod.label;
+      document.getElementById('chat-period-bar').style.display = 'flex';
+      const inp = document.getElementById('chat-input');
+      inp.disabled = false;
+      inp.placeholder = 'Preguntá sobre volumen, clientes, precios de granel…';
+      document.getElementById('chat-send').disabled = false;
+      const totalVentas = granelData.reduce((s,r) => s+(parseFloat(r.ImporteNacional)||0), 0);
+      const nRemitos = new Set(granelData.map(r=>r.NroComprobante)).size;
+      chatAppendBot(
+        `<strong>Analista de Aceite Granel — Oliver Cooks.</strong><br><br>` +
+        `Período: <strong>${chatPeriod.label}</strong><br>` +
+        `<strong>${nRemitos.toLocaleString('es-AR')} remitos</strong> · ` +
+        `Facturación: <strong>$${totalVentas.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}</strong><br><br>` +
+        `¿Qué querés consultar?`
+      , false);
+      setTimeout(chatShowSuggestions, 500);
+    } else {
+      chatAppendBot(
+        `<strong>Analista de Aceite Granel.</strong><br><br>` +
+        `Cargá primero el dashboard granel para poder responderte con datos precisos.`
+      , false);
+    }
+    return;
+  }
+
   const dashFrom = document.getElementById('dt-start')?.value;
   const dashTo   = document.getElementById('dt-end')?.value;
   const hasData  = typeof allData !== 'undefined' && Array.isArray(allData) && allData.length > 0;
@@ -3610,7 +5019,7 @@ function chatInit() {
     const totalVentas = allData.reduce((s,r) => s+(parseFloat(r.TotalLinea)||0), 0);
     const nTickets    = allData.length;
     chatAppendBot(
-      `<strong>¡Hola! Soy el consultor de ventas de Oliver Cooks.</strong><br><br>` +
+      `<strong>Consultor de ventas — Oliver Cooks.</strong><br><br>` +
       `Tengo cargados <strong>${nTickets.toLocaleString('es-AR')} registros</strong> del período ` +
       `<strong>${chatPeriod.label}</strong>.<br>` +
       `Facturación total: <strong>$${totalVentas.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}</strong><br><br>` +
@@ -3619,7 +5028,7 @@ function chatInit() {
     setTimeout(chatShowSuggestions, 500);
   } else {
     chatAppendBot(
-      `<strong>¡Hola!</strong> Soy el consultor de ventas de Oliver Cooks.<br><br>` +
+      `<strong>Consultor de ventas — Oliver Cooks.</strong><br><br>` +
       `Para poder responderte con datos precisos, primero cargá el dashboard: ` +
       `seleccioná un período y hacé clic en <strong>Actualizar</strong>. ` +
       `Luego abrí el chat nuevamente.`
@@ -3628,6 +5037,19 @@ function chatInit() {
 }
 
 /* ── Sugerencias rápidas ── */
+const GRANEL_CHAT_SUGGESTIONS = [
+  '¿Cuál fue el cliente con mayor volumen?',
+  '¿Cómo evolucionaron los ingresos mensuales?',
+  '¿Cuántas toneladas se despacharon en el período?',
+  '¿Cuál fue el precio promedio por unidad?',
+  'Resumen ejecutivo del período granel',
+  '¿Cuáles son los 5 mejores clientes?',
+  '¿Hay concentración de ventas en pocos clientes?',
+  '¿Qué día de la semana se despacha más?',
+  '¿En qué mes se registró el pico de ventas?',
+  '¿Cuál fue el remito con mayor importe?',
+];
+
 const CHAT_SUGGESTIONS = [
   '¿Cuál fue el producto más vendido?',
   '¿Quiénes son los 5 mejores clientes?',
@@ -3645,7 +5067,8 @@ const CHAT_SUGGESTIONS = [
 function chatShowSuggestions() {
   const div = document.getElementById('chat-suggestions');
   if (!div) return;
-  div.innerHTML = CHAT_SUGGESTIONS.map(s =>
+  const sugs = currentModule === 'granel' ? GRANEL_CHAT_SUGGESTIONS : CHAT_SUGGESTIONS;
+  div.innerHTML = sugs.map(s =>
     `<button class="chat-sug" onclick="chatSugClick('${s.replace(/'/g,"\\'")}')">${s}</button>`
   ).join('');
   div.style.display = 'flex';
@@ -3828,6 +5251,78 @@ ${diaLines}
 ${top5dias}`;
 }
 
+/* ── Construir contexto de chat desde granelData ── */
+function buildGranelChatContext(data) {
+  if (!data || !data.length) return 'Sin datos disponibles.';
+  const fmtN = n => Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtI = n => Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  let totalImporte = 0, totalCantidad = 0;
+  const byCliente = {}, byProducto = {}, byMes = {}, byFecha = {};
+  const remitos = new Set();
+
+  data.forEach(r => {
+    const imp  = parseFloat(r.ImporteNacional) || 0;
+    const cant = parseFloat(r.Cantidad) || 0;
+    const cl   = (r.Cliente || 'Sin nombre').trim();
+    const pr   = (r.Producto || 'Sin producto').trim();
+    const fecha = r.Fecha ? r.Fecha.split('T')[0] : null;
+
+    totalImporte  += imp;
+    totalCantidad += cant;
+    if (r.NroComprobante) remitos.add(r.NroComprobante);
+
+    if (!byCliente[cl]) byCliente[cl] = { v: 0, cant: 0 };
+    byCliente[cl].v    += imp;
+    byCliente[cl].cant += cant;
+
+    if (!byProducto[pr]) byProducto[pr] = { v: 0, cant: 0 };
+    byProducto[pr].v    += imp;
+    byProducto[pr].cant += cant;
+
+    if (fecha) {
+      const mes = fecha.substring(0, 7);
+      if (!byMes[mes]) byMes[mes] = { v: 0, cant: 0 };
+      byMes[mes].v    += imp;
+      byMes[mes].cant += cant;
+      if (!byFecha[fecha]) byFecha[fecha] = 0;
+      byFecha[fecha] += imp;
+    }
+  });
+
+  const topClientes = Object.entries(byCliente)
+    .sort((a, b) => b[1].v - a[1].v).slice(0, 15)
+    .map(([n, d], i) => `  ${i + 1}. ${n}: $${fmtN(d.v)} (${fmtI(d.cant)} tn.)`).join('\n');
+
+  const topProductos = Object.entries(byProducto)
+    .sort((a, b) => b[1].v - a[1].v).slice(0, 10)
+    .map(([n, d], i) => `  ${i + 1}. ${n}: $${fmtN(d.v)} (${fmtI(d.cant)} tn.)`).join('\n');
+
+  const mesLines = Object.entries(byMes).sort()
+    .map(([m, d]) => `  ${m}: $${fmtN(d.v)} (${fmtI(d.cant)} tn.)`).join('\n');
+
+  const top5dias = Object.entries(byFecha).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    .map(([f, v]) => `  ${f}: $${fmtN(v)}`).join('\n');
+
+  return `=== RESUMEN GENERAL (ACEITE A GRANEL) ===
+Total facturado: $${fmtN(totalImporte)}
+Cantidad vendida: ${fmtI(totalCantidad)} tn.
+Total remitos: ${remitos.size}
+Cantidad clientes: ${Object.keys(byCliente).length}
+
+=== TOP 15 CLIENTES POR FACTURACIÓN ===
+${topClientes}
+
+=== TOP PRODUCTOS ===
+${topProductos}
+
+=== VENTAS POR MES ===
+${mesLines}
+
+=== TOP 5 DÍAS CON MÁS VENTAS ===
+${top5dias}`;
+}
+
 /* ── Contexto de deudas ── */
 function buildDeudasContext() {
   if (!deudasData || !deudasData.length) return '';
@@ -3993,19 +5488,30 @@ function chatRenderAnalysis(msgEl, { metrics, chart, conclusion }) {
 async function chatSend() {
   if (chatWaiting) return;
 
+  const isGranel = (currentModule === 'granel');
+
   // Verificar datos disponibles
-  if (typeof allData === 'undefined' || !Array.isArray(allData) || allData.length === 0) {
-    chatAppendBot('No hay datos cargados en el dashboard. Por favor seleccioná un período y hacé clic en <strong>Actualizar</strong> primero.', false);
-    return;
+  if (isGranel) {
+    if (!Array.isArray(granelData) || granelData.length === 0) {
+      chatAppendBot('No hay datos de granel cargados. Por favor seleccioná un período y hacé clic en <strong>Aplicar</strong> primero.', false);
+      return;
+    }
+  } else {
+    if (typeof allData === 'undefined' || !Array.isArray(allData) || allData.length === 0) {
+      chatAppendBot('No hay datos cargados en el dashboard. Por favor seleccioná un período y hacé clic en <strong>Actualizar</strong> primero.', false);
+      return;
+    }
   }
 
   const inp  = document.getElementById('chat-input');
   const text = inp.value.trim();
   if (!text) return;
 
-  // Sincronizar período con el dashboard (por si cambió)
-  const dashFrom = document.getElementById('dt-start')?.value;
-  const dashTo   = document.getElementById('dt-end')?.value;
+  // Sincronizar período
+  const startId = isGranel ? 'gr-dt-start' : 'dt-start';
+  const endId   = isGranel ? 'gr-dt-end'   : 'dt-end';
+  const dashFrom = document.getElementById(startId)?.value;
+  const dashTo   = document.getElementById(endId)?.value;
   if (dashFrom && dashTo) {
     const newLabel = `${chatFmtDate(dashFrom)} — ${chatFmtDate(dashTo)}`;
     if (!chatPeriod || chatPeriod.from !== dashFrom || chatPeriod.to !== dashTo) {
@@ -4025,6 +5531,64 @@ async function chatSend() {
   document.getElementById('chat-send').disabled = true;
   chatAppendTyping();
 
+  // Modo GRANEL: usa datos ya cargados en el dashboard (misma fuente que los gráficos)
+  if (isGranel) {
+    try {
+      const context = buildGranelChatContext(granelData);
+      const period  = chatPeriod ? chatPeriod.label : 'Período no especificado';
+
+      const r = await fetch(`${CHAT_API}/chat-query`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ question: text, context, period }),
+        signal:  AbortSignal.timeout(55000),
+      });
+      chatRemoveTyping();
+      if (!r.ok) throw new Error(`Error ${r.status}`);
+      const j = await r.json();
+
+      if (j.error) {
+        chatAppendBot(`<span style="color:var(--red)">⚠ ${j.error}</span>`, false);
+      } else {
+        const answerText = j.answer ?? JSON.stringify(j);
+        const formatted  = chatFormatAnswer(answerText);
+        const nav = chatNavigate(text, answerText);
+        const navIdx = (window.__chatNavs = window.__chatNavs || []).length;
+        if (nav) window.__chatNavs.push(nav);
+        const navPill = nav
+          ? `<br><span class="chat-nav-pill" onclick="chatDoNavigate(window.__chatNavs[${navIdx}])" title="Ir a esa sección">` +
+            `<svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>` +
+            `${nav.label}</span>`
+          : '';
+        const msgEl = chatAppendBot(formatted + navPill);
+        const hasArtifacts = j.chart || (Array.isArray(j.metrics) && j.metrics.length) || j.conclusion;
+        if (hasArtifacts) {
+          chatRenderAnalysis(msgEl, { metrics: j.metrics, chart: j.chart, conclusion: j.conclusion });
+          const msgs = document.getElementById('chat-messages');
+          setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 150);
+        }
+        if (nav) setTimeout(() => chatDoNavigate(nav), 900);
+      }
+    } catch (err) {
+      chatRemoveTyping();
+      const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
+      chatAppendBot(
+        `<span style="color:var(--red)">` +
+        (isTimeout
+          ? '⚠ La consulta tardó demasiado. Intentá una pregunta más específica.'
+          : '⚠ No se pudo conectar con el servidor. Verificá la conexión e intentá de nuevo.') +
+        `</span>`, false);
+    } finally {
+      chatWaiting = false;
+      inp.disabled = false;
+      document.getElementById('chat-send').disabled = false;
+      inp.focus();
+      if (!chatOpen) document.getElementById('chat-badge').style.display = 'flex';
+    }
+    return;
+  }
+
+  // Modo ENVASADO: flujo original
   try {
     const context = buildChatContext(allData) + buildDeudasContext();
     const period  = chatPeriod ? chatPeriod.label : 'Período no especificado';

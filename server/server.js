@@ -512,6 +512,163 @@ app.post('/drill-down', async (req, res) => {
 });
 
 /* ============================================================
+   GET /oliver-cooks/visualizacion-granel
+============================================================ */
+app.get('/oliver-cooks/visualizacion-granel', async (req, res) => {
+  try {
+    const startDate = req.query.startDate || null;
+    const endDate   = req.query.endDate   || null;
+
+    let dateFilter = '';
+    if (startDate) dateFilter += ` AND H.VTRMVH_FCHMOV >= @startDate`;
+    if (endDate)   dateFilter += ` AND H.VTRMVH_FCHMOV <= @endDate`;
+
+    const query = `
+      SELECT
+          H.VTRMVH_NROFOR        AS NroComprobante,
+          RTRIM(LTRIM(H.VTRMVH_CODFOR)) AS TipoComprobante,
+          H.VTRMVH_FCHMOV        AS Fecha,
+          RTRIM(LTRIM(C.VTMCLH_NOMBRE)) AS Cliente,
+          RTRIM(LTRIM(A.STMPDH_DESCRP))  AS Producto,
+          ISNULL(TRY_CAST(I.VTRMVI_TEXTOS AS VARCHAR(500)), '') AS DetalleProducto,
+          A.STMPDH_UNIMED        AS UnidadMedida,
+          I.VTRMVI_CANTID        AS Cantidad,
+          I.VTRMVI_IMPNAC        AS ImporteNacional
+      FROM dbo.VTRMVH H WITH(NOLOCK)
+      INNER JOIN dbo.VTRMVI I WITH(NOLOCK)
+          ON  H.VTRMVH_CODEMP = I.VTRMVI_CODEMP
+          AND H.VTRMVH_MODFOR = I.VTRMVI_MODFOR
+          AND H.VTRMVH_CODFOR = I.VTRMVI_CODFOR
+          AND H.VTRMVH_NROFOR = I.VTRMVI_NROFOR
+      INNER JOIN dbo.STMPDH A WITH(NOLOCK)
+          ON  RTRIM(LTRIM(I.VTRMVI_TIPPRO)) = RTRIM(LTRIM(A.STMPDH_TIPPRO))
+          AND RTRIM(LTRIM(I.VTRMVI_ARTCOD))  = RTRIM(LTRIM(A.STMPDH_ARTCOD))
+      INNER JOIN dbo.VTMCLH C WITH(NOLOCK)
+          ON  RTRIM(LTRIM(H.VTRMVH_NROCTA)) = RTRIM(LTRIM(C.VTMCLH_NROCTA))
+      WHERE RTRIM(LTRIM(I.VTRMVI_ARTCOD)) = '1'
+        AND RTRIM(LTRIM(I.VTRMVI_TIPPRO)) = 'PRODTE'
+        ${dateFilter}
+      ORDER BY H.VTRMVH_FCHMOV DESC
+    `;
+
+    const db   = await getPool();
+    const req1 = db.request();
+    if (startDate) req1.input('startDate', sql.Date, new Date(startDate));
+    if (endDate)   req1.input('endDate',   sql.Date, new Date(endDate));
+
+    const result = await req1.query(query);
+    res.json({ status: 'exito', data: result.recordset });
+  } catch (err) {
+    console.error('❌ Granel query error:', err.message);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+/* ============================================================
+   POST /human-query-granel — Chat sobre aceite a granel
+============================================================ */
+app.post('/human-query-granel', async (req, res) => {
+  const { human_query, from, to } = req.body;
+  if (!human_query) return res.status(400).json({ error: 'Falta human_query' });
+  try {
+    const startDate = from || null;
+    const endDate   = to   || null;
+
+    let dateFilter = '';
+    if (startDate) dateFilter += ` AND H.VTRMVH_FCHMOV >= @startDate`;
+    if (endDate)   dateFilter += ` AND H.VTRMVH_FCHMOV <= @endDate`;
+
+    const query = `
+      SELECT H.VTRMVH_NROFOR AS NroComprobante, H.VTRMVH_FCHMOV AS Fecha,
+             RTRIM(LTRIM(C.VTMCLH_NOMBRE)) AS Cliente,
+             RTRIM(LTRIM(A.STMPDH_DESCRP)) AS Producto,
+             A.STMPDH_UNIMED AS UnidadMedida,
+             I.VTRMVI_CANTID AS Cantidad, I.VTRMVI_IMPNAC AS ImporteNacional
+      FROM dbo.VTRMVH H WITH(NOLOCK)
+      INNER JOIN dbo.VTRMVI I WITH(NOLOCK)
+          ON H.VTRMVH_CODEMP=I.VTRMVI_CODEMP AND H.VTRMVH_MODFOR=I.VTRMVI_MODFOR
+          AND H.VTRMVH_CODFOR=I.VTRMVI_CODFOR AND H.VTRMVH_NROFOR=I.VTRMVI_NROFOR
+      INNER JOIN dbo.STMPDH A WITH(NOLOCK)
+          ON RTRIM(LTRIM(I.VTRMVI_TIPPRO))=RTRIM(LTRIM(A.STMPDH_TIPPRO))
+          AND RTRIM(LTRIM(I.VTRMVI_ARTCOD))=RTRIM(LTRIM(A.STMPDH_ARTCOD))
+      INNER JOIN dbo.VTMCLH C WITH(NOLOCK)
+          ON RTRIM(LTRIM(H.VTRMVH_NROCTA))=RTRIM(LTRIM(C.VTMCLH_NROCTA))
+      WHERE RTRIM(LTRIM(I.VTRMVI_ARTCOD))='1' AND RTRIM(LTRIM(I.VTRMVI_TIPPRO))='PRODTE'
+        ${dateFilter}
+    `;
+
+    const db   = await getPool();
+    const req1 = db.request();
+    if (startDate) req1.input('startDate', sql.Date, new Date(startDate));
+    if (endDate)   req1.input('endDate',   sql.Date, new Date(endDate));
+    const result = await req1.query(query);
+    const rows   = result.recordset;
+
+    const porCliente  = {};
+    const porFecha    = {};
+    let totalImporte  = 0, totalCantidad = 0;
+    const remitos     = new Set();
+
+    rows.forEach(r => {
+      const cl  = r.Cliente || '(sin nombre)';
+      const imp = Number(r.ImporteNacional) || 0;
+      const cant= Number(r.Cantidad)        || 0;
+      const f   = r.Fecha ? new Date(r.Fecha).toISOString().split('T')[0] : 'sin-fecha';
+      if (!porCliente[cl])  porCliente[cl]  = { totalARS: 0, cantidad: 0 };
+      if (!porFecha[f])     porFecha[f]     = { totalARS: 0, cantidad: 0 };
+      porCliente[cl].totalARS  += imp;
+      porCliente[cl].cantidad  += cant;
+      porFecha[f].totalARS     += imp;
+      porFecha[f].cantidad     += cant;
+      totalImporte  += imp;
+      totalCantidad += cant;
+      if (r.NroComprobante) remitos.add(r.NroComprobante);
+    });
+
+    const topClientes = Object.entries(porCliente)
+      .sort((a,b)=>b[1].totalARS-a[1].totalARS).slice(0,15)
+      .map(([n,v])=>({ nombre: n, totalARS: v.totalARS, cantidad: v.cantidad }));
+    const porFechaArr = Object.entries(porFecha)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([f,v])=>({ fecha: f, totalARS: v.totalARS, cantidad: v.cantidad }));
+
+    const resumen = {
+      totalImporteARS: totalImporte,
+      totalCantidad,
+      cantidadRemitos: remitos.size,
+      cantidadClientes: Object.keys(porCliente).length,
+      periodo: { desde: from || 'sin filtro', hasta: to || 'sin filtro' },
+    };
+
+    const msg = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1200,
+      system: `Sos el Analista IA de Oliver Cooks (aceite de oliva extra virgen a granel, Mendoza, Argentina). Analizás ventas de aceite a granel (por litros/kilos) al por mayor. Respondé SOLO preguntas sobre ventas, clientes y volúmenes de aceite granel.
+Reglas absolutas:
+- Moneda: Pesos Argentinos (ARS). Formato $1.250.000 (punto como miles). Nunca dólares.
+- No inventar datos. Si no alcanza, decirlo claramente.
+- Español rioplatense (vos, ustedes). Sin saludos.
+- **Negritas** para cifras, clientes y datos clave.
+- Porcentajes con un decimal: 34,5%.
+- Listas con guiones si hay múltiples resultados.
+
+Datos disponibles del período: ${JSON.stringify({ resumen, topClientes: topClientes.slice(0,10), porFechaArr })}`,
+      messages: [{ role: 'user', content: human_query }],
+    });
+
+    res.json({ answer: msg.content[0]?.text ?? '' });
+  } catch (err) {
+    console.error('❌ HumanQueryGranel:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================================================
+   GET /health
+============================================================ */
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+/* ============================================================
    START
 ============================================================ */
 app.listen(PORT, () => {
