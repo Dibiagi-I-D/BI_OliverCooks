@@ -533,7 +533,8 @@ app.get('/oliver-cooks/visualizacion-granel', async (req, res) => {
           ISNULL(TRY_CAST(I.VTRMVI_TEXTOS AS VARCHAR(500)), '') AS DetalleProducto,
           A.STMPDH_UNIMED        AS UnidadMedida,
           I.VTRMVI_CANTID        AS Cantidad,
-          I.VTRMVI_IMPNAC        AS ImporteNacional
+          I.VTRMVI_IMPNAC        AS ImporteNacional,
+          I.VTRMVI_IMPEXT        AS ImporteExtranjero
       FROM dbo.VTRMVH H WITH(NOLOCK)
       INNER JOIN dbo.VTRMVI I WITH(NOLOCK)
           ON  H.VTRMVH_CODEMP = I.VTRMVI_CODEMP
@@ -610,9 +611,10 @@ app.post('/human-query-granel', async (req, res) => {
     const remitos     = new Set();
 
     rows.forEach(r => {
-      const cl  = r.Cliente || '(sin nombre)';
-      const imp = Number(r.ImporteNacional) || 0;
-      const cant= Number(r.Cantidad)        || 0;
+      const cl   = r.Cliente || '(sin nombre)';
+      const sign = (r.TipoComprobante || '').trim() === 'CAE012' ? -1 : 1;
+      const imp  = (Number(r.ImporteNacional) || 0) * sign;
+      const cant = (Number(r.Cantidad)        || 0) * sign;
       const f   = r.Fecha ? new Date(r.Fecha).toISOString().split('T')[0] : 'sin-fecha';
       if (!porCliente[cl])  porCliente[cl]  = { totalARS: 0, cantidad: 0 };
       if (!porFecha[f])     porFecha[f]     = { totalARS: 0, cantidad: 0 };
