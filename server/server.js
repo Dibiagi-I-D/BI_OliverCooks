@@ -360,7 +360,7 @@ FORMATO DE RESPUESTA — texto corrido, redactado como un analista profesional:
 });
 
 /* ============================================================
-   GET /health
+   GET /health....
 ============================================================ */
 app.get('/health', async (req, res) => {
   try {
