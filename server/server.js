@@ -533,8 +533,7 @@ app.get('/oliver-cooks/visualizacion-granel', async (req, res) => {
           ISNULL(TRY_CAST(I.VTRMVI_TEXTOS AS VARCHAR(500)), '') AS DetalleProducto,
           A.STMPDH_UNIMED        AS UnidadMedida,
           I.VTRMVI_CANTID        AS Cantidad,
-          I.VTRMVI_IMPNAC        AS ImporteNacional,
-          I.VTRMVI_IMPEXT        AS ImporteExtranjero
+          I.VTRMVI_IMPNAC        AS ImporteNacional
       FROM dbo.VTRMVH H WITH(NOLOCK)
       INNER JOIN dbo.VTRMVI I WITH(NOLOCK)
           ON  H.VTRMVH_CODEMP = I.VTRMVI_CODEMP
