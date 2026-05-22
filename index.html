@@ -2443,7 +2443,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
             <th>U.Med</th>
             <th style="text-align:right">Cantidad</th>
             <th style="text-align:right">Importe ARS (sin IVA)</th>
-            <th style="text-align:right">Importe Ext.</th>
+            <th style="text-align:right">Importe USD (sin IVA)</th>
           </tr></thead>
           <tbody id="gr-tbl-body"></tbody>
           <tfoot id="gr-tbl-foot"></tfoot>
@@ -4350,7 +4350,7 @@ function renderGranelDetalle(data, page) {
     const impPrefix = isNC ? '−$' : '$';
     const extColor = isNC ? 'var(--red)' : 'var(--t2)';
     const extTxt = impExt !== 0
-      ? (isNC ? '−' : '') + fmt(Math.abs(impExt))
+      ? (isNC ? '−U$S ' : 'U$S ') + fmt(Math.abs(impExt))
       : '—';
     return `
     <tr style="${rowStyle}">
@@ -4389,7 +4389,7 @@ function updateGranelTotals(data) {
     <td colspan="7" style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;padding:8px 12px">SUBTOTAL (${(data||[]).length.toLocaleString('es-AR')} registros)</td>
     <td style="text-align:right;font-weight:700;color:${cantColor};padding:8px 8px">${totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     <td style="text-align:right;font-weight:700;color:${nacColor};padding:8px 8px">${totNac<0?'−$':'$'}${fmt(Math.abs(totNac))}</td>
-    <td style="text-align:right;font-weight:700;color:${extColor};padding:8px 8px">${totExt!==0?(totExt<0?'−':'')+fmt(Math.abs(totExt)):'—'}</td>
+    <td style="text-align:right;font-weight:700;color:${extColor};padding:8px 8px">${totExt!==0?(totExt<0?'−U$S ':'U$S ')+fmt(Math.abs(totExt)):'—'}</td>
   </tr>`;
 }
 
@@ -4408,7 +4408,7 @@ function filterGranelTable(q) {
 function exportGranelExcel() {
   const data = (granelFiltered && granelFiltered.length) ? granelFiltered : granelData;
   if (!data.length) return;
-  const rows = [['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe Ext.']];
+  const rows = [['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe USD (sin IVA)']];
   let totCant = 0, totNac = 0, totExt = 0;
   data.forEach(r => {
     const isNC = (r.TipoComprobante || '').trim() === 'CAE012';
@@ -6807,11 +6807,11 @@ function expGrDetallePDF() {
     const imp=(Number(r.ImporteNacional)||0)*s;
     const ext=(Number(r.ImporteExtranjero)||0)*s;
     totCant += cant; totNac += imp; totExt += ext;
-    return [r.Fecha?fmtD(new Date(r.Fecha).toISOString().split('T')[0]):'—',r.NroComprobante||'—',r.TipoComprobante||'—',r.Cliente||'—',r.Producto||'—',r.DetalleProducto||'—',r.UnidadMedida||'—',cant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(isNC?'−$':'$')+fmt(Math.abs(imp)),ext!==0?(isNC?'−':'')+fmt(Math.abs(ext)):'—'];
+    return [r.Fecha?fmtD(new Date(r.Fecha).toISOString().split('T')[0]):'—',r.NroComprobante||'—',r.TipoComprobante||'—',r.Cliente||'—',r.Producto||'—',r.DetalleProducto||'—',r.UnidadMedida||'—',cant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(isNC?'−$':'$')+fmt(Math.abs(imp)),ext!==0?(isNC?'−U$S ':'U$S ')+fmt(Math.abs(ext)):'—'];
   });
-  dataRows.push(['SUBTOTAL','','','','','','',totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(totNac<0?'−$':'$')+fmt(Math.abs(totNac)),totExt!==0?(totExt<0?'−':'')+fmt(Math.abs(totExt)):'—']);
+  dataRows.push(['SUBTOTAL','','','','','','',totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(totNac<0?'−$':'$')+fmt(Math.abs(totNac)),totExt!==0?(totExt<0?'−U$S ':'U$S ')+fmt(Math.abs(totExt)):'—']);
   _mkPDF('GRANEL — DETALLE DE FACTURAS', _grPeriod(), [
-    { heading:'Comprobantes', headers:['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe Ext.'],
+    { heading:'Comprobantes', headers:['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe USD (sin IVA)'],
       rows:dataRows
     }
   ], _grFn('Detalle'));
