@@ -1806,9 +1806,17 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   <!-- ═══════ POR LITRO ═══════ -->
   <section id="sec-litros">
     <div class="section-wrap reveal">
-      <div class="sec-eyebrow"><span class="num">02</span> Por Litro</div>
-      <h2 class="sec-title">Relacion por Litro</h2>
-      <p class="sec-sub">Analisis de volumen y precio por litro. Se detecta automaticamente el tamano de envase desde el nombre del producto para calcular cuantos litros se vendieron y a que precio efectivo por litro. <strong style="color:var(--t3);font-weight:400">Precios sin IVA.</strong></p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="sec-eyebrow"><span class="num">02</span> Por Litro</div>
+          <h2 class="sec-title">Relacion por Litro</h2>
+          <p class="sec-sub">Analisis de volumen y precio por litro. Se detecta automaticamente el tamano de envase desde el nombre del producto para calcular cuantos litros se vendieron y a que precio efectivo por litro. <strong style="color:var(--t3);font-weight:400">Precios sin IVA.</strong></p>
+        </div>
+        <div class="export-btns-row" style="padding-top:6px;flex-shrink:0">
+          <button class="export-btn xlsx" onclick="expLitrosXLSX()" title="Exportar Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Excel</button>
+          <button class="export-btn pdf" onclick="expLitrosPDF()" title="Exportar PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button>
+        </div>
+      </div>
     </div>
 
     <!-- KPI litros strip -->
@@ -1921,9 +1929,17 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   <!-- ═══════ PRODUCTOS ═══════ -->
   <section id="sec-productos">
     <div class="section-wrap reveal">
-      <div class="sec-eyebrow"><span class="num">03</span> Productos</div>
-      <h2 class="sec-title">Los Mas Vendidos</h2>
-      <p class="sec-sub">Ranking completo de productos ordenados por facturacion total y por unidades vendidas. <strong style="color:var(--t3);font-weight:400">Totales sin IVA.</strong></p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="sec-eyebrow"><span class="num">03</span> Productos</div>
+          <h2 class="sec-title">Los Mas Vendidos</h2>
+          <p class="sec-sub">Ranking completo de productos ordenados por facturacion total y por unidades vendidas. <strong style="color:var(--t3);font-weight:400">Totales sin IVA.</strong></p>
+        </div>
+        <div class="export-btns-row" style="padding-top:6px;flex-shrink:0">
+          <button class="export-btn xlsx" onclick="expProductosXLSX()" title="Exportar Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Excel</button>
+          <button class="export-btn pdf" onclick="expProductosPDF()" title="Exportar PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button>
+        </div>
+      </div>
     </div>
     <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
       <div class="chart-card">
@@ -1963,9 +1979,17 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   <!-- ═══════ CLIENTES ═══════ -->
   <section id="sec-clientes">
     <div class="section-wrap reveal">
-      <div class="sec-eyebrow"><span class="num">04</span> Clientes</div>
-      <h2 class="sec-title">Quienes Compran</h2>
-      <p class="sec-sub">Analisis de la cartera de clientes. Quienes generan mas facturacion y como se distribuye el mercado. <strong style="color:var(--t3);font-weight:400">Montos sin IVA.</strong></p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="sec-eyebrow"><span class="num">04</span> Clientes</div>
+          <h2 class="sec-title">Quienes Compran</h2>
+          <p class="sec-sub">Analisis de la cartera de clientes. Quienes generan mas facturacion y como se distribuye el mercado. <strong style="color:var(--t3);font-weight:400">Montos sin IVA.</strong></p>
+        </div>
+        <div class="export-btns-row" style="padding-top:6px;flex-shrink:0">
+          <button class="export-btn xlsx" onclick="expClientesXLSX()" title="Exportar Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Excel</button>
+          <button class="export-btn pdf" onclick="expClientesPDF()" title="Exportar PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button>
+        </div>
+      </div>
     </div>
     <div class="chart-grid cg-55 reveal" style="max-width:1400px;margin:0 auto;border:1px solid var(--bdr);border-left:none;border-right:none">
       <div class="chart-card">
@@ -2009,10 +2033,12 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <div style="font-size:20px;font-weight:700;color:var(--t1)">Segmentación RFM<i class="calc-tip-icon" onclick="showCalcTip(event,'rfm')" style="vertical-align:middle;margin-left:8px">i</i></div>
         <div style="font-size:12px;color:var(--t3);margin-top:4px" id="rfm-sub">Clasificación por Recencia · Frecuencia · Monto — hacé click en un segmento para analizarlo</div>
       </div>
-      <button class="export-btn" onclick="runRFMAnalysis()" id="rfm-ai-btn" style="margin-top:4px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px">
+      <button class="export-btn" onclick="runRFMAnalysis()" id="rfm-ai-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         Analizar con IA
       </button>
+      </div>
     </div>
     <div class="rfm-grid" id="rfm-cards"></div>
     <div id="rfm-ai-result" style="display:none;margin-top:20px"></div>
@@ -2064,9 +2090,17 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
   <!-- ═══════ DEUDAS DE CLIENTES ═══════ -->
   <section id="sec-deudas" style="padding-bottom:0">
     <div class="section-wrap reveal">
-      <div class="sec-eyebrow"><span class="num">07</span> Deudas</div>
-      <h2 class="sec-title">Deudas de Clientes</h2>
-      <p class="sec-sub">Estado de cuenta corriente. Facturas vencidas y montos adeudados por cliente.</p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="sec-eyebrow"><span class="num">07</span> Deudas</div>
+          <h2 class="sec-title">Deudas de Clientes</h2>
+          <p class="sec-sub">Estado de cuenta corriente. Facturas vencidas y montos adeudados por cliente.</p>
+        </div>
+        <div class="export-btns-row" style="padding-top:6px;flex-shrink:0">
+          <button class="export-btn xlsx" onclick="expDeudasXLSX()" title="Exportar Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Excel</button>
+          <button class="export-btn pdf" onclick="expDeudasPDF()" title="Exportar PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button>
+        </div>
+      </div>
     </div>
 
     <!-- KPIs de deudas -->
@@ -2363,10 +2397,12 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
           <div style="font-size:20px;font-weight:700;color:var(--t1)">Segmentación RFM — Granel</div>
           <div style="font-size:12px;color:var(--t3);margin-top:4px" id="gr-rfm-sub">Clasificación por Recencia · Frecuencia · Monto — hacé click en un segmento para analizarlo</div>
         </div>
-        <button class="export-btn" onclick="runGranelRFMAnalysis()" id="gr-rfm-ai-btn" style="margin-top:4px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px">
+        <button class="export-btn" onclick="runGranelRFMAnalysis()" id="gr-rfm-ai-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           Analizar con IA
         </button>
+        </div>
       </div>
       <div class="rfm-grid" id="gr-rfm-cards"></div>
       <div id="gr-rfm-ai-result" style="display:none;margin-top:20px"></div>
@@ -2388,10 +2424,11 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <input class="search-input" id="gr-filter-input" placeholder="Buscar cliente, nro. comprobante..." oninput="filterGranelTable(this.value)">
-          <button class="export-btn" onclick="exportGranelExcel()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <button class="export-btn xlsx" onclick="exportGranelExcel()" title="Exportar Excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Excel
           </button>
+          <button class="export-btn pdf" onclick="expGrDetallePDF()" title="Exportar PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button>
         </div>
       </div>
       <div class="tw">
@@ -2406,8 +2443,10 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
             <th>U.Med</th>
             <th style="text-align:right">Cantidad</th>
             <th style="text-align:right">Importe ARS (sin IVA)</th>
+            <th style="text-align:right">Importe Ext.</th>
           </tr></thead>
           <tbody id="gr-tbl-body"></tbody>
+          <tfoot id="gr-tbl-foot"></tfoot>
         </table>
       </div>
       <div class="pagination"><span class="pg-info" id="gr-pg-info">—</span><div class="pg-btns" id="gr-pg-btns"></div></div>
@@ -2433,8 +2472,9 @@ let currentModule = 'envasado';
 // Auto-detecta si estamos en local o producción para llamar al servidor correcto
 const _LOCAL = ['localhost','127.0.0.1',''].includes(window.location.hostname);
 const GRANEL_BASE = _LOCAL ? 'http://localhost:3001' : 'https://bi-olivercooks.onrender.com';
-const GRANEL_EXT  = 'https://apirest-dibiagi.onrender.com/oliver-cooks/comprobantes-ventas';
-const GRANEL_URL  = GRANEL_EXT;
+const GRANEL_URL  = _LOCAL
+  ? 'https://apirest-dibiagi.onrender.com/oliver-cooks/comprobantes-ventas'
+  : GRANEL_BASE + '/oliver-cooks/visualizacion-granel';
 const PAL     = ['#47c9e5','#C8A832','#2BAEC8','#E8C84A','#1a8ca3','#8A9268','#7DB83A','#e05252','#9A7D20','#4A7C55'];
 
 
@@ -4003,22 +4043,18 @@ const GR_PS = 50;
 let grPage = 1;
 
 async function fetchGranelData(s, e) {
-  const base = GRANEL_URL + '?limit=1000' + (s ? `&startDate=${s}` : '') + (e ? `&endDate=${e}` : '');
-  let all = [], page = 1;
-  while (true) {
-    const r = await fetch(base + `&page=${page}`, { headers: { 'Authorization': `Bearer ${API_KEY}` } });
-    if (!r.ok) {
-      let errMsg = `HTTP ${r.status}`;
-      try { const j = await r.json(); errMsg = j.message || j.error || errMsg; } catch {}
-      throw new Error(errMsg);
-    }
-    const j = await r.json();
-    const rows = Array.isArray(j.data) ? j.data : [];
-    all = all.concat(rows);
-    if (rows.length < 1000) break;
-    page++;
+  const params = [];
+  if (s) params.push(`startDate=${s}`);
+  if (e) params.push(`endDate=${e}`);
+  const url = GRANEL_URL + (params.length ? '?' + params.join('&') : '');
+  const r = await fetch(url, { headers: { 'Authorization': `Bearer ${API_KEY}` } });
+  if (!r.ok) {
+    let errMsg = `HTTP ${r.status}`;
+    try { const j = await r.json(); errMsg = j.message || j.error || errMsg; } catch {}
+    throw new Error(errMsg);
   }
-  return all;
+  const j = await r.json();
+  return Array.isArray(j.data) ? j.data : [];
 }
 
 function processGranelData(data) {
@@ -4030,8 +4066,9 @@ function processGranelData(data) {
   let totalImporte = 0, totalCantidad = 0;
 
   data.forEach(r => {
-    const imp  = Number(r.ImporteNacional) || 0;
-    const cant = Number(r.Cantidad) || 0;
+    const sign = (r.TipoComprobante || '').trim() === 'CAE012' ? -1 : 1;
+    const imp  = (Number(r.ImporteNacional) || 0) * sign;
+    const cant = (Number(r.Cantidad) || 0) * sign;
     const cl   = (r.Cliente || '').trim() || '(sin nombre)';
     const fecha= r.Fecha ? new Date(r.Fecha) : null;
 
@@ -4110,12 +4147,24 @@ function processGranelData(data) {
 
 function renderGranelKPIs(s, data, from, to) {
   animC('gr-kpi-total', s.totalImporte, true);
-  animC('gr-kpi-cant',  s.totalCantidad, false);
   animC('gr-kpi-rem',   s.nRemitos, false);
   animC('gr-kpi-cl',    s.nClientes, false);
+  // Volumen con decimales y unidad visible en el valor principal
+  const cantEl = document.getElementById('gr-kpi-cant');
+  if (cantEl) {
+    const dur = 900, t0 = Date.now();
+    (function step() {
+      const t = Math.min((Date.now() - t0) / dur, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const val = (s.totalCantidad * ease).toFixed(2).replace('.', ',');
+      cantEl.innerHTML = val + '<span style="font-size:.55em;font-weight:500;opacity:.75;margin-left:5px">tn.</span>';
+      if (t < 1) requestAnimationFrame(step);
+      else cantEl.innerHTML = s.totalCantidad.toFixed(2).replace('.', ',') + '<span style="font-size:.55em;font-weight:500;opacity:.75;margin-left:5px">tn.</span>';
+    })();
+  }
   document.getElementById('gr-kpi-total-s').textContent = s.nRemitos + ' facturas emitidas';
   const _litros = Math.round(s.totalCantidad * 1091);
-  document.getElementById('gr-kpi-cant-s').textContent  = s.totalCantidad.toFixed(2).replace('.',',') + ' tn · ≈ ' + _litros.toLocaleString('es-AR') + ' litros';
+  document.getElementById('gr-kpi-cant-s').textContent  = '≈ ' + _litros.toLocaleString('es-AR') + ' litros';
   document.getElementById('gr-kpi-rem-s').textContent   = 'comprobantes únicos';
   document.getElementById('gr-kpi-cl-s').textContent    = 'clientes atendidos';
   // date strip
@@ -4285,21 +4334,61 @@ function renderGranelDetalle(data, page) {
   const slice = data.slice((page - 1) * GR_PS, page * GR_PS);
   const tbody = document.getElementById('gr-tbl-body');
   if (!tbody) return;
-  tbody.innerHTML = slice.map(r => `
-    <tr>
+  tbody.innerHTML = slice.map(r => {
+    const isNC  = (r.TipoComprobante || '').trim() === 'CAE012';
+    const sign  = isNC ? -1 : 1;
+    const imp   = (Number(r.ImporteNacional) || 0) * sign;
+    const impExt = (Number(r.ImporteExtranjero) || 0) * sign;
+    const cant  = (Number(r.Cantidad) || 0) * sign;
+    const rowStyle = isNC ? 'background:rgba(224,82,82,.07)' : '';
+    const tipoHtml = isNC
+      ? `<span style="color:var(--red);font-weight:600">${r.TipoComprobante}</span>`
+      : (r.TipoComprobante || '—');
+    const impColor = isNC ? 'var(--red)' : 'var(--gold)';
+    const impPrefix = isNC ? '−$' : '$';
+    const extColor = isNC ? 'var(--red)' : 'var(--t2)';
+    const extTxt = impExt !== 0
+      ? (isNC ? '−' : '') + fmt(Math.abs(impExt))
+      : '—';
+    return `
+    <tr style="${rowStyle}">
       <td>${r.Fecha ? fmtD(new Date(r.Fecha).toISOString().split('T')[0]) : '—'}</td>
       <td>${r.NroComprobante || '—'}</td>
-      <td>${r.TipoComprobante || '—'}</td>
+      <td>${tipoHtml}</td>
       <td style="font-weight:600">${r.Cliente || '—'}</td>
       <td>${r.Producto || '—'}</td>
       <td style="font-size:11px;color:var(--t2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.DetalleProducto||'').replace(/"/g,'&quot;')}">${r.DetalleProducto || '—'}</td>
       <td style="text-align:center">${r.UnidadMedida || '—'}</td>
-      <td style="text-align:right">${Number(r.Cantidad||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td style="text-align:right;font-weight:700;color:var(--gold)">$${fmt(Number(r.ImporteNacional)||0)}</td>
-    </tr>`).join('');
+      <td style="text-align:right;color:${isNC?'var(--red)':'inherit'}">${cant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="text-align:right;font-weight:700;color:${impColor}">${impPrefix}${fmt(Math.abs(imp))}</td>
+      <td style="text-align:right;color:${extColor}">${extTxt}</td>
+    </tr>`;
+  }).join('');
 
   document.getElementById('gr-tbl-count').textContent = data.length.toLocaleString('es-AR') + ' registros';
   renderPag('gr-pg-info', 'gr-pg-btns', page, totalPages, p => renderGranelDetalle(granelFiltered, p));
+  updateGranelTotals(granelFiltered);
+}
+
+function updateGranelTotals(data) {
+  const foot = document.getElementById('gr-tbl-foot');
+  if (!foot) return;
+  let totCant = 0, totNac = 0, totExt = 0;
+  (data || []).forEach(r => {
+    const sign = (r.TipoComprobante || '').trim() === 'CAE012' ? -1 : 1;
+    totCant += (Number(r.Cantidad)          || 0) * sign;
+    totNac  += (Number(r.ImporteNacional)   || 0) * sign;
+    totExt  += (Number(r.ImporteExtranjero) || 0) * sign;
+  });
+  const nacColor = totNac < 0 ? 'var(--red)' : 'var(--gold)';
+  const extColor = totExt < 0 ? 'var(--red)' : 'var(--cyan)';
+  const cantColor = totCant < 0 ? 'var(--red)' : 'inherit';
+  foot.innerHTML = `<tr style="border-top:2px solid var(--bdr);background:var(--ink3)">
+    <td colspan="7" style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;padding:8px 12px">SUBTOTAL (${(data||[]).length.toLocaleString('es-AR')} registros)</td>
+    <td style="text-align:right;font-weight:700;color:${cantColor};padding:8px 8px">${totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    <td style="text-align:right;font-weight:700;color:${nacColor};padding:8px 8px">${totNac<0?'−$':'$'}${fmt(Math.abs(totNac))}</td>
+    <td style="text-align:right;font-weight:700;color:${extColor};padding:8px 8px">${totExt!==0?(totExt<0?'−':'')+fmt(Math.abs(totExt)):'—'}</td>
+  </tr>`;
 }
 
 function filterGranelTable(q) {
@@ -4311,24 +4400,36 @@ function filterGranelTable(q) {
         (r.Producto || '').toLowerCase().includes(lower))
     : [...granelData];
   renderGranelDetalle(granelFiltered, 1);
+  updateGranelTotals(granelFiltered);
 }
 
 function exportGranelExcel() {
-  if (!granelData.length) return;
-  const rows = granelData.map(r => ({
-    Fecha: r.Fecha ? new Date(r.Fecha).toISOString().split('T')[0] : '',
-    NroComprobante: r.NroComprobante,
-    TipoComprobante: r.TipoComprobante,
-    Cliente: r.Cliente,
-    Producto: r.Producto,
-    Detalle: r.DetalleProducto,
-    UnidadMedida: r.UnidadMedida,
-    Cantidad: r.Cantidad,
-    ImporteNacional: r.ImporteNacional,
-  }));
+  const data = (granelFiltered && granelFiltered.length) ? granelFiltered : granelData;
+  if (!data.length) return;
+  const rows = [['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe Ext.']];
+  let totCant = 0, totNac = 0, totExt = 0;
+  data.forEach(r => {
+    const isNC = (r.TipoComprobante || '').trim() === 'CAE012';
+    const sign = isNC ? -1 : 1;
+    const cant = +((Number(r.Cantidad)||0)*sign).toFixed(2);
+    const nac  = +((Number(r.ImporteNacional)||0)*sign).toFixed(2);
+    const ext  = +((Number(r.ImporteExtranjero)||0)*sign).toFixed(2);
+    totCant += cant; totNac += nac; totExt += ext;
+    rows.push([
+      r.Fecha ? new Date(r.Fecha).toISOString().split('T')[0] : '',
+      r.NroComprobante || '—',
+      r.TipoComprobante || '—',
+      r.Cliente || '—',
+      r.Producto || '—',
+      r.DetalleProducto || '—',
+      r.UnidadMedida || '—',
+      cant, nac, ext,
+    ]);
+  });
+  rows.push(['SUBTOTAL','','','','','','',+totCant.toFixed(2),+totNac.toFixed(2),+totExt.toFixed(2)]);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Granel');
-  XLSX.writeFile(wb, `granel-${document.getElementById('gr-dt-start').value}-${document.getElementById('gr-dt-end').value}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Granel');
+  XLSX.writeFile(wb, `OC_GR_Detalle_${document.getElementById('gr-dt-start').value}.xlsx`);
 }
 
 async function renderGranelAIInsights(s) {
@@ -5262,8 +5363,9 @@ function buildGranelChatContext(data) {
   const remitos = new Set();
 
   data.forEach(r => {
-    const imp  = parseFloat(r.ImporteNacional) || 0;
-    const cant = parseFloat(r.Cantidad) || 0;
+    const sign = (r.TipoComprobante || '').trim() === 'CAE012' ? -1 : 1;
+    const imp  = (parseFloat(r.ImporteNacional) || 0) * sign;
+    const cant = (parseFloat(r.Cantidad) || 0) * sign;
     const cl   = (r.Cliente || 'Sin nombre').trim();
     const pr   = (r.Producto || 'Sin producto').trim();
     const fecha = r.Fecha ? r.Fecha.split('T')[0] : null;
@@ -6423,6 +6525,295 @@ function showCalcTip(e, key){
   box.style.left=x+'px'; box.style.top=y+'px';
 }
 document.addEventListener('click',()=>document.getElementById('calc-tip-box')?.classList.remove('open'));
+
+/* ═══════════════════════════════════════════════
+   EXPORTS POR SECCIÓN — HELPERS GENÉRICOS
+═══════════════════════════════════════════════ */
+function _mkXLSX(sheetDefs, filename) {
+  const wb = XLSX.utils.book_new();
+  sheetDefs.forEach(({ name, rows }) => {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), name.slice(0, 31));
+  });
+  XLSX.writeFile(wb, filename + '.xlsx');
+}
+
+function _mkPDF(title, period, sections, filename) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const newPage = () => {
+    doc.setFillColor(8,8,8); doc.rect(0,0,W,H,'F');
+    doc.setFillColor(71,201,229); doc.rect(0,0,W,16,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(8,8,8);
+    doc.text(title, W/2, 10, { align:'center' });
+    doc.setFillColor(14,14,14); doc.rect(0,16,W,9,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
+    doc.text('Oliver Cooks  ·  ' + period + '  ·  ' + new Date().toLocaleDateString('es-AR'), W/2, 21.5, { align:'center' });
+  };
+  newPage();
+  let y = 34;
+  sections.forEach(sec => {
+    if (sec.heading) {
+      if (y + 12 > H - 12) { doc.addPage(); newPage(); y = 34; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(71,201,229);
+      doc.text(sec.heading.toUpperCase(), 20, y); y += 7;
+    }
+    if (sec.rows) {
+      const hdrs = sec.headers || [];
+      const avail = W - 40, nc = Math.max(hdrs.length, sec.rows[0]?.length || 1);
+      const cw = Array.from({length: nc}, (_, i) => i === 0 ? avail * (nc > 2 ? 0.45 : 0.6) : avail * (nc > 2 ? 0.55 : 0.4) / (nc - 1));
+      if (hdrs.length) {
+        doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(80,80,80);
+        let cx = 20;
+        hdrs.forEach((h, i) => { const isL = i === hdrs.length - 1; isL ? doc.text(String(h), cx + cw[i] - 2, y, {align:'right'}) : doc.text(String(h), cx + 2, y); cx += cw[i]; });
+        y += 3; doc.setDrawColor(35,35,35); doc.line(20, y, W-20, y); y += 4;
+      }
+      sec.rows.forEach((row, ri) => {
+        if (y + 7 > H - 12) { doc.addPage(); newPage(); y = 34; }
+        doc.setFillColor(ri%2===0?20:14, ri%2===0?20:14, ri%2===0?20:14);
+        doc.rect(20, y-3.5, W-40, 7, 'F');
+        let cx = 20;
+        row.forEach((cell, ci) => {
+          const isL = ci === row.length - 1;
+          doc.setFont('helvetica','normal'); doc.setFontSize(8);
+          doc.setTextColor(isL?200:200, isL?168:200, isL?50:200);
+          const txt = String(cell ?? '—');
+          isL ? doc.text(trunc(txt, 22), cx + cw[ci] - 2, y+1, {align:'right'}) : doc.text(trunc(txt, 38), cx + 2, y+1);
+          cx += cw[ci];
+        });
+        y += 7;
+      });
+      y += 4;
+    }
+    if (sec.charts) {
+      const cw2 = (W-48)/2, ch = 55;
+      let ci = 0;
+      sec.charts.forEach(({ id }) => {
+        const c = (window.charts && charts[id]) || (window.granelCharts && granelCharts[id]);
+        if (!c) return;
+        const col = ci % 2, row2 = Math.floor(ci / 2);
+        const cx = 20 + col*(cw2+8), cy = y + row2*(ch+8);
+        if (cy + ch > H - 12) { doc.addPage(); newPage(); y = 34; }
+        try { doc.addImage(c.toBase64Image('image/png',1),'PNG',cx,cy,cw2,ch); } catch {}
+        if (col === 1 || ci === sec.charts.length-1) { y += ch + 8; }
+        ci++;
+      });
+    }
+  });
+  doc.save(filename + '.pdf');
+}
+
+/* ── Envasado helpers ── */
+function _envPeriod() { return fmtD(document.getElementById('dt-start')?.value||'') + ' → ' + fmtD(document.getElementById('dt-end')?.value||''); }
+function _envFn(s)    { return 'OC_'+s+'_'+(document.getElementById('dt-start')?.value||''); }
+const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+/* ── ENVASADO — Ventas ── */
+function expVentasXLSX() {
+  if (!allData?.length) return;
+  const s = processData(allData);
+  _mkXLSX([
+    { name:'Ventas por Día',  rows:[['Fecha','Total (ARS)'],    ...s.diasOrd.map(([d,v])=>[fmtD(d),v])] },
+    { name:'Ventas por Mes',  rows:[['Mes','Total (ARS)'],      ...s.meses.map(([ym,v])=>{const[yr,mo]=ym.split('-');return[MN[+mo-1]+' '+yr,v];})] },
+  ], _envFn('Ventas'));
+}
+function expVentasPDF() {
+  if (!allData?.length) return;
+  const s = processData(allData);
+  _mkPDF('ENVASADO — TENDENCIA DE VENTAS', _envPeriod(), [
+    { charts: [{id:'linea'},{id:'mensual'},{id:'semana'},{id:'movil'}] },
+    { heading:'Ventas por Mes', headers:['Mes','Total (ARS)'], rows:s.meses.map(([ym,v])=>{const[yr,mo]=ym.split('-');return[MN[+mo-1]+' '+yr,'$'+fmt(v)];}) },
+  ], _envFn('Ventas'));
+}
+
+/* ── ENVASADO — Por Litro ── */
+function expLitrosXLSX() {
+  if (!ltDataFull?.length) { alert('No hay datos de litros cargados.'); return; }
+  const tLit = ltDataFull.filter(r=>r.litros>0).reduce((s,r)=>s+r.litros,0);
+  _mkXLSX([{ name:'Por Litro', rows:[
+    ['#','Producto','Envase','Unidades','Litros','Precio Unit. (ARS)','$/Litro (ARS)','Total (ARS)','% Volumen'],
+    ...ltDataFull.map((r,i)=>[i+1,r.nombre,labelEnvase(r.envase),r.unidades,r.litros>0?+r.litros.toFixed(2):'—',r.precioPromUnit?+r.precioPromUnit.toFixed(2):'—',r.precioPorLitro?+r.precioPorLitro.toFixed(2):'—',+r.totalFacturado.toFixed(2),r.litros>0&&tLit>0?(r.litros/tLit*100).toFixed(1)+'%':'—'])
+  ]}], _envFn('PorLitro'));
+}
+function expLitrosPDF() {
+  if (!ltDataFull?.length) { alert('No hay datos de litros cargados.'); return; }
+  _mkPDF('ENVASADO — ANÁLISIS POR LITRO', _envPeriod(), [
+    { heading:'Productos por Litro', headers:['Producto','Litros','$/Litro (ARS)','Total (ARS)'],
+      rows:ltDataFull.filter(r=>r.litros>0).map(r=>[r.nombre,r.litros.toFixed(2)+' L',r.precioPorLitro?'$'+fmt(r.precioPorLitro):'—','$'+fmt(r.totalFacturado)]) },
+  ], _envFn('PorLitro'));
+}
+
+/* ── ENVASADO — Productos ── */
+function expProductosXLSX() {
+  if (!pData?.length) return;
+  _mkXLSX([{ name:'Productos', rows:[
+    ['#','Producto','Código','Clientes','Facturas','Unidades','Precio Prom. (ARS)','Total (ARS)'],
+    ...pData.map((r,i)=>[i+1,r.nombre,r.codigo,r.cls,r.facts,r.units,r.prom,r.total])
+  ]}], _envFn('Productos'));
+}
+function expProductosPDF() {
+  if (!pData?.length) return;
+  _mkPDF('ENVASADO — PRODUCTOS', _envPeriod(), [
+    { heading:'Ranking por Facturación', headers:['Producto','Unidades','Total (ARS)'],
+      rows:pData.map((r,i)=>[(i+1)+'. '+r.nombre, r.units.toLocaleString('es-AR'), '$'+fmt(r.total)]) },
+  ], _envFn('Productos'));
+}
+
+/* ── ENVASADO — Clientes ── */
+function expClientesXLSX() {
+  if (!cData?.length) return;
+  _mkXLSX([{ name:'Clientes', rows:[
+    ['#','Cliente','Facturas','Unidades','Total (ARS)','Ticket Prom. (ARS)'],
+    ...cData.map((r,i)=>[i+1,r.nombre,r.facts,r.units,r.total,r.prom])
+  ]}], _envFn('Clientes'));
+}
+function expClientesPDF() {
+  if (!cData?.length) return;
+  _mkPDF('ENVASADO — CLIENTES', _envPeriod(), [
+    { heading:'Ranking por Facturación', headers:['Cliente','Facturas','Total (ARS)'],
+      rows:cData.map((r,i)=>[(i+1)+'. '+r.nombre, r.facts, '$'+fmt(r.total)]) },
+  ], _envFn('Clientes'));
+}
+
+/* ── ENVASADO — RFM ── */
+function expRFMXLSX() {
+  if (!rfmData?.segments) return;
+  const rows = [['Segmento','Cliente','Días Últ. Compra','Frecuencia','Total (ARS)']];
+  Object.entries(rfmData.segments).forEach(([seg, cs]) => {
+    const label = RFM_CFG[seg]?.label || seg;
+    cs.forEach(c => rows.push([label, c.nombre, c.diasDesde, c.frecuencia, c.total]));
+  });
+  _mkXLSX([{ name:'RFM', rows }], _envFn('RFM'));
+}
+function expRFMPDF() {
+  if (!rfmData?.segments) return;
+  const secs = Object.entries(rfmData.segments).filter(([,cs])=>cs.length>0).map(([seg, cs]) => ({
+    heading:(RFM_CFG[seg]?.label||seg).toUpperCase()+' ('+cs.length+' clientes)',
+    headers:['Cliente','Días Últ. Compra','Frecuencia','Total (ARS)'],
+    rows:cs.slice(0,25).map(c=>[c.nombre, c.diasDesde, c.frecuencia, '$'+fmt(c.total)])
+  }));
+  _mkPDF('ENVASADO — SEGMENTACIÓN RFM', _envPeriod(), secs, _envFn('RFM'));
+}
+
+/* ── ENVASADO — Deudas ── */
+function expDeudasXLSX() {
+  if (!deudasData?.length) { alert('No hay datos de deudas cargados.'); return; }
+  _mkXLSX([{ name:'Deudas', rows:[
+    ['Cliente','Tipo Doc','N° Doc','Monto Deuda (ARS)','Días Vencidos'],
+    ...deudasData.map(r=>[r.Cliente||'—',r.TipoDoc||'—',r.NroDoc||'—',r.MontoDeuda||0,r.DiasVencidos||0])
+  ]}], _envFn('Deudas'));
+}
+function expDeudasPDF() {
+  if (!deudasData?.length) { alert('No hay datos de deudas cargados.'); return; }
+  _mkPDF('ENVASADO — DEUDAS DE CLIENTES', _envPeriod(), [
+    { heading:'Facturas Vencidas', headers:['Cliente','Doc','Monto (ARS)','Días Vencidos'],
+      rows:[...deudasData].sort((a,b)=>(b.DiasVencidos||0)-(a.DiasVencidos||0))
+        .map(r=>[r.Cliente||'—',(r.TipoDoc||'—')+' '+r.NroDoc,'$'+fmt(r.MontoDeuda||0),(r.DiasVencidos||0)+' días']) },
+  ], _envFn('Deudas'));
+}
+
+/* ── Granel helpers ── */
+function _grPeriod() { return fmtD(document.getElementById('gr-dt-start')?.value||'') + ' → ' + fmtD(document.getElementById('gr-dt-end')?.value||''); }
+function _grFn(s)    { return 'OC_GR_'+s+'_'+(document.getElementById('gr-dt-start')?.value||''); }
+
+/* ── GRANEL — Ingresos ── */
+function expGrVentasXLSX() {
+  const st = window._granelStats; if (!st) return;
+  _mkXLSX([
+    { name:'Ingresos por Día', rows:[['Fecha','Total (ARS)','Cantidad (tn)'], ...st.diasOrd.map(d=>[d.fecha,d.imp,+d.cant.toFixed(3)])] },
+    { name:'Ingresos por Mes', rows:[['Mes','Total (ARS)','Cantidad (tn)'], ...st.meses.map(m=>{const[yr,mo]=m.mes.split('-');return[MN[+mo-1]+' '+yr,m.imp,+m.cant.toFixed(3)];})] },
+  ], _grFn('Ventas'));
+}
+function expGrVentasPDF() {
+  const st = window._granelStats; if (!st) return;
+  _mkPDF('GRANEL — EVOLUCIÓN DE INGRESOS', _grPeriod(), [
+    { charts:[{id:'ch-gr-linea'},{id:'ch-gr-mensual'},{id:'ch-gr-semana'},{id:'ch-gr-movil'}] },
+    { heading:'Ingresos por Mes', headers:['Mes','Total (ARS)','Cantidad (tn)'],
+      rows:st.meses.map(m=>{const[yr,mo]=m.mes.split('-');return[MN[+mo-1]+' '+yr,'$'+fmt(m.imp),m.cant.toFixed(2)+' tn'];}) },
+  ], _grFn('Ventas'));
+}
+
+/* ── GRANEL — Volumen ── */
+function expGrVolumenXLSX() {
+  const st = window._granelStats; if (!st) return;
+  _mkXLSX([{ name:'Volumen', rows:[
+    ['Mes','Cantidad (tn)','Precio por Unidad (ARS)'],
+    ...st.meses.map((m,i)=>{const[yr,mo]=m.mes.split('-');return[MN[+mo-1]+' '+yr,+m.cant.toFixed(3),st.precioUnit[i]?+st.precioUnit[i].precio.toFixed(2):'—'];})
+  ]}], _grFn('Volumen'));
+}
+function expGrVolumenPDF() {
+  const st = window._granelStats; if (!st) return;
+  _mkPDF('GRANEL — ANÁLISIS DE VOLUMEN', _grPeriod(), [
+    { charts:[{id:'ch-gr-volumen'},{id:'ch-gr-precio-unit'}] },
+    { heading:'Volumen y Precio por Mes', headers:['Mes','Cantidad (tn)','Precio/Unidad (ARS)'],
+      rows:st.meses.map((m,i)=>{const[yr,mo]=m.mes.split('-');return[MN[+mo-1]+' '+yr,m.cant.toFixed(2)+' tn',st.precioUnit[i]?'$'+fmt(st.precioUnit[i].precio):'—'];}) },
+  ], _grFn('Volumen'));
+}
+
+/* ── GRANEL — Clientes ── */
+function expGrClientesXLSX() {
+  const st = window._granelStats; if (!st) return;
+  _mkXLSX([{ name:'Clientes', rows:[
+    ['#','Cliente','Total (ARS)','Cantidad (tn)','Frecuencia','Días Últ. Compra'],
+    ...[...st.rfmClientes].sort((a,b)=>b.totalARS-a.totalARS).map((r,i)=>[i+1,r.nombre,r.totalARS,+r.cantidad.toFixed(3),r.frecuencia,r.diasDesdeUltima])
+  ]}], _grFn('Clientes'));
+}
+function expGrClientesPDF() {
+  const st = window._granelStats; if (!st) return;
+  _mkPDF('GRANEL — ANÁLISIS DE CLIENTES', _grPeriod(), [
+    { heading:'Ranking por Facturación', headers:['Cliente','Total (ARS)','Cantidad (tn)'],
+      rows:[...st.rfmClientes].sort((a,b)=>b.totalARS-a.totalARS).slice(0,40).map((r,i)=>[(i+1)+'. '+r.nombre,'$'+fmt(r.totalARS),r.cantidad.toFixed(2)+' tn']) },
+  ], _grFn('Clientes'));
+}
+
+/* ── GRANEL — RFM ── */
+function expGrRFMXLSX() {
+  const st = window._granelStats; if (!st?.rfmClientes) return;
+  const maxARS = Math.max(...st.rfmClientes.map(c=>c.totalARS),1);
+  const rows = [['Segmento','Cliente','Días Últ. Compra','Frecuencia','Total (ARS)','Cantidad (tn)']];
+  st.rfmClientes.forEach(c => {
+    const seg = calcGranelRFMSegmento(c.diasDesdeUltima,c.frecuencia,c.totalARS,maxARS);
+    rows.push([seg,c.nombre,c.diasDesdeUltima,c.frecuencia,c.totalARS,+c.cantidad.toFixed(3)]);
+  });
+  _mkXLSX([{ name:'RFM Granel', rows }], _grFn('RFM'));
+}
+function expGrRFMPDF() {
+  const st = window._granelStats; if (!st?.rfmClientes) return;
+  const maxARS = Math.max(...st.rfmClientes.map(c=>c.totalARS),1);
+  const segs = {};
+  st.rfmClientes.forEach(c => {
+    const seg = calcGranelRFMSegmento(c.diasDesdeUltima,c.frecuencia,c.totalARS,maxARS);
+    if (!segs[seg]) segs[seg] = [];
+    segs[seg].push(c);
+  });
+  const secs = Object.entries(segs).filter(([,cs])=>cs.length>0).map(([seg,cs])=>({
+    heading:seg.toUpperCase()+' ('+cs.length+' clientes)',
+    headers:['Cliente','Días Últ. Compra','Frecuencia','Total (ARS)'],
+    rows:cs.slice(0,25).map(c=>[c.nombre,c.diasDesdeUltima,c.frecuencia,'$'+fmt(c.totalARS)])
+  }));
+  _mkPDF('GRANEL — SEGMENTACIÓN RFM', _grPeriod(), secs, _grFn('RFM'));
+}
+
+/* ── GRANEL — Detalle PDF ── */
+function expGrDetallePDF() {
+  const data = (granelFiltered && granelFiltered.length) ? granelFiltered : granelData;
+  if (!data?.length) return;
+  let totCant = 0, totNac = 0, totExt = 0;
+  const dataRows = data.map(r => {
+    const isNC=(r.TipoComprobante||'').trim()==='CAE012', s=isNC?-1:1;
+    const cant=(Number(r.Cantidad)||0)*s;
+    const imp=(Number(r.ImporteNacional)||0)*s;
+    const ext=(Number(r.ImporteExtranjero)||0)*s;
+    totCant += cant; totNac += imp; totExt += ext;
+    return [r.Fecha?fmtD(new Date(r.Fecha).toISOString().split('T')[0]):'—',r.NroComprobante||'—',r.TipoComprobante||'—',r.Cliente||'—',r.Producto||'—',r.DetalleProducto||'—',r.UnidadMedida||'—',cant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(isNC?'−$':'$')+fmt(Math.abs(imp)),ext!==0?(isNC?'−':'')+fmt(Math.abs(ext)):'—'];
+  });
+  dataRows.push(['SUBTOTAL','','','','','','',totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(totNac<0?'−$':'$')+fmt(Math.abs(totNac)),totExt!==0?(totExt<0?'−':'')+fmt(Math.abs(totExt)):'—']);
+  _mkPDF('GRANEL — DETALLE DE FACTURAS', _grPeriod(), [
+    { heading:'Comprobantes', headers:['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe Ext.'],
+      rows:dataRows
+    }
+  ], _grFn('Detalle'));
+}
 </script>
 </body>
 </html>
