@@ -865,6 +865,31 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
 }
 .ai-skeleton.short { width:55% }
 
+/* ── AI INSIGHT colapsable ── */
+.ai-toggle {
+  width:100%; display:flex; align-items:center; gap:8px;
+  padding:9px 16px; background:rgba(71,201,229,.03);
+  border:none; cursor:pointer; font-family:inherit; text-align:left;
+  transition:background .15s;
+}
+.ai-toggle:hover { background:rgba(71,201,229,.08) }
+.ai-toggle-hint {
+  margin-left:auto; font-size:9px; color:var(--t3);
+  letter-spacing:.5px; text-transform:uppercase; font-weight:600;
+}
+.ai-toggle-chevron {
+  font-size:9px; color:var(--cyan); opacity:.8;
+  transition:transform .25s ease;
+}
+.ai-box.open .ai-toggle-chevron { transform:rotate(180deg) }
+.ai-collapse-body { display:none }
+.ai-box.open .ai-collapse-body { display:block; animation:aiReveal .3s ease }
+@keyframes aiReveal { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+.ai-retry {
+  background:none; border:none; color:var(--cyan); cursor:pointer;
+  font-family:inherit; font-size:12px; text-decoration:underline; padding:0;
+}
+
 /* ── DATE RANGE BAR (hero) ── */
 .date-range-bar {
   display:flex; align-items:center; gap:14px;
@@ -3506,43 +3531,72 @@ function aiFormatText(text) {
 
 // Almacena el contexto de datos de cada gráfico para el chat de seguimiento
 const chartContexts = {};
+// Marca qué análisis ya se descargaron (carga diferida al desplegar)
+const aiInsightLoaded = {};
 
-async function getAIInsight(id, prompt) {
+// Registra el contexto del gráfico y muestra el análisis colapsado.
+// NO descarga nada hasta que el usuario lo despliega (ahorra scroll y llamadas a la IA).
+function getAIInsight(id, prompt) {
   const el = document.getElementById('ai-' + id);
   if (!el) return;
-  chartContexts[id] = prompt; // guardar contexto para el chat
+  chartContexts[id]    = prompt; // guardar contexto para el análisis y el chat
+  aiInsightLoaded[id]  = false;
+  el.classList.remove('loading', 'open');
+  el.innerHTML = `
+    <button type="button" class="ai-toggle" onclick="toggleAIInsight('${id}')" aria-expanded="false">
+      <span class="ai-box-icon">◆</span>
+      <span class="ai-label">Análisis IA</span>
+      <span class="ai-toggle-hint">Ver análisis</span>
+      <span class="ai-toggle-chevron" aria-hidden="true">▾</span>
+    </button>
+    <div class="ai-collapse-body" id="aicol-${id}"></div>`;
+}
 
-  function buildBox(bodyHtml, withChat=true) {
-    el.classList.remove('loading');
-    el.innerHTML = `
-      <div class="ai-box-header">
-        <span class="ai-box-icon">◆</span>
-        <span class="ai-label">Análisis IA</span>
-        <span style="margin-left:auto;font-size:9px;color:var(--t3);letter-spacing:.5px">PREGUNTÁ SOBRE ESTE GRÁFICO ↓</span>
-      </div>
-      <div class="ai-box-body ai-prose">${bodyHtml}</div>
-      ${withChat ? `
-      <div class="ai-chat-thread" id="aict-${id}"></div>
-      <div class="ai-chat-input-row">
-        <input class="ai-chat-input" id="aici-${id}" placeholder="Preguntá sobre este gráfico..." maxlength="300"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chartChatSend('${id}')}" />
-        <button class="ai-chat-send" id="aicb-${id}" onclick="chartChatSend('${id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>` : ''}`;
+// Despliega/colapsa el análisis. La primera vez que se abre, lo descarga.
+async function toggleAIInsight(id) {
+  const el = document.getElementById('ai-' + id);
+  if (!el) return;
+  const btn  = el.querySelector('.ai-toggle');
+  const hint = el.querySelector('.ai-toggle-hint');
+  const open = el.classList.toggle('open');
+  if (btn)  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (hint) hint.textContent = open ? 'Ocultar' : 'Ver análisis';
+  if (open && !aiInsightLoaded[id]) {
+    aiInsightLoaded[id] = true;
+    await loadAIInsight(id);
   }
+}
 
+function retryAIInsight(id) { loadAIInsight(id); }
+
+function buildInsightBody(id, bodyHtml, withChat = true) {
+  return `<div class="ai-box-body ai-prose">${bodyHtml}</div>` + (withChat ? `
+    <div class="ai-chat-thread" id="aict-${id}"></div>
+    <div class="ai-chat-input-row">
+      <input class="ai-chat-input" id="aici-${id}" placeholder="Preguntá sobre este gráfico..." maxlength="300"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chartChatSend('${id}')}" />
+      <button class="ai-chat-send" id="aicb-${id}" onclick="chartChatSend('${id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>` : '');
+}
+
+async function loadAIInsight(id) {
+  const body = document.getElementById('aicol-' + id);
+  if (!body) return;
+  body.innerHTML = `<div class="ai-box-body" style="gap:8px"><div class="ai-skeleton"></div><div class="ai-skeleton short"></div></div>`;
   try {
     const r = await fetch(AI_SERVER + '/ai-insight', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt: chartContexts[id] || '' }),
       signal: AbortSignal.timeout(55000),
     });
     if (!r.ok) throw new Error();
     const j = await r.json();
-    buildBox(aiFormatText((j.text||'').trim()));
+    body.innerHTML = buildInsightBody(id, aiFormatText((j.text||'').trim()), true);
   } catch {
-    buildBox(`<p class="ai-prose-p" style="color:var(--t3)">No se pudo conectar con el servidor de análisis.</p>`, false);
+    aiInsightLoaded[id] = false; // permitir reintento
+    body.innerHTML = buildInsightBody(id, `<p class="ai-prose-p" style="color:var(--t3)">No se pudo conectar con el servidor de análisis. <button type="button" class="ai-retry" onclick="retryAIInsight('${id}')">Reintentar</button></p>`, false);
   }
 }
 

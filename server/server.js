@@ -1,3 +1,7 @@
+// Carga variables desde .env si existe (Node 20.12+). En producción (Render)
+// las variables vienen del entorno, por eso el try/catch silencioso.
+try { process.loadEnvFile(); } catch { /* .env opcional */ }
+
 const express    = require('express');
 const cors       = require('cors');
 const sql        = require('mssql');
@@ -7,7 +11,8 @@ const Anthropic  = require('@anthropic-ai/sdk');
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const EXT_API_BASE = 'https://apirest-dibiagi.onrender.com';
-const EXT_API_KEY  = 'db_dibia_MkI5YVBYZzRRbmx0WTJKM09UVTFNRmhaTmxjdw==';
+// Clave pública de la API de datos (ya visible en el frontend). Override por entorno si se desea.
+const EXT_API_KEY  = process.env.EXT_API_KEY || 'db_dibia_MkI5YVBYZzRRbmx0WTJKM09UVTFNRmhaTmxjdw==';
 
 function fetchVentas(startDate, endDate, limit = 2000) {
   return new Promise((resolve, reject) => {
@@ -29,11 +34,11 @@ function fetchVentas(startDate, endDate, limit = 2000) {
 }
 
 const DB_CONFIG = {
-  server:   'ServerSQL2022',
-  database: 'DIBIAG',
-  user:     'sa',
-  password: 'Password1!',
-  port:     1433,
+  server:   process.env.DB_SERVER   || 'ServerSQL2022',
+  database: process.env.DB_NAME     || 'DIBIAG',
+  user:     process.env.DB_USER     || 'sa',
+  password: process.env.DB_PASSWORD || '',
+  port:     parseInt(process.env.DB_PORT || '1433', 10),
   options: {
     encrypt:                false,
     trustServerCertificate: true,

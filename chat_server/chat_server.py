@@ -1,3 +1,5 @@
+import os
+import re
 import json
 import logging
 import pyodbc
@@ -6,20 +8,32 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+# Carga variables desde .env si python-dotenv está disponible (opcional).
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ── Conexión SQL Server ─────────────────────────────────────
 DB_CONN_STR = (
     "DRIVER={ODBC Driver 18 for SQL Server};"
-    "SERVER=ServerSQL2022;"
-    "DATABASE=DIBIAG;"
-    "UID=sa;"
-    "PWD=Password1!;"
+    f"SERVER={os.getenv('DB_SERVER', 'ServerSQL2022')};"
+    f"DATABASE={os.getenv('DB_NAME', 'DIBIAG')};"
+    f"UID={os.getenv('DB_USER', 'sa')};"
+    f"PWD={os.getenv('DB_PASSWORD', '')};"
     "TrustServerCertificate=yes;"
 )
 
-ANTHROPIC_API_KEY = "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"
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+if not ANTHROPIC_API_KEY:
+    raise RuntimeError(
+        "Falta ANTHROPIC_API_KEY en el entorno. Definila en el archivo .env "
+        "(ver .env.example) antes de iniciar el servidor."
+    )
 claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 app = FastAPI(title="Oliver Cooks — Chat IA")
@@ -97,6 +111,33 @@ Total de línea: CASE WHEN i.FCRMVI_TOTLIN=0 THEN i.FCRMVI_CANTID*i.FCRMVI_PRECI
 Empresa: Oliver Cooks — aceite de oliva extra virgen, Mendoza, Argentina.
 Moneda: pesos argentinos (ARS).
 """
+
+
+# ── Validación de seguridad del SQL generado por el LLM ─────
+# El modelo genera SQL libremente; antes de ejecutarlo verificamos que sea
+# una única consulta de SOLO LECTURA. Defensa contra inyección / DML / DDL.
+_SQL_FORBIDDEN = re.compile(
+    r"\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|MERGE|EXEC|EXECUTE|"
+    r"GRANT|REVOKE|BACKUP|RESTORE|SHUTDOWN|XP_\w+|SP_\w+|INTO)\b",
+    re.IGNORECASE,
+)
+
+
+def is_safe_select(query: str) -> bool:
+    """Permite solo una sentencia SELECT/WITH de lectura. Bloquea DML/DDL,
+    apilado de sentencias (;) y comentarios."""
+    if not query:
+        return False
+    s = query.strip().rstrip(";").strip()
+    if ";" in s:                                   # sin apilar sentencias
+        return False
+    if "--" in s or "/*" in s:                     # sin comentarios
+        return False
+    if not re.match(r"^(SELECT|WITH)\b", s, re.IGNORECASE):
+        return False
+    if _SQL_FORBIDDEN.search(s):                    # sin palabras peligrosas
+        return False
+    return True
 
 
 def get_connection():
@@ -189,9 +230,14 @@ async def human_query(payload: HumanQueryPayload):
         reason = parsed.get("error", "consulta no válida")
         return {"answer": f"No pude generar una consulta para esa pregunta: {reason}. Intentá reformularla."}
 
-    # 2. Ejecutar SQL
+    # 2. Validar y ejecutar SQL (solo lectura)
+    sql_query = parsed["sql_query"]
+    if not is_safe_select(sql_query):
+        logger.warning(f"SQL bloqueado por seguridad: {sql_query[:200]}")
+        return {"answer": "Solo puedo ejecutar consultas de lectura sobre las ventas. Reformulá tu pregunta."}
+
     try:
-        rows = run_query(parsed["sql_query"])
+        rows = run_query(sql_query)
     except Exception as e:
         logger.error(f"Error SQL: {e}")
         return {"answer": f"Hubo un error al consultar la base de datos. Intentá reformular la pregunta o verificá que el período sea válido."}
