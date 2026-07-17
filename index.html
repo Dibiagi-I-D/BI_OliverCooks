@@ -6044,10 +6044,17 @@ async function loadDeudasSection(){
   const s = document.getElementById('dt-start').value;
   const e = document.getElementById('dt-end').value;
   try{
-    const r = await fetch(DEUDAS_URL, {headers:{'Authorization':`Bearer ${API_KEY}`,'Content-Type':'application/json'}});
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    const j = await r.json();
-    const all = Array.isArray(j.data) ? j.data : [];
+    // La API pagina (100 por defecto, máx. 1000): recorrer todas las páginas
+    const LIM = 1000;
+    let all = [];
+    for(let page=1;;page++){
+      const r = await fetch(`${DEUDAS_URL}?page=${page}&limit=${LIM}`, {headers:{'Authorization':`Bearer ${API_KEY}`,'Content-Type':'application/json'}});
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      const rows = Array.isArray(j.data) ? j.data : [];
+      all = all.concat(rows);
+      if(rows.length < LIM) break;
+    }
     // Filtrar por rango de FechaEmision igual que el resto del dashboard
     deudasData = all.filter(row=>{
       const fecha = row.FechaEmision?.slice(0,10);
