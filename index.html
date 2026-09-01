@@ -2119,7 +2119,7 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
         <div>
           <div class="sec-eyebrow"><span class="num">07</span> Deudas</div>
           <h2 class="sec-title">Deudas de Clientes</h2>
-          <p class="sec-sub">Estado de cuenta corriente. Facturas vencidas y montos adeudados por cliente.</p>
+          <p class="sec-sub">Estado de cuenta corriente. Facturas vencidas y notas de credito por cliente. Las notas de credito (CA0019) se listan como fila propia debajo de su factura y restan del total.</p>
         </div>
         <div class="export-btns-row" style="padding-top:6px;flex-shrink:0">
           <button class="export-btn xlsx" onclick="expDeudasXLSX()" title="Exportar Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Excel</button>
@@ -2145,21 +2145,22 @@ tbody td { padding:10px 16px; color:var(--t2); vertical-align:middle }
     <!-- Tabla deudas -->
     <div class="table-shell reveal" style="max-width:1400px;margin:0 auto;border-left:none;border-right:none;border-top:1px solid var(--bdr)">
       <div class="table-topbar">
-        <div><div class="table-title">Facturas Vencidas</div><div class="table-sub" id="dk-sub">—</div></div>
+        <div><div class="table-title">Facturas y Notas de Crédito</div><div class="table-sub" id="dk-sub">—</div></div>
         <input class="search-input" id="dk-search" placeholder="Buscar cliente..." oninput="filterDeudas(this.value)">
       </div>
       <div class="tw">
         <table><thead><tr>
           <th>#</th>
           <th>Cliente</th>
-          <th>Tipo Doc</th>
-          <th style="text-align:right">Nro Doc</th>
+          <th>Comprobante</th>
+          <th style="text-align:right">Nro</th>
           <th style="text-align:right">F. Emisión</th>
           <th style="text-align:right">F. Vencimiento</th>
-          <th style="text-align:right">Monto Deuda</th>
+          <th style="text-align:right">Monto</th>
           <th style="text-align:right">Dias Vencidos</th>
         </tr></thead>
-        <tbody id="dk-body"></tbody></table>
+        <tbody id="dk-body"></tbody>
+        <tfoot id="dk-foot"></tfoot></table>
       </div>
       <div class="pagination"><span class="pg-info" id="dk-pg-info">—</span><div class="pg-btns" id="dk-pg-btns"></div></div>
     </div>
@@ -4460,8 +4461,8 @@ function filterGranelTable(q) {
 }
 
 function exportGranelExcel() {
-  const data = (granelFiltered && granelFiltered.length) ? granelFiltered : granelData;
-  if (!data.length) return;
+  const { rows: data, filtro } = _expSet(granelFiltered, granelData, 'gr-filter-input');
+  if (!data.length) { alert('No hay comprobantes para exportar.'); return; }
   const rows = [['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe USD (sin IVA)']];
   let totCant = 0, totNac = 0, totExt = 0;
   data.forEach(r => {
@@ -4483,9 +4484,9 @@ function exportGranelExcel() {
     ]);
   });
   rows.push(['SUBTOTAL','','','','','','',+totCant.toFixed(2),+totNac.toFixed(2),+totExt.toFixed(2)]);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Granel');
-  XLSX.writeFile(wb, `OC_GR_Detalle_${document.getElementById('gr-dt-start').value}.xlsx`);
+  // Via _mkXLSX para compartir el ancho de columnas con el resto de los exports.
+  _mkXLSX([{ name:'Granel', rows }],
+          `OC_GR_Detalle_${document.getElementById('gr-dt-start').value}` + _expSuf(filtro));
 }
 
 async function renderGranelAIInsights(s) {
@@ -5486,37 +5487,53 @@ function buildDeudasContext() {
   if (!deudasData || !deudasData.length) return '';
   const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  const totalDeuda = deudasData.reduce((s,r)=>s+(r.MontoDeuda||0),0);
+  const soloFact = deudasData.filter(r=>!dkEsNC(r));
+  const soloNC   = deudasData.filter(r=>dkEsNC(r));
+  const totalNC    = soloNC.reduce((s,r)=>s+dkMonto(r),0);
+  const totalDeuda = deudasData.reduce((s,r)=>s+dkMonto(r),0);
 
   // Por cliente
   const byCliente = {};
   deudasData.forEach(r=>{
     const c = r.Cliente?.trim()||'Sin nombre';
-    if(!byCliente[c]) byCliente[c]={monto:0,facturas:0,diasMax:0};
-    byCliente[c].monto   += r.MontoDeuda||0;
-    byCliente[c].facturas++;
-    byCliente[c].diasMax  = Math.max(byCliente[c].diasMax, r.DiasVencidos||0);
+    if(!byCliente[c]) byCliente[c]={monto:0,facturas:0,notasCredito:0,diasMax:0};
+    byCliente[c].monto += dkMonto(r);
+    if(dkEsNC(r)) byCliente[c].notasCredito++;
+    else {
+      byCliente[c].facturas++;
+      byCliente[c].diasMax = Math.max(byCliente[c].diasMax, r.DiasVencidos||0);
+    }
   });
   const topDeudores = Object.entries(byCliente)
     .sort((a,b)=>b[1].monto-a[1].monto).slice(0,10)
-    .map(([n,d],i)=>`  ${i+1}. ${n}: $${fmtN(d.monto)} — ${d.facturas} factura(s) — max ${d.diasMax} días vencida`).join('\n');
+    .map(([n,d],i)=>`  ${i+1}. ${n}: $${fmtN(d.monto)} neto — ${d.facturas} factura(s)${d.notasCredito?` y ${d.notasCredito} NC`:''} — max ${d.diasMax} días vencida`).join('\n');
 
-  // Facturas más antiguas
-  const masViejas = [...deudasData].sort((a,b)=>(b.DiasVencidos||0)-(a.DiasVencidos||0)).slice(0,5)
-    .map(r=>`  ${r.Cliente}: $${fmtN(r.MontoDeuda)} — ${r.DiasVencidos} días vencida (${r.TipoDoc} ${r.NroDoc})`).join('\n');
+  // Facturas más antiguas — solo facturas: una NC no es una factura impaga.
+  const masViejas = [...soloFact].sort((a,b)=>(b.DiasVencidos||0)-(a.DiasVencidos||0)).slice(0,5)
+    .map(r=>`  ${r.Cliente}: $${fmtN(dkMonto(r))} — ${r.DiasVencidos} días vencida (${r.TipoComprobante} ${r.NroComprobante})`).join('\n');
 
-  const diasProm = Math.round(deudasData.reduce((s,r)=>s+(r.DiasVencidos||0),0)/deudasData.length);
+  // Listado de NC para poder explicar por qué bajó la deuda de un cliente.
+  const detalleNC = soloNC.slice(0,10)
+    .map(r=>`  ${r.Cliente}: $${fmtN(dkMonto(r))} — CA ${r.NroComprobante}`).join('\n');
+
+  const diasProm = soloFact.length
+    ? Math.round(soloFact.reduce((s,r)=>s+(r.DiasVencidos||0),0)/soloFact.length)
+    : 0;
 
   return `\n=== DEUDAS DE CLIENTES ===
-Total adeudado: $${fmtN(totalDeuda)}
-Facturas vencidas: ${deudasData.length}
+Deuda neta (facturas menos notas de crédito): $${fmtN(totalDeuda)}
+Facturas vencidas: ${soloFact.length}
+Notas de crédito aplicadas: ${soloNC.length}${soloNC.length?` por $${fmtN(Math.abs(totalNC))}`:''}
 Promedio días vencidos: ${diasProm} días
 
-=== TOP 10 CLIENTES CON MAYOR DEUDA ===
+=== TOP 10 CLIENTES CON MAYOR DEUDA (neta) ===
 ${topDeudores}
 
 === FACTURAS MÁS ANTIGUAS SIN COBRAR ===
-${masViejas}`;
+${masViejas}
+${soloNC.length?`
+=== NOTAS DE CRÉDITO ===
+${detalleNC}`:''}`;
 }
 
 /* ── Renderizar análisis completo en burbuja del chat ── */
@@ -6072,14 +6089,30 @@ async function loadDeudasSection(){
   }
 }
 
+/* Identidad de la fila: TipoComprobante/NroComprobante es lo que la fila ES
+   (la FA o la CA). TipoDoc/NroDoc es contra que documento se aplica, por eso una
+   CA aplicada trae TipoDoc='FA0019' — el tipo NO se puede leer de ahi. */
+function dkEsNC(r){ return String(r.TipoComprobante||'').trim().toUpperCase()==='CA0019'; }
+
+/* La CA siempre resta. El endpoint ya la manda en negativo; forzar el signo por
+   tipo evita que un movimiento cargado al reves invierta el total. */
+function dkMonto(r){
+  const v=Number(r.MontoDeuda)||0;
+  return dkEsNC(r) ? -Math.abs(v) : v;
+}
+
 function renderDeudasKPIs(data){
-  const total = data.reduce((s,r)=>s+r.MontoDeuda,0);
+  // Las NC suman negativo: el reduce entrega directamente la deuda neta.
+  const total = data.reduce((s,r)=>s+dkMonto(r),0);
+  const nFact = data.filter(r=>!dkEsNC(r)).length;
+  const nNC   = data.length-nFact;
   const byClient = {};
-  data.forEach(r=>{ byClient[r.Cliente]=(byClient[r.Cliente]||0)+r.MontoDeuda; });
+  data.forEach(r=>{ byClient[r.Cliente]=(byClient[r.Cliente]||0)+dkMonto(r); });
   const topCli = Object.entries(byClient).sort((a,b)=>b[1]-a[1])[0];
 
-  document.getElementById('dk-total').textContent = '$'+fmt(total);
-  document.getElementById('dk-facturas').textContent = data.length + ' facturas vencidas';
+  document.getElementById('dk-total').textContent = (total<0?'−$':'$')+fmt(Math.abs(total));
+  document.getElementById('dk-facturas').textContent =
+    nFact.toLocaleString('es-AR')+' facturas vencidas'+(nNC?' · '+nNC.toLocaleString('es-AR')+' NC aplicadas':'');
   document.getElementById('dk-top-cli').textContent = topCli ? topCli[0] : '—';
   document.getElementById('dk-top-monto').textContent = topCli ? '$'+fmt(topCli[1])+' adeudados' : '—';
 }
@@ -6088,23 +6121,50 @@ function renderDeudasTable(rows, page){
   const total=rows.length, pages=Math.max(1,Math.ceil(total/DPS));
   page=Math.max(1,Math.min(page,pages));
   const from=(page-1)*DPS, slice=rows.slice(from,from+DPS);
-  document.getElementById('dk-sub').textContent=total.toLocaleString('es-AR')+' facturas';
+  const nFact=rows.filter(r=>!dkEsNC(r)).length, nNC=total-nFact;
+  document.getElementById('dk-sub').textContent=
+    nFact.toLocaleString('es-AR')+' facturas'+(nNC?' · '+nNC.toLocaleString('es-AR')+' notas de crédito':'');
   const tbody=document.getElementById('dk-body');
   tbody.innerHTML=slice.map((r,i)=>{
-    const dias=r.DiasVencidos;
+    const isNC=dkEsNC(r), monto=dkMonto(r), neg=monto<0, dias=r.DiasVencidos;
+    const rowStyle=isNC?'background:rgba(224,82,82,.07)':'';
+    // La flecha marca visualmente que la CA cuelga de la factura de arriba.
+    const tipoHtml=isNC
+      ? `<span style="color:var(--red);font-weight:600">↳ ${r.TipoComprobante}</span>`
+      : (r.TipoComprobante||'—');
     const badge=dias>365?'alto':dias>180?'medio':'bajo';
-    return `<tr>
+    // Ni una NC ni un movimiento en negativo son deuda vencida: sin badge.
+    const diasHtml=(isNC||neg)?'<span style="color:var(--t3)">—</span>':`<span class="dias-badge ${badge}">${dias}d</span>`;
+    return `<tr style="${rowStyle}">
       <td style="color:var(--t3);font-size:11px">${from+i+1}</td>
       <td style="font-weight:600">${r.Cliente}</td>
-      <td style="color:var(--t2);font-size:12px">${r.TipoDoc}</td>
-      <td style="text-align:right;color:var(--t2);font-size:12px">${r.NroDoc}</td>
+      <td style="color:var(--t2);font-size:12px">${tipoHtml}</td>
+      <td style="text-align:right;color:var(--t2);font-size:12px">${r.NroComprobante ?? '—'}</td>
       <td style="text-align:right;font-size:12px">${fmtD(r.FechaEmision?.slice(0,10))}</td>
       <td style="text-align:right;font-size:12px">${fmtD(r.FechaVencimiento?.slice(0,10))}</td>
-      <td style="text-align:right;font-weight:700;color:var(--red)">$${fmt(r.MontoDeuda)}</td>
-      <td style="text-align:right"><span class="dias-badge ${badge}">${dias}d</span></td>
+      <td style="text-align:right;font-weight:700;color:${neg?'var(--cyan)':'var(--red)'}">${neg?'−$':'$'}${fmt(Math.abs(monto))}</td>
+      <td style="text-align:right">${diasHtml}</td>
     </tr>`;
   }).join('');
+  updateDeudasTotals(rows);
   renderPag('dk-pg-info','dk-pg-btns',page,pages,total,from,DPS,p=>renderDeudasTable(rows,p));
+}
+
+/* Subtotal al pie, equivalente a updateGranelTotals: siempre sobre el set
+   filtrado completo, no sobre la pagina visible. */
+function updateDeudasTotals(rows){
+  const foot=document.getElementById('dk-foot');
+  if(!foot) return;
+  let totFact=0, totNC=0;
+  (rows||[]).forEach(r=>{ if(dkEsNC(r)) totNC+=dkMonto(r); else totFact+=dkMonto(r); });
+  const neto=totFact+totNC;
+  foot.innerHTML=`<tr style="border-top:2px solid var(--bdr);background:var(--ink3)">
+    <td colspan="6" style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;padding:8px 12px">
+      Subtotal neto — facturas $${fmt(totFact)}${totNC?' · NC −$'+fmt(Math.abs(totNC)):''}
+    </td>
+    <td style="text-align:right;font-weight:700;color:${neto<0?'var(--cyan)':'var(--red)'};padding:8px 8px">${neto<0?'−$':'$'}${fmt(Math.abs(neto))}</td>
+    <td></td>
+  </tr>`;
 }
 
 function filterDeudas(q){
@@ -6595,69 +6655,126 @@ document.addEventListener('click',()=>document.getElementById('calc-tip-box')?.c
 function _mkXLSX(sheetDefs, filename) {
   const wb = XLSX.utils.book_new();
   sheetDefs.forEach(({ name, rows }) => {
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), name.slice(0, 31));
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    // Solo ancho de columna: la planilla va sin formato, para que los datos se
+    // puedan ordenar y pivotear sin pelear con estilos.
+    const nc = rows.reduce((m, r) => Math.max(m, r.length), 0);
+    ws['!cols'] = Array.from({ length: nc }, (_, i) => ({
+      wch: Math.min(42, rows.reduce((m, r) => Math.max(m, String(r[i] ?? '').length + 2), 10)),
+    }));
+    XLSX.utils.book_append_sheet(wb, ws, name.slice(0, 31));
   });
   XLSX.writeFile(wb, filename + '.xlsx');
 }
 
-function _mkPDF(title, period, sections, filename) {
+/* Devuelve el conjunto que hay que exportar segun el buscador de la seccion:
+   si hay texto en el input se exporta lo filtrado, si no el set completo. */
+function _expFiltro(inputId) { return (document.getElementById(inputId)?.value || '').trim(); }
+function _expSet(filtrado, completo, inputId) {
+  const q = _expFiltro(inputId);
+  return { rows: q ? (filtrado || []) : (completo || []), filtro: q };
+}
+
+/* Sufijo de archivo cuando hay filtro activo, para que el nombre delate que el
+   contenido es un subconjunto y no el periodo completo. */
+function _expSuf(filtro) {
+  return filtro ? '_filtro-' + filtro.toLowerCase().replace(/[^a-z0-9]+/gi, '-').slice(0, 24) : '';
+}
+
+/* Informe impreso: papel blanco, tipografia negra y reglas finas. No replica la
+   paleta del dashboard a proposito — el archivo se imprime y se comparte fuera
+   de la app, donde el fondo negro y los acentos de marca solo estorban. */
+function _mkPDF(title, period, sections, filename, filtro) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const M = 18, TOP = 34, BOT = H - 16;
+  let page = 0;
+
   const newPage = () => {
-    doc.setFillColor(8,8,8); doc.rect(0,0,W,H,'F');
-    doc.setFillColor(71,201,229); doc.rect(0,0,W,16,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(8,8,8);
-    doc.text(title, W/2, 10, { align:'center' });
-    doc.setFillColor(14,14,14); doc.rect(0,16,W,9,'F');
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-    doc.text('Oliver Cooks  ·  ' + period + '  ·  ' + new Date().toLocaleDateString('es-AR'), W/2, 21.5, { align:'center' });
+    page++;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(20,20,20);
+    doc.text(title, M, 17);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(115,115,115);
+    doc.text('Oliver Cooks   ·   Período ' + period + (filtro ? '   ·   Filtro: "' + filtro + '"' : ''), M, 22.5);
+    doc.setDrawColor(170,170,170); doc.setLineWidth(0.4); doc.line(M, 26, W-M, 26);
+    doc.setFontSize(7); doc.setTextColor(150,150,150);
+    doc.text(new Date().toLocaleDateString('es-AR'), M, H-10);
+    doc.text('Página ' + page, W-M, H-10, { align:'right' });
   };
   newPage();
-  let y = 34;
+  let y = TOP;
+
+  // Una columna se alinea a la derecha si su contenido es mayormente numerico.
+  const esNum = v => {
+    const s = String(v ?? '').trim();
+    return s !== '' && s !== '—' && /^[−-]?\$?\s?[\d.,]+/.test(s);
+  };
+
   sections.forEach(sec => {
     if (sec.heading) {
-      if (y + 12 > H - 12) { doc.addPage(); newPage(); y = 34; }
-      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(71,201,229);
-      doc.text(sec.heading.toUpperCase(), 20, y); y += 7;
+      if (y + 12 > BOT) { doc.addPage(); newPage(); y = TOP; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+      doc.text(sec.heading.toUpperCase(), M, y); y += 6;
     }
     if (sec.rows) {
       const hdrs = sec.headers || [];
-      const avail = W - 40, nc = Math.max(hdrs.length, sec.rows[0]?.length || 1);
-      const cw = Array.from({length: nc}, (_, i) => i === 0 ? avail * (nc > 2 ? 0.45 : 0.6) : avail * (nc > 2 ? 0.55 : 0.4) / (nc - 1));
-      if (hdrs.length) {
-        doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(80,80,80);
-        let cx = 20;
-        hdrs.forEach((h, i) => { const isL = i === hdrs.length - 1; isL ? doc.text(String(h), cx + cw[i] - 2, y, {align:'right'}) : doc.text(String(h), cx + 2, y); cx += cw[i]; });
-        y += 3; doc.setDrawColor(35,35,35); doc.line(20, y, W-20, y); y += 4;
-      }
-      sec.rows.forEach((row, ri) => {
-        if (y + 7 > H - 12) { doc.addPage(); newPage(); y = 34; }
-        doc.setFillColor(ri%2===0?20:14, ri%2===0?20:14, ri%2===0?20:14);
-        doc.rect(20, y-3.5, W-40, 7, 'F');
-        let cx = 20;
+      const avail = W - M*2, nc = Math.max(hdrs.length, sec.rows[0]?.length || 1);
+      const alignR = Array.from({ length: nc }, (_, ci) => {
+        const vals = sec.rows.map(r => r[ci]).filter(v => v != null && String(v).trim() !== '' && String(v).trim() !== '—');
+        return vals.length > 0 && vals.filter(esNum).length >= vals.length * 0.7;
+      });
+      const nNum = alignR.filter(Boolean).length, nTxt = nc - nNum;
+      const wNum = nNum ? Math.min(30, (avail * 0.55) / nNum) : 0;
+      const wTxt = nTxt ? (avail - wNum * nNum) / nTxt : 0;
+      const cw = alignR.map(r => (r ? wNum : wTxt));
+
+      const drawHead = () => {
+        if (!hdrs.length) return;
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(70,70,70);
+        let cx = M;
+        hdrs.forEach((h, i) => {
+          alignR[i] ? doc.text(String(h), cx + cw[i] - 1.5, y, { align:'right' })
+                    : doc.text(String(h), cx + 1.5, y);
+          cx += cw[i];
+        });
+        y += 2.5; doc.setDrawColor(120,120,120); doc.setLineWidth(0.3);
+        doc.line(M, y, W-M, y); y += 4.5;
+      };
+      drawHead();
+
+      sec.rows.forEach(row => {
+        if (y + 6.5 > BOT) { doc.addPage(); newPage(); y = TOP; drawHead(); }
+        // Las filas de cierre van en negrita y separadas por una regla.
+        const esTotal = /^(sub)?total/i.test(String(row[0] ?? ''));
+        if (esTotal) { doc.setDrawColor(120,120,120); doc.setLineWidth(0.3); doc.line(M, y-3.5, W-M, y-3.5); }
+        let cx = M;
         row.forEach((cell, ci) => {
-          const isL = ci === row.length - 1;
-          doc.setFont('helvetica','normal'); doc.setFontSize(8);
-          doc.setTextColor(isL?200:200, isL?168:200, isL?50:200);
+          doc.setFont('helvetica', esTotal ? 'bold' : 'normal'); doc.setFontSize(8);
+          doc.setTextColor(esTotal ? 20 : 55, esTotal ? 20 : 55, esTotal ? 20 : 55);
           const txt = String(cell ?? '—');
-          isL ? doc.text(trunc(txt, 22), cx + cw[ci] - 2, y+1, {align:'right'}) : doc.text(trunc(txt, 38), cx + 2, y+1);
+          const max = Math.max(6, Math.floor(cw[ci] / 1.75));
+          alignR[ci] ? doc.text(trunc(txt, max), cx + cw[ci] - 1.5, y+1, { align:'right' })
+                     : doc.text(trunc(txt, max), cx + 1.5, y+1);
           cx += cw[ci];
         });
-        y += 7;
+        y += 6.5;
       });
-      y += 4;
+      y += 5;
     }
     if (sec.charts) {
-      const cw2 = (W-48)/2, ch = 55;
+      const cw2 = (W - M*2 - 8)/2, ch = 55;
       let ci = 0;
       sec.charts.forEach(({ id }) => {
         const c = (window.charts && charts[id]) || (window.granelCharts && granelCharts[id]);
         if (!c) return;
         const col = ci % 2, row2 = Math.floor(ci / 2);
-        const cx = 20 + col*(cw2+8), cy = y + row2*(ch+8);
-        if (cy + ch > H - 12) { doc.addPage(); newPage(); y = 34; }
-        try { doc.addImage(c.toBase64Image('image/png',1),'PNG',cx,cy,cw2,ch); } catch {}
+        const cx = M + col*(cw2+8), cy = y + row2*(ch+8);
+        if (cy + ch > BOT) { doc.addPage(); newPage(); y = TOP; }
+        // Marco fino: da contexto al grafico sobre papel blanco.
+        doc.setDrawColor(200,200,200); doc.setLineWidth(0.3);
+        doc.rect(cx, cy, cw2, ch);
+        try { doc.addImage(c.toBase64Image('image/png',1),'PNG',cx+1,cy+1,cw2-2,ch-2); } catch {}
         if (col === 1 || ci === sec.charts.length-1) { y += ch + 8; }
         ci++;
       });
@@ -6691,51 +6808,57 @@ function expVentasPDF() {
 
 /* ── ENVASADO — Por Litro ── */
 function expLitrosXLSX() {
-  if (!ltDataFull?.length) { alert('No hay datos de litros cargados.'); return; }
-  const tLit = ltDataFull.filter(r=>r.litros>0).reduce((s,r)=>s+r.litros,0);
+  const { rows: data, filtro } = _expSet(ltData, ltDataFull, 'lt-search');
+  if (!data?.length) { alert('No hay datos de litros para exportar.'); return; }
+  const tLit = data.filter(r=>r.litros>0).reduce((s,r)=>s+r.litros,0);
   _mkXLSX([{ name:'Por Litro', rows:[
     ['#','Producto','Envase','Unidades','Litros','Precio Unit. (ARS)','$/Litro (ARS)','Total (ARS)','% Volumen'],
-    ...ltDataFull.map((r,i)=>[i+1,r.nombre,labelEnvase(r.envase),r.unidades,r.litros>0?+r.litros.toFixed(2):'—',r.precioPromUnit?+r.precioPromUnit.toFixed(2):'—',r.precioPorLitro?+r.precioPorLitro.toFixed(2):'—',+r.totalFacturado.toFixed(2),r.litros>0&&tLit>0?(r.litros/tLit*100).toFixed(1)+'%':'—'])
-  ]}], _envFn('PorLitro'));
+    ...data.map((r,i)=>[i+1,r.nombre,labelEnvase(r.envase),r.unidades,r.litros>0?+r.litros.toFixed(2):'—',r.precioPromUnit?+r.precioPromUnit.toFixed(2):'—',r.precioPorLitro?+r.precioPorLitro.toFixed(2):'—',+r.totalFacturado.toFixed(2),r.litros>0&&tLit>0?(r.litros/tLit*100).toFixed(1)+'%':'—'])
+  ]}], _envFn('PorLitro') + _expSuf(filtro));
 }
 function expLitrosPDF() {
-  if (!ltDataFull?.length) { alert('No hay datos de litros cargados.'); return; }
+  const { rows: data, filtro } = _expSet(ltData, ltDataFull, 'lt-search');
+  if (!data?.length) { alert('No hay datos de litros para exportar.'); return; }
   _mkPDF('ENVASADO — ANÁLISIS POR LITRO', _envPeriod(), [
     { heading:'Productos por Litro', headers:['Producto','Litros','$/Litro (ARS)','Total (ARS)'],
-      rows:ltDataFull.filter(r=>r.litros>0).map(r=>[r.nombre,r.litros.toFixed(2)+' L',r.precioPorLitro?'$'+fmt(r.precioPorLitro):'—','$'+fmt(r.totalFacturado)]) },
-  ], _envFn('PorLitro'));
+      rows:data.filter(r=>r.litros>0).map(r=>[r.nombre,r.litros.toFixed(2)+' L',r.precioPorLitro?'$'+fmt(r.precioPorLitro):'—','$'+fmt(r.totalFacturado)]) },
+  ], _envFn('PorLitro') + _expSuf(filtro), filtro);
 }
 
 /* ── ENVASADO — Productos ── */
 function expProductosXLSX() {
-  if (!pData?.length) return;
+  if (!pData?.length) { alert('No hay productos para exportar.'); return; }
+  // pData ya es el resultado del buscador: filterProductos lo reasigna.
   _mkXLSX([{ name:'Productos', rows:[
     ['#','Producto','Código','Clientes','Facturas','Unidades','Precio Prom. (ARS)','Total (ARS)'],
     ...pData.map((r,i)=>[i+1,r.nombre,r.codigo,r.cls,r.facts,r.units,r.prom,r.total])
-  ]}], _envFn('Productos'));
+  ]}], _envFn('Productos') + _expSuf(_expFiltro('p-search')));
 }
 function expProductosPDF() {
-  if (!pData?.length) return;
+  if (!pData?.length) { alert('No hay productos para exportar.'); return; }
+  const filtro = _expFiltro('p-search');
   _mkPDF('ENVASADO — PRODUCTOS', _envPeriod(), [
     { heading:'Ranking por Facturación', headers:['Producto','Unidades','Total (ARS)'],
       rows:pData.map((r,i)=>[(i+1)+'. '+r.nombre, r.units.toLocaleString('es-AR'), '$'+fmt(r.total)]) },
-  ], _envFn('Productos'));
+  ], _envFn('Productos') + _expSuf(filtro), filtro);
 }
 
 /* ── ENVASADO — Clientes ── */
 function expClientesXLSX() {
-  if (!cData?.length) return;
+  if (!cData?.length) { alert('No hay clientes para exportar.'); return; }
+  // cData ya es el resultado del buscador: filterClientes lo reasigna.
   _mkXLSX([{ name:'Clientes', rows:[
     ['#','Cliente','Facturas','Unidades','Total (ARS)','Ticket Prom. (ARS)'],
     ...cData.map((r,i)=>[i+1,r.nombre,r.facts,r.units,r.total,r.prom])
-  ]}], _envFn('Clientes'));
+  ]}], _envFn('Clientes') + _expSuf(_expFiltro('c-search')));
 }
 function expClientesPDF() {
-  if (!cData?.length) return;
+  if (!cData?.length) { alert('No hay clientes para exportar.'); return; }
+  const filtro = _expFiltro('c-search');
   _mkPDF('ENVASADO — CLIENTES', _envPeriod(), [
     { heading:'Ranking por Facturación', headers:['Cliente','Facturas','Total (ARS)'],
       rows:cData.map((r,i)=>[(i+1)+'. '+r.nombre, r.facts, '$'+fmt(r.total)]) },
-  ], _envFn('Clientes'));
+  ], _envFn('Clientes') + _expSuf(filtro), filtro);
 }
 
 /* ── ENVASADO — RFM ── */
@@ -6760,19 +6883,40 @@ function expRFMPDF() {
 
 /* ── ENVASADO — Deudas ── */
 function expDeudasXLSX() {
-  if (!deudasData?.length) { alert('No hay datos de deudas cargados.'); return; }
+  const { rows: data, filtro } = _expSet(deudasFiltered, deudasData, 'dk-search');
+  if (!data?.length) { alert('No hay datos de deudas para exportar.'); return; }
+  // Monto numerico con signo: Excel suma las NC en negativo sin ayuda.
+  let totFact=0, totNC=0;
+  const filas = data.map(r=>{
+    const m=+dkMonto(r).toFixed(2), isNC=dkEsNC(r);
+    if(isNC) totNC+=m; else totFact+=m;
+    return [r.Cliente||'—',r.TipoComprobante||'—',r.NroComprobante??'—',
+            m,(isNC||m<0)?'':(r.DiasVencidos||0)];
+  });
   _mkXLSX([{ name:'Deudas', rows:[
-    ['Cliente','Tipo Doc','N° Doc','Monto Deuda (ARS)','Días Vencidos'],
-    ...deudasData.map(r=>[r.Cliente||'—',r.TipoDoc||'—',r.NroDoc||'—',r.MontoDeuda||0,r.DiasVencidos||0])
-  ]}], _envFn('Deudas'));
+    ['Cliente','Comprobante','Nro','Monto (ARS)','Días Vencidos'],
+    ...filas,
+    ['TOTAL NETO','','',+(totFact+totNC).toFixed(2),''],
+  ]}], _envFn('Deudas') + _expSuf(filtro));
 }
 function expDeudasPDF() {
-  if (!deudasData?.length) { alert('No hay datos de deudas cargados.'); return; }
+  const { rows: data, filtro } = _expSet(deudasFiltered, deudasData, 'dk-search');
+  if (!data?.length) { alert('No hay datos de deudas para exportar.'); return; }
+  // Se respeta el orden del servidor (cliente + fecha) para que cada NC quede
+  // debajo de su factura. Reordenar por dias vencidos rompia ese agrupamiento.
+  let totFact=0, totNC=0;
+  const filas = data.map(r=>{
+    const m=dkMonto(r), isNC=dkEsNC(r);
+    if(isNC) totNC+=m; else totFact+=m;
+    // Guion ASCII: el signo menos tipografico no existe en las fuentes base del PDF.
+    return [r.Cliente||'—',(r.TipoComprobante||'—')+' '+(r.NroComprobante??''),
+            (m<0?'-$':'$')+fmt(Math.abs(m)),(isNC||m<0)?'—':(r.DiasVencidos||0)+' días'];
+  });
+  const neto=totFact+totNC;
+  filas.push(['SUBTOTAL NETO','',(neto<0?'-$':'$')+fmt(Math.abs(neto)),'']);
   _mkPDF('ENVASADO — DEUDAS DE CLIENTES', _envPeriod(), [
-    { heading:'Facturas Vencidas', headers:['Cliente','Doc','Monto (ARS)','Días Vencidos'],
-      rows:[...deudasData].sort((a,b)=>(b.DiasVencidos||0)-(a.DiasVencidos||0))
-        .map(r=>[r.Cliente||'—',(r.TipoDoc||'—')+' '+r.NroDoc,'$'+fmt(r.MontoDeuda||0),(r.DiasVencidos||0)+' días']) },
-  ], _envFn('Deudas'));
+    { heading:'Facturas y Notas de Crédito', headers:['Cliente','Comprobante','Monto (ARS)','Días Vencidos'], rows:filas },
+  ], _envFn('Deudas') + _expSuf(filtro), filtro);
 }
 
 /* ── Granel helpers ── */
@@ -6859,8 +7003,8 @@ function expGrRFMPDF() {
 
 /* ── GRANEL — Detalle PDF ── */
 function expGrDetallePDF() {
-  const data = (granelFiltered && granelFiltered.length) ? granelFiltered : granelData;
-  if (!data?.length) return;
+  const { rows: data, filtro } = _expSet(granelFiltered, granelData, 'gr-filter-input');
+  if (!data?.length) { alert('No hay comprobantes para exportar.'); return; }
   let totCant = 0, totNac = 0, totExt = 0;
   const dataRows = data.map(r => {
     const isNC=(r.TipoComprobante||'').trim()==='CAE012', s=isNC?-1:1;
@@ -6868,14 +7012,15 @@ function expGrDetallePDF() {
     const imp=(Number(r.ImporteNacional)||0)*s;
     const ext=(Number(r.ImporteExtranjero)||0)*s;
     totCant += cant; totNac += imp; totExt += ext;
-    return [r.Fecha?fmtD(new Date(r.Fecha).toISOString().split('T')[0]):'—',r.NroComprobante||'—',r.TipoComprobante||'—',r.Cliente||'—',r.Producto||'—',r.DetalleProducto||'—',r.UnidadMedida||'—',cant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(isNC?'−$':'$')+fmt(Math.abs(imp)),ext!==0?(isNC?'−U$S ':'U$S ')+fmt(Math.abs(ext)):'—'];
+    // Guion ASCII: el signo menos tipografico no existe en las fuentes base del PDF.
+    return [r.Fecha?fmtD(new Date(r.Fecha).toISOString().split('T')[0]):'—',r.NroComprobante||'—',r.TipoComprobante||'—',r.Cliente||'—',r.Producto||'—',r.DetalleProducto||'—',r.UnidadMedida||'—',cant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(isNC?'-$':'$')+fmt(Math.abs(imp)),ext!==0?(isNC?'-U$S ':'U$S ')+fmt(Math.abs(ext)):'—'];
   });
-  dataRows.push(['SUBTOTAL','','','','','','',totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(totNac<0?'−$':'$')+fmt(Math.abs(totNac)),totExt!==0?(totExt<0?'−U$S ':'U$S ')+fmt(Math.abs(totExt)):'—']);
+  dataRows.push(['SUBTOTAL','','','','','','',totCant.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}),(totNac<0?'-$':'$')+fmt(Math.abs(totNac)),totExt!==0?(totExt<0?'-U$S ':'U$S ')+fmt(Math.abs(totExt)):'—']);
   _mkPDF('GRANEL — DETALLE DE FACTURAS', _grPeriod(), [
     { heading:'Comprobantes', headers:['Fecha','Nro. Comprobante','Tipo','Cliente','Producto','Detalle','U.Med','Cantidad','Importe ARS (sin IVA)','Importe USD (sin IVA)'],
       rows:dataRows
     }
-  ], _grFn('Detalle'));
+  ], _grFn('Detalle') + _expSuf(filtro), filtro);
 }
 </script>
 </body>
