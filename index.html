@@ -5487,18 +5487,21 @@ function buildDeudasContext() {
   if (!deudasData || !deudasData.length) return '';
   const fmtN = n => Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  const soloFact = deudasData.filter(r=>!dkEsNC(r));
-  const soloNC   = deudasData.filter(r=>dkEsNC(r));
+  const soloFact = deudasData.filter(dkEsFactura);
+  const soloNC   = deudasData.filter(dkEsNC);
+  const soloND   = deudasData.filter(dkEsND);
   const totalNC    = soloNC.reduce((s,r)=>s+dkMonto(r),0);
+  const totalND    = soloND.reduce((s,r)=>s+dkMonto(r),0);
   const totalDeuda = deudasData.reduce((s,r)=>s+dkMonto(r),0);
 
   // Por cliente
   const byCliente = {};
   deudasData.forEach(r=>{
     const c = r.Cliente?.trim()||'Sin nombre';
-    if(!byCliente[c]) byCliente[c]={monto:0,facturas:0,notasCredito:0,diasMax:0};
+    if(!byCliente[c]) byCliente[c]={monto:0,facturas:0,notasCredito:0,notasDebito:0,diasMax:0};
     byCliente[c].monto += dkMonto(r);
-    if(dkEsNC(r)) byCliente[c].notasCredito++;
+    if(dkEsNC(r))      byCliente[c].notasCredito++;
+    else if(dkEsND(r)) byCliente[c].notasDebito++;
     else {
       byCliente[c].facturas++;
       byCliente[c].diasMax = Math.max(byCliente[c].diasMax, r.DiasVencidos||0);
@@ -5506,7 +5509,7 @@ function buildDeudasContext() {
   });
   const topDeudores = Object.entries(byCliente)
     .sort((a,b)=>b[1].monto-a[1].monto).slice(0,10)
-    .map(([n,d],i)=>`  ${i+1}. ${n}: $${fmtN(d.monto)} neto — ${d.facturas} factura(s)${d.notasCredito?` y ${d.notasCredito} NC`:''} — max ${d.diasMax} días vencida`).join('\n');
+    .map(([n,d],i)=>`  ${i+1}. ${n}: $${fmtN(d.monto)} neto — ${d.facturas} factura(s)${d.notasCredito?`, ${d.notasCredito} NC`:''}${d.notasDebito?`, ${d.notasDebito} ND`:''} — max ${d.diasMax} días vencida`).join('\n');
 
   // Facturas más antiguas — solo facturas: una NC no es una factura impaga.
   const masViejas = [...soloFact].sort((a,b)=>(b.DiasVencidos||0)-(a.DiasVencidos||0)).slice(0,5)
@@ -5514,16 +5517,17 @@ function buildDeudasContext() {
 
   // Listado de NC para poder explicar por qué bajó la deuda de un cliente.
   const detalleNC = soloNC.slice(0,10)
-    .map(r=>`  ${r.Cliente}: $${fmtN(dkMonto(r))} — CA ${r.NroComprobante}`).join('\n');
+    .map(r=>`  ${r.Cliente}: $${fmtN(dkMonto(r))} — ${r.TipoComprobante} ${r.NroComprobante}`).join('\n');
 
   const diasProm = soloFact.length
     ? Math.round(soloFact.reduce((s,r)=>s+(r.DiasVencidos||0),0)/soloFact.length)
     : 0;
 
   return `\n=== DEUDAS DE CLIENTES ===
-Deuda neta (facturas menos notas de crédito): $${fmtN(totalDeuda)}
+Deuda neta (facturas, menos notas de crédito, más notas de débito): $${fmtN(totalDeuda)}
 Facturas vencidas: ${soloFact.length}
 Notas de crédito aplicadas: ${soloNC.length}${soloNC.length?` por $${fmtN(Math.abs(totalNC))}`:''}
+Notas de débito aplicadas: ${soloND.length}${soloND.length?` por $${fmtN(totalND)}`:''}
 Promedio días vencidos: ${diasProm} días
 
 === TOP 10 CLIENTES CON MAYOR DEUDA (neta) ===
@@ -6089,13 +6093,26 @@ async function loadDeudasSection(){
   }
 }
 
-/* Identidad de la fila: TipoComprobante/NroComprobante es lo que la fila ES
-   (la FA o la CA). TipoDoc/NroDoc es contra que documento se aplica, por eso una
-   CA aplicada trae TipoDoc='FA0019' — el tipo NO se puede leer de ahi. */
-function dkEsNC(r){ return String(r.TipoComprobante||'').trim().toUpperCase()==='CA0019'; }
+/* Tipos que devuelve el endpoint de deudas. Debe seguir a COMPROBANTES_0019 en
+   oliverCooksService.js: si alla se agrega un tipo, hay que clasificarlo aca o
+   cae por defecto en "factura" y suma cuando quiza deberia restar. */
+const DK_FACTURAS = ['FA0019','FB0019'];   // Factura A y B
+const DK_NC       = ['CA0019','CB0019'];   // Notas de credito — restan
+const DK_ND       = ['DB0019'];            // Nota de debito — suma
 
-/* La CA siempre resta. El endpoint ya la manda en negativo; forzar el signo por
-   tipo evita que un movimiento cargado al reves invierta el total. */
+/* Identidad de la fila: TipoComprobante/NroComprobante es lo que la fila ES.
+   TipoDoc/NroDoc es contra que documento se aplica, por eso una nota aplicada
+   trae TipoDoc='FA0019' — el tipo NO se puede leer de ahi. */
+function dkTipo(r){ return String(r.TipoComprobante||'').trim().toUpperCase(); }
+function dkEsFactura(r){ return DK_FACTURAS.includes(dkTipo(r)); }
+function dkEsNC(r){ return DK_NC.includes(dkTipo(r)); }
+function dkEsND(r){ return DK_ND.includes(dkTipo(r)); }
+/* Nota = ajuste que cuelga de una factura (credito o debito). */
+function dkEsNota(r){ return dkEsNC(r) || dkEsND(r); }
+
+/* Las NC siempre restan. El endpoint ya las manda en negativo; forzar el signo
+   evita que un movimiento cargado al reves invierta el total. El resto se
+   respeta tal cual viene: una factura puede venir negativa si quedo cancelada. */
 function dkMonto(r){
   const v=Number(r.MontoDeuda)||0;
   return dkEsNC(r) ? -Math.abs(v) : v;
@@ -6104,15 +6121,18 @@ function dkMonto(r){
 function renderDeudasKPIs(data){
   // Las NC suman negativo: el reduce entrega directamente la deuda neta.
   const total = data.reduce((s,r)=>s+dkMonto(r),0);
-  const nFact = data.filter(r=>!dkEsNC(r)).length;
-  const nNC   = data.length-nFact;
+  const nFact = data.filter(dkEsFactura).length;
+  const nNC   = data.filter(dkEsNC).length;
+  const nND   = data.filter(dkEsND).length;
   const byClient = {};
   data.forEach(r=>{ byClient[r.Cliente]=(byClient[r.Cliente]||0)+dkMonto(r); });
   const topCli = Object.entries(byClient).sort((a,b)=>b[1]-a[1])[0];
 
   document.getElementById('dk-total').textContent = (total<0?'−$':'$')+fmt(Math.abs(total));
   document.getElementById('dk-facturas').textContent =
-    nFact.toLocaleString('es-AR')+' facturas vencidas'+(nNC?' · '+nNC.toLocaleString('es-AR')+' NC aplicadas':'');
+    nFact.toLocaleString('es-AR')+' facturas vencidas'
+    +(nNC?' · '+nNC.toLocaleString('es-AR')+' NC':'')
+    +(nND?' · '+nND.toLocaleString('es-AR')+' ND':'');
   document.getElementById('dk-top-cli').textContent = topCli ? topCli[0] : '—';
   document.getElementById('dk-top-monto').textContent = topCli ? '$'+fmt(topCli[1])+' adeudados' : '—';
 }
@@ -6121,20 +6141,22 @@ function renderDeudasTable(rows, page){
   const total=rows.length, pages=Math.max(1,Math.ceil(total/DPS));
   page=Math.max(1,Math.min(page,pages));
   const from=(page-1)*DPS, slice=rows.slice(from,from+DPS);
-  const nFact=rows.filter(r=>!dkEsNC(r)).length, nNC=total-nFact;
+  const nFact=rows.filter(dkEsFactura).length, nNC=rows.filter(dkEsNC).length, nND=rows.filter(dkEsND).length;
   document.getElementById('dk-sub').textContent=
-    nFact.toLocaleString('es-AR')+' facturas'+(nNC?' · '+nNC.toLocaleString('es-AR')+' notas de crédito':'');
+    nFact.toLocaleString('es-AR')+' facturas'
+    +(nNC?' · '+nNC.toLocaleString('es-AR')+' notas de crédito':'')
+    +(nND?' · '+nND.toLocaleString('es-AR')+' notas de débito':'');
   const tbody=document.getElementById('dk-body');
   tbody.innerHTML=slice.map((r,i)=>{
-    const isNC=dkEsNC(r), monto=dkMonto(r), neg=monto<0, dias=r.DiasVencidos;
-    const rowStyle=isNC?'background:rgba(224,82,82,.07)':'';
-    // La flecha marca visualmente que la CA cuelga de la factura de arriba.
-    const tipoHtml=isNC
+    const esNota=dkEsNota(r), monto=dkMonto(r), neg=monto<0, dias=r.DiasVencidos;
+    const rowStyle=esNota?'background:rgba(224,82,82,.07)':'';
+    // La flecha marca visualmente que la nota cuelga de la factura de arriba.
+    const tipoHtml=esNota
       ? `<span style="color:var(--red);font-weight:600">↳ ${r.TipoComprobante}</span>`
       : (r.TipoComprobante||'—');
     const badge=dias>365?'alto':dias>180?'medio':'bajo';
-    // Ni una NC ni un movimiento en negativo son deuda vencida: sin badge.
-    const diasHtml=(isNC||neg)?'<span style="color:var(--t3)">—</span>':`<span class="dias-badge ${badge}">${dias}d</span>`;
+    // El badge implica factura impaga: no aplica a notas ni a saldos negativos.
+    const diasHtml=(esNota||neg)?'<span style="color:var(--t3)">—</span>':`<span class="dias-badge ${badge}">${dias}d</span>`;
     return `<tr style="${rowStyle}">
       <td style="color:var(--t3);font-size:11px">${from+i+1}</td>
       <td style="font-weight:600">${r.Cliente}</td>
@@ -6155,12 +6177,15 @@ function renderDeudasTable(rows, page){
 function updateDeudasTotals(rows){
   const foot=document.getElementById('dk-foot');
   if(!foot) return;
-  let totFact=0, totNC=0;
-  (rows||[]).forEach(r=>{ if(dkEsNC(r)) totNC+=dkMonto(r); else totFact+=dkMonto(r); });
-  const neto=totFact+totNC;
+  let totFact=0, totNC=0, totND=0;
+  (rows||[]).forEach(r=>{
+    const m=dkMonto(r);
+    if(dkEsNC(r)) totNC+=m; else if(dkEsND(r)) totND+=m; else totFact+=m;
+  });
+  const neto=totFact+totNC+totND;
   foot.innerHTML=`<tr style="border-top:2px solid var(--bdr);background:var(--ink3)">
     <td colspan="6" style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;padding:8px 12px">
-      Subtotal neto — facturas $${fmt(totFact)}${totNC?' · NC −$'+fmt(Math.abs(totNC)):''}
+      Subtotal neto — facturas $${fmt(totFact)}${totNC?' · NC −$'+fmt(Math.abs(totNC)):''}${totND?' · ND $'+fmt(totND):''}
     </td>
     <td style="text-align:right;font-weight:700;color:${neto<0?'var(--cyan)':'var(--red)'};padding:8px 8px">${neto<0?'−$':'$'}${fmt(Math.abs(neto))}</td>
     <td></td>
@@ -6886,17 +6911,17 @@ function expDeudasXLSX() {
   const { rows: data, filtro } = _expSet(deudasFiltered, deudasData, 'dk-search');
   if (!data?.length) { alert('No hay datos de deudas para exportar.'); return; }
   // Monto numerico con signo: Excel suma las NC en negativo sin ayuda.
-  let totFact=0, totNC=0;
+  let neto=0;
   const filas = data.map(r=>{
-    const m=+dkMonto(r).toFixed(2), isNC=dkEsNC(r);
-    if(isNC) totNC+=m; else totFact+=m;
+    const m=+dkMonto(r).toFixed(2);
+    neto+=m;
     return [r.Cliente||'—',r.TipoComprobante||'—',r.NroComprobante??'—',
-            m,(isNC||m<0)?'':(r.DiasVencidos||0)];
+            m,(dkEsNota(r)||m<0)?'':(r.DiasVencidos||0)];
   });
   _mkXLSX([{ name:'Deudas', rows:[
     ['Cliente','Comprobante','Nro','Monto (ARS)','Días Vencidos'],
     ...filas,
-    ['TOTAL NETO','','',+(totFact+totNC).toFixed(2),''],
+    ['TOTAL NETO','','',+neto.toFixed(2),''],
   ]}], _envFn('Deudas') + _expSuf(filtro));
 }
 function expDeudasPDF() {
@@ -6904,15 +6929,14 @@ function expDeudasPDF() {
   if (!data?.length) { alert('No hay datos de deudas para exportar.'); return; }
   // Se respeta el orden del servidor (cliente + fecha) para que cada NC quede
   // debajo de su factura. Reordenar por dias vencidos rompia ese agrupamiento.
-  let totFact=0, totNC=0;
+  let neto=0;
   const filas = data.map(r=>{
-    const m=dkMonto(r), isNC=dkEsNC(r);
-    if(isNC) totNC+=m; else totFact+=m;
+    const m=dkMonto(r);
+    neto+=m;
     // Guion ASCII: el signo menos tipografico no existe en las fuentes base del PDF.
     return [r.Cliente||'—',(r.TipoComprobante||'—')+' '+(r.NroComprobante??''),
-            (m<0?'-$':'$')+fmt(Math.abs(m)),(isNC||m<0)?'—':(r.DiasVencidos||0)+' días'];
+            (m<0?'-$':'$')+fmt(Math.abs(m)),(dkEsNota(r)||m<0)?'—':(r.DiasVencidos||0)+' días'];
   });
-  const neto=totFact+totNC;
   filas.push(['SUBTOTAL NETO','',(neto<0?'-$':'$')+fmt(Math.abs(neto)),'']);
   _mkPDF('ENVASADO — DEUDAS DE CLIENTES', _envPeriod(), [
     { heading:'Facturas y Notas de Crédito', headers:['Cliente','Comprobante','Monto (ARS)','Días Vencidos'], rows:filas },
