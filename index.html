@@ -2745,7 +2745,7 @@ function processData(data){
   let total=0;
   data.forEach(r=>{
     const v=parseFloat(r.TotalLinea)||0; total+=v;
-    const fk=String(r.NumeroFormulario||'');
+    const fk=factKey(r);
     facts.set(fk,(facts.get(fk)||0)+v);
     const cl=((r.NombreCliente||'Sin nombre').trim());
     cls.set(cl,(cls.get(cl)||0)+v);
@@ -2947,7 +2947,7 @@ function renderProductosSection(data){
     if(!map.has(pr)) map.set(pr,{nombre:pr,codigo:cod,cls:new Set(),facts:new Set(),units:0,total:0,precios:[]});
     const m=map.get(pr);
     m.cls.add((r.NombreCliente||'').trim());
-    m.facts.add(String(r.NumeroFormulario||''));
+    m.facts.add(factKey(r));
     m.units+=(parseFloat(r.Cantidad)||0);
     m.total+=(parseFloat(r.TotalLinea)||0);
     if(r.Precio) m.precios.push(parseFloat(r.Precio));
@@ -2988,7 +2988,7 @@ function buildProdArr(){
   allData.forEach(r=>{
     const pr=prodName(r),cod=r.CodigoProducto||'';
     if(!map.has(pr)) map.set(pr,{nombre:pr,codigo:cod,cls:new Set(),facts:new Set(),units:0,total:0,precios:[]});
-    const m=map.get(pr);m.cls.add((r.NombreCliente||'').trim());m.facts.add(String(r.NumeroFormulario||''));m.units+=(parseFloat(r.Cantidad)||0);m.total+=(parseFloat(r.TotalLinea)||0);if(r.Precio)m.precios.push(parseFloat(r.Precio));
+    const m=map.get(pr);m.cls.add((r.NombreCliente||'').trim());m.facts.add(factKey(r));m.units+=(parseFloat(r.Cantidad)||0);m.total+=(parseFloat(r.TotalLinea)||0);if(r.Precio)m.precios.push(parseFloat(r.Precio));
   });
   return [...map.values()].map(r=>({...r,cls:r.cls.size,facts:r.facts.size,prom:r.precios.length?r.precios.reduce((a,b)=>a+b,0)/r.precios.length:0})).sort((a,b)=>b.total-a.total);
 }
@@ -3002,7 +3002,7 @@ function renderClientesSection(data){
     const cl=(r.NombreCliente||'Sin nombre').trim();
     if(!map.has(cl)) map.set(cl,{nombre:cl,facts:new Set(),units:0,total:0});
     const m=map.get(cl);
-    m.facts.add(String(r.NumeroFormulario||''));
+    m.facts.add(factKey(r));
     m.units+=(parseFloat(r.Cantidad)||0);
     m.total+=(parseFloat(r.TotalLinea)||0);
   });
@@ -3032,7 +3032,7 @@ function filterClientes(q){
 }
 function buildClArr(){
   const map=new Map();
-  allData.forEach(r=>{const cl=(r.NombreCliente||'Sin nombre').trim();if(!map.has(cl))map.set(cl,{nombre:cl,facts:new Set(),units:0,total:0});const m=map.get(cl);m.facts.add(String(r.NumeroFormulario||''));m.units+=(parseFloat(r.Cantidad)||0);m.total+=(parseFloat(r.TotalLinea)||0);});
+  allData.forEach(r=>{const cl=(r.NombreCliente||'Sin nombre').trim();if(!map.has(cl))map.set(cl,{nombre:cl,facts:new Set(),units:0,total:0});const m=map.get(cl);m.facts.add(factKey(r));m.units+=(parseFloat(r.Cantidad)||0);m.total+=(parseFloat(r.TotalLinea)||0);});
   return[...map.values()].map(r=>({...r,facts:r.facts.size,prom:r.facts.size?r.total/r.facts.size:0})).sort((a,b)=>b.total-a.total);
 }
 
@@ -3048,7 +3048,7 @@ function renderTableDetalle(data,page){
     const bc=emp==='FP'?'b-fp':'b-ot';
     return `<tr>
       <td>${fecha}</td>
-      <td class="td-g">${r.NumeroFormulario||'—'}</td>
+      <td class="td-g">${factLabel(r)}</td>
       <td><span class="badge ${bc}">${emp}</span></td>
       <td class="td-s">${(r.NombreCliente||'—').trim()}</td>
       <td style="color:var(--t2)">${prodName(r)||'—'}</td>
@@ -3064,7 +3064,8 @@ function renderTableDetalle(data,page){
 
 function filterTable(q){
   const query=q.toLowerCase().trim();
-  filteredData=query?allData.filter(r=>(r.NombreCliente||'').toLowerCase().includes(query)||prodName(r).toLowerCase().includes(query)||String(r.NumeroFormulario||'').includes(query)||(r.NombreDeposito||'').toLowerCase().includes(query)):[...allData];
+  // Tambien por tipo de comprobante: "fb" filtra las facturas B.
+  filteredData=query?allData.filter(r=>(r.NombreCliente||'').toLowerCase().includes(query)||prodName(r).toLowerCase().includes(query)||String(r.NumeroFormulario||'').includes(query)||factLabel(r).toLowerCase().includes(query)||(r.NombreDeposito||'').toLowerCase().includes(query)):[...allData];
   document.getElementById('tbl-count').textContent=filteredData.length.toLocaleString('es-AR')+' registros';
   renderTableDetalle(filteredData,1);
 }
@@ -3486,6 +3487,15 @@ function filterLitros(q) {
    UTILS
 ═══════════════════════════════════════════════ */
 function prodName(r){ return (r.DescripcionProducto||r.NombreProducto||r.CodigoProducto||'Desconocido').trim(); }
+/* Clave unica de factura. La numeracion se reinicia por tipo de comprobante:
+   existen una FA0019 nro 501 y una FB0019 nro 501 que son facturas distintas.
+   Contar solo por numero las fusionaba y subestimaba la cantidad de facturas. */
+function factKey(r){ return (r.CodigoFormulario||'').trim()+'-'+(r.NumeroFormulario||''); }
+/* Etiqueta corta para mostrar: "FA 501" / "FB 501". */
+function factLabel(r){
+  const t=(r.CodigoFormulario||'').trim().replace(/0019$/,'');
+  return (t?t+' ':'')+(r.NumeroFormulario ?? '—');
+}
 function fmt(n){ return (parseFloat(n)||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtD(s){ if(!s)return'—'; const[y,m,d]=s.split('-'); return`${d}/${m}/${y}`; }
 function shortN(n){ if(n>=1e6)return(n/1e6).toFixed(1)+'M'; if(n>=1e3)return(n/1e3).toFixed(0)+'k'; return n; }
@@ -3861,7 +3871,7 @@ Analizá: qué productos están en el cuadrante ideal, cuáles son alto volumen/
   const top3pct = stats.total>0?top3cl.reduce((s,[,v])=>s+v,0)/stats.total*100:0;
   const clStr = top10.map(([n,v])=>{
     const pct = stats.total>0 ? (v/stats.total*100).toFixed(1) : '0';
-    const factsCl = [...new Set(allData.filter(r=>(r.NombreCliente||'').trim()===n).map(r=>String(r.NumeroFormulario||'')))].length;
+    const factsCl = [...new Set(allData.filter(r=>(r.NombreCliente||'').trim()===n).map(factKey))].length;
     return `${n}: $${Math.round(v).toLocaleString('es-AR')} (${pct}% del total, ${factsCl} facturas, ticket prom $${factsCl>0?Math.round(v/factsCl).toLocaleString('es-AR'):0})`;
   }).join(' | ');
   const restoCant = stats.nCl - top10.length;
@@ -5991,7 +6001,7 @@ function computeRFM(data){
   data.forEach(r=>{
     const cl=(r.NombreCliente||'Sin nombre').trim();
     if(!cm.has(cl))cm.set(cl,{nombre:cl,total:0,facts:new Set(),lastDate:null});
-    const m=cm.get(cl);m.total+=parseFloat(r.TotalLinea)||0;m.facts.add(String(r.NumeroFormulario||''));
+    const m=cm.get(cl);m.total+=parseFloat(r.TotalLinea)||0;m.facts.add(factKey(r));
     const fd=r.FechaMovimiento?new Date(r.FechaMovimiento):null;
     if(fd&&(!m.lastDate||fd>m.lastDate))m.lastDate=fd;
   });
@@ -6379,7 +6389,7 @@ function addChartClickListeners(){
     const mesLabel=mnL[+mo-1]+' '+y;
     const mesData=allData.filter(r=>r.FechaMovimiento&&r.FechaMovimiento.startsWith(ym));
     const topP=[...new Map(mesData.map(r=>[prodName(r),(parseFloat(r.TotalLinea)||0)])).entries()].sort((a,b)=>b[1]-a[1]).slice(0,4).map(([n])=>n).join(', ');
-    openDrillDown('mes_venta','Ventas de '+mesLabel,{mes:mesLabel,valor_total:Math.round(valor),clientes:[...new Set(mesData.map(r=>(r.NombreCliente||'').trim()))].length,facturas:[...new Set(mesData.map(r=>String(r.NumeroFormulario||'')))].length,top_productos:topP,promedio_diario:'$'+Math.round(valor/new Date(+y,+mo,0).getDate()).toLocaleString('es-AR')});
+    openDrillDown('mes_venta','Ventas de '+mesLabel,{mes:mesLabel,valor_total:Math.round(valor),clientes:[...new Set(mesData.map(r=>(r.NombreCliente||'').trim()))].length,facturas:[...new Set(mesData.map(factKey))].length,top_productos:topP,promedio_diario:'$'+Math.round(valor/new Date(+y,+mo,0).getDate()).toLocaleString('es-AR')});
   };}
 }
 
@@ -6422,10 +6432,10 @@ function exportExcel(){
   const wsR=XLSX.utils.aoa_to_sheet([['Oliver Cooks — Reporte de Ventas'],['Período',fmtD(sd)+' al '+fmtD(ed)],['Generado',new Date().toLocaleString('es-AR')],[],['INDICADORES'],['Total Vendido (ARS)',s.total],['Facturas',s.nFacts],['Clientes',s.nCl],['Productos Distintos',s.nPr],['Ticket Promedio (ARS)',s.prom],[],['TOP 10 CLIENTES'],['Cliente','Total ARS'],...s.topCl.map(([n,v])=>[n,v]),[],['TOP 10 PRODUCTOS'],['Producto','Total ARS'],...s.topPr.map(([n,v])=>[n,v])]);
   wsR['!cols']=[{wch:40},{wch:22}];XLSX.utils.book_append_sheet(wb,wsR,'Resumen');
   // Detalle completo — todas las columnas del ERP
-  const dH=['Fecha','N° Factura','Empresa','Cliente','Producto','Código Producto','Cantidad','Precio Unitario','Total Línea','Depósito','Sector','Sucursal','Usuario','Módulo','N° Cuenta','N° Subcuenta','Fecha Alta','Último Proceso','Precio Secundario','Cambio Secundario','Observaciones'];
-  const dR=allData.map(r=>[r.FechaMovimiento?fmtD(r.FechaMovimiento.split('T')[0]):'—',r.NumeroFormulario||'—',r.CodigoEmpresa||'—',(r.NombreCliente||'—').trim(),prodName(r),r.CodigoProducto||'—',parseFloat(r.Cantidad)||0,parseFloat(r.Precio)||0,parseFloat(r.TotalLinea)||0,(r.NombreDeposito||r.CodigoDeposito||'—').trim(),(r.NombreSector||r.CodigoSector||'—').trim(),r.Sucursal||'—',r.NombreUsuario||'—',r.ModuloFormulario||'—',r.NumeroCuenta||'—',r.NumeroSubcuenta||'—',r.FechaAlta?fmtD(String(r.FechaAlta).split('T')[0]):'—',r.UltimoProceso||'—',parseFloat(r.PrecioSecundario)||0,parseFloat(r.CambioSecundario)||0,r.ObservacionesItem||'—']);
+  const dH=['Fecha','Comprobante','N° Factura','Empresa','Cliente','Producto','Código Producto','Cantidad','Precio Unitario','Total Línea','Depósito','Sector','Sucursal','Usuario','Módulo','N° Cuenta','N° Subcuenta','Fecha Alta','Último Proceso','Precio Secundario','Cambio Secundario','Observaciones'];
+  const dR=allData.map(r=>[r.FechaMovimiento?fmtD(r.FechaMovimiento.split('T')[0]):'—',(r.CodigoFormulario||'—').trim(),r.NumeroFormulario||'—',r.CodigoEmpresa||'—',(r.NombreCliente||'—').trim(),prodName(r),r.CodigoProducto||'—',parseFloat(r.Cantidad)||0,parseFloat(r.Precio)||0,parseFloat(r.TotalLinea)||0,(r.NombreDeposito||r.CodigoDeposito||'—').trim(),(r.NombreSector||r.CodigoSector||'—').trim(),r.Sucursal||'—',r.NombreUsuario||'—',r.ModuloFormulario||'—',r.NumeroCuenta||'—',r.NumeroSubcuenta||'—',r.FechaAlta?fmtD(String(r.FechaAlta).split('T')[0]):'—',r.UltimoProceso||'—',parseFloat(r.PrecioSecundario)||0,parseFloat(r.CambioSecundario)||0,r.ObservacionesItem||'—']);
   const wsD=XLSX.utils.aoa_to_sheet([dH,...dR]);
-  wsD['!cols']=[{wch:12},{wch:14},{wch:8},{wch:38},{wch:45},{wch:12},{wch:10},{wch:15},{wch:16},{wch:22},{wch:20},{wch:10},{wch:16},{wch:10},{wch:14},{wch:14},{wch:12},{wch:16},{wch:15},{wch:14},{wch:28}];
+  wsD['!cols']=[{wch:12},{wch:13},{wch:14},{wch:8},{wch:38},{wch:45},{wch:12},{wch:10},{wch:15},{wch:16},{wch:22},{wch:20},{wch:10},{wch:16},{wch:10},{wch:14},{wch:14},{wch:12},{wch:16},{wch:15},{wch:14},{wch:28}];
   XLSX.utils.book_append_sheet(wb,wsD,'Detalle Ventas');
   // Clientes
   const wsCl=XLSX.utils.aoa_to_sheet([['#','Cliente','Facturas','Unidades','Total Comprado (ARS)','Ticket Prom. (ARS)'],...cData.map((r,i)=>[i+1,r.nombre,r.facts,r.units,r.total,r.prom])]);
@@ -6537,7 +6547,7 @@ function openPrecioModal(nombreProducto){
   document.getElementById('pp-tbody').innerHTML=sorted.map(r=>{
     const fecha=r.FechaMovimiento?fmtD(r.FechaMovimiento.split('T')[0]):'—';
     const cliente=(r.NombreCliente||'—').trim();
-    const factura=r.NumeroFormulario||'—';
+    const factura=factLabel(r);
     const cant=(parseFloat(r.Cantidad)||0).toLocaleString('es-AR',{maximumFractionDigits:1});
     const precio=parseFloat(r.Precio)||0;
     const total=parseFloat(r.TotalLinea)||0;
@@ -6612,7 +6622,7 @@ function openKpiModal(type){
       if(r.FechaMovimiento){
         const ym=r.FechaMovimiento.slice(0,7);
         if(!mFactsMap.has(ym))mFactsMap.set(ym,new Set());
-        mFactsMap.get(ym).add(String(r.NumeroFormulario||''));
+        mFactsMap.get(ym).add(factKey(r));
         mTotalMap.set(ym,(mTotalMap.get(ym)||0)+(parseFloat(r.TotalLinea)||0));
       }
     });

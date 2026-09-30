@@ -552,7 +552,7 @@ app.get('/oliver-cooks/visualizacion-granel', async (req, res) => {
           ON  RTRIM(LTRIM(H.VTRMVH_NROCTA)) = RTRIM(LTRIM(C.VTMCLH_NROCTA))
       WHERE RTRIM(LTRIM(I.VTRMVI_ARTCOD)) = '1'
         AND RTRIM(LTRIM(I.VTRMVI_TIPPRO)) = 'PRODTE'
-        ${dateFilter}
+        ${dateFilter}adina
       ORDER BY H.VTRMVH_FCHMOV DESC
     `;
 
